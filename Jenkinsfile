@@ -39,7 +39,7 @@ pipeline {
                 script {
                     // Build the backend (optional, depending on your project)
                     dir('backend') {
-                        sh 'npm run build'
+                       // sh 'npm run build'
                     }
 
                     // Build the frontend
