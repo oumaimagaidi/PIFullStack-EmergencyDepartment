@@ -4,19 +4,49 @@ pipeline {
     stages {
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                script {
+                    // Install backend dependencies
+                    dir('backend') {
+                        sh 'npm install'
+                    }
+
+                    // Install frontend dependencies
+                    dir('frontend') {
+                        sh 'npm install'
+                    }
+                }
             }
         }
 
         stage('Run Unit Tests') {
             steps {
-                sh 'npm test'
+                script {
+                    // Run backend unit tests
+                    dir('backend') {
+                        sh 'npm test'
+                    }
+
+                    // Run frontend unit tests
+                    dir('frontend') {
+                        sh 'npm test'
+                    }
+                }
             }
         }
 
         stage('Build Application') {
             steps {
-                sh 'npm run build-dev'
+                script {
+                    // Build the backend (optional, depending on your project)
+                    dir('backend') {
+                        sh 'npm run build'
+                    }
+
+                    // Build the frontend
+                    dir('frontend') {
+                        sh 'npm run build'
+                    }
+                }
             }
         }
     }
