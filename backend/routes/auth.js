@@ -16,6 +16,7 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 import cors from "cors";
 
 const router = express.Router();
+
 router.use(cors({ origin: "http://localhost:3000", credentials: true }));
 dotenv.config();
 router.post("/login", async (req, res) => {
@@ -430,38 +431,38 @@ router.post("/send-otp", async (req, res) => {
       res.status(500).json({ message: "Server error", error });
     }
   });
- router.post("/verify-otp", async (req, res) => {
+  router.post("/verify-otp", async (req, res) => {
     const { email, otp } = req.body;
-
+  
     if (!email || !otp) {
-        return res.status(400).json({ message: "Email et OTP sont requis" });
+      return res.status(400).json({ message: "Email et OTP sont requis" });
     }
-
+  
     try {
-        const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ message: "Utilisateur non trouvé" });
-
-        if (Date.now() > user.otpExpires) {
-            return res.status(400).json({ message: "OTP expiré" });
-        }
-
-        const isValid = await verifyOTP(otp, user.otp);
-        if (!isValid) {
-            return res.status(400).json({ message: "OTP incorrect" });
-        }
-
-        // Mettre à jour l'utilisateur après vérification
-        user.otpValidated = true; 
-        user.otp = undefined; 
-        user.otpExpires = undefined;  
-        await user.save();
-
-        res.status(200).json({ message: "OTP vérifié avec succès. Vous pouvez maintenant vous connecter." });
+      const user = await User.findOne({ email });
+      if (!user) return res.status(400).json({ message: "Utilisateur non trouvé" });
+  
+      if (Date.now() > user.otpExpires) {
+        return res.status(400).json({ message: "OTP expiré" });
+      }
+  
+      const isValid = await verifyOTP(otp, user.otp);
+      if (!isValid) {
+        return res.status(400).json({ message: "OTP incorrect" });
+      }
+  
+      // Mettre à jour l'utilisateur après vérification
+      user.otpValidated = true;
+      user.otp = undefined;
+      user.otpExpires = undefined;
+      await user.save();
+  
+      res.status(200).json({ message: "OTP vérifié avec succès. Vous pouvez maintenant vous connecter." });
     } catch (error) {
-        console.error("Erreur lors de la vérification de l'OTP:", error);
-        res.status(500).json({ message: "Erreur serveur", error });
+      console.error("Erreur lors de la vérification de l'OTP:", error);
+      res.status(500).json({ message: "Erreur serveur", error });
     }
-});
+  });
 
   ///////router export 
 export default router;

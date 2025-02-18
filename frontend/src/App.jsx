@@ -8,7 +8,7 @@ import ForgotPassword from "./components/ForgotPassword";
 import Home from "./components/home";
 import Header from "./components/header";
 import { FooterComponent } from "./components/footer";
-import AnimatedBackground from "./components/AnimatedBackground";
+
 import ResetPassword from "./components/ResetPassword";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 

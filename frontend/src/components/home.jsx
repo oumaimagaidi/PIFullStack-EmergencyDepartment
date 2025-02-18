@@ -1,5 +1,5 @@
 import React from "react";
-import { Navbar, Nav, Button, Carousel, Container, Row, Col } from "react-bootstrap";
+import {  Button, Carousel, Container, Row, Col } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Home = () => {
@@ -44,41 +44,42 @@ const Home = () => {
             <Col lg={4} className="text-center mb-3">
               <img 
                 className="rounded-circle" 
-                src="/images/equipe1.png" 
+                src="/images/Emergecy.png" 
                 alt="Team member 1" 
                 width="140" 
                 height="140" 
-                style={{ objectFit: "cover" }}
+                
+                style={{ objectFit: "cover",backgroundColor: "#005477" }}
               />
               <h2>Heading</h2>
               <p>Donec sed odio dui. Etiam porta sem malesuada magna mollis euismod.</p>
-              <Button variant="secondary">View details &raquo;</Button>
+              <Button style={{ backgroundColor: "#005477", borderColor: "#005477", color: "white" }}>View details &raquo;</Button>
             </Col>
             <Col lg={4} className="text-center mb-3">
               <img 
                 className="rounded-circle" 
-                src="/images/equipe2.png" 
+                src="/images/equipe2-removebg-preview.png" 
                 alt="Team member 2" 
                 width="140" 
                 height="140" 
-                style={{ objectFit: "cover" }}
+                style={{ objectFit: "cover" ,backgroundColor: "#005477"}}
               />
               <h2>Heading</h2>
               <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula.</p>
-              <Button variant="secondary">View details &raquo;</Button>
+              <Button  style={{ backgroundColor: "#005477", borderColor: "#005477", color: "white" }}>View details &raquo;</Button>
             </Col>
             <Col lg={4} className="text-center mb-3">
               <img 
                 className="rounded-circle" 
-                src="/images/electronic_medical_records.jpg" 
+                src="/images/electronic_medical_records-removebg-preview.png" 
                 alt="Team members in emergency department" 
                 width="140" 
                 height="140" 
-                style={{ objectFit: "cover" }}
+                style={{ objectFit: "cover" ,backgroundColor: "#005477"}}
               />
               <h2>Heading</h2>
               <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam.</p>
-              <Button variant="secondary">View details &raquo;</Button>
+              <Button style={{ backgroundColor: "#005477", borderColor: "#005477", color: "white" }}>View details &raquo;</Button>
             </Col>
           </Row>
 

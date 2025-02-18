@@ -22,7 +22,7 @@ const Register = () => {
     badgeNumber: "",
     specialization: "",
     licenseNumber: "",
-    shift: ""
+    shift: "",
   });
 
   const [message, setMessage] = useState("");
@@ -39,6 +39,7 @@ const Register = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Vérifier si les mots de passe correspondent
     if (formData.password !== formData.confirmPassword) {
       setMessage("Les mots de passe ne correspondent pas");
       setIsLoading(false);
@@ -47,12 +48,26 @@ const Register = () => {
 
     try {
       // Envoyer les données d'inscription au backend
-      await axios.post("http://localhost:8080/api/auth/register", formData);
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/register",
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true, // Inclure les cookies
+        }
+      );
+
+      // Si l'inscription réussit, afficher un message et activer l'OTP
       setMessage("Inscription réussie ! Veuillez vérifier votre email pour l'OTP.");
       setOtpSent(true);
     } catch (error) {
+      // Gérer les erreurs
       console.error("Erreur lors de l'inscription:", error);
-      setMessage(error.response?.data?.message || "Erreur lors de l'inscription");
+      setMessage(
+        error.response?.data?.message || "Erreur lors de l'inscription"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -61,26 +76,46 @@ const Register = () => {
   const handleVerifyOtp = async () => {
     try {
       // Vérifier l'OTP
-      await axios.post("http://localhost:8080/api/auth/verify-otp", {
-        email: formData.email,
-        otp
-      });
+      await axios.post(
+        "http://localhost:8080/api/auth/verify-otp",
+        {
+          email: formData.email,
+          otp,
+        },
+        {
+          withCredentials: true, // Inclure les cookies
+        }
+      );
+
+      // Si l'OTP est vérifié, rediriger vers la page de connexion
       setMessage("OTP vérifié avec succès. Vous pouvez maintenant vous connecter.");
       navigate("/login");
     } catch (error) {
-      setMessage(error.response?.data?.message || "Erreur lors de la vérification de l'OTP");
+      // Gérer les erreurs de vérification de l'OTP
+      setMessage(
+        error.response?.data?.message || "Erreur lors de la vérification de l'OTP"
+      );
     }
   };
 
   return (
     <div className="d-flex vh-100 bg-light">
       {/* Left Side */}
-      <div className="col-md-6 d-flex flex-column align-items-center justify-content-center text-white" 
-        style={{ backgroundColor: "#6DDCCF" }}>
+      <div
+        className="col-md-6 d-flex flex-column align-items-center justify-content-center text-white"
+        style={{ backgroundColor: "#6DDCCF" }}
+      >
         <h1 className="mb-4">ED</h1>
-        <img src="/images/image1.png" alt="Project Logo" className="mb-4 rounded shadow-lg img-fluid" style={{ maxWidth: "300px" }} />
+        <img
+          src="/images/image1.png"
+          alt="Project Logo"
+          className="mb-4 rounded shadow-lg img-fluid"
+          style={{ maxWidth: "300px" }}
+        />
         <h2 className="mb-2">Emergency department</h2>
-        <p className="text-center">Providing healthcare to different patient categories</p>
+        <p className="text-center">
+          Providing healthcare to different patient categories
+        </p>
         <div className="d-flex justify-content-center gap-2 mt-3">
           <button className="btn btn-outline-secondary rounded-circle">
             <i className="fab fa-facebook"></i>
@@ -97,7 +132,9 @@ const Register = () => {
       {/* Right Side */}
       <div className="col-md-6 d-flex flex-column justify-content-center p-5 bg-white shadow">
         <h2 className="mb-3">Sign Up</h2>
-        <p className="text-muted">Create your account by filling out the information below.</p>
+        <p className="text-muted">
+          Create your account by filling out the information below.
+        </p>
 
         {!otpSent ? (
           <form onSubmit={handleSubmit}>
@@ -285,15 +322,24 @@ const Register = () => {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary w-100 mt-3" 
-              style={{ backgroundColor: "#6DDCCF", borderColor: "#6DDCCF", color: "white" }} 
-              disabled={isLoading}>
+            <button
+              type="submit"
+              className="btn btn-primary w-100 mt-3"
+              style={{
+                backgroundColor: "#6DDCCF",
+                borderColor: "#6DDCCF",
+                color: "white",
+              }}
+              disabled={isLoading}
+            >
               {isLoading ? "Inscription..." : "S'inscrire"}
             </button>
 
             <div className="mt-3 text-center">
               <span>Déjà un compte ? </span>
-              <Link to="/login" className="text-decoration-none">Se connecter</Link>
+              <Link to="/login" className="text-decoration-none">
+                Se connecter
+              </Link>
             </div>
           </form>
         ) : (
@@ -305,9 +351,13 @@ const Register = () => {
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
             />
-            <button 
+            <button
               className="btn btn-primary w-100"
-              style={{ backgroundColor: "#6DDCCF", borderColor: "#6DDCCF", color: "white" }}
+              style={{
+                backgroundColor: "#6DDCCF",
+                borderColor: "#6DDCCF",
+                color: "white",
+              }}
               onClick={handleVerifyOtp}
             >
               Vérifier l'OTP
@@ -315,7 +365,15 @@ const Register = () => {
           </div>
         )}
 
-        {message && <div className={`alert ${message.includes("réussie") ? "alert-success" : "alert-danger"} mt-3`}>{message}</div>}
+        {message && (
+          <div
+            className={`alert ${
+              message.includes("réussie") ? "alert-success" : "alert-danger"
+            } mt-3`}
+          >
+            {message}
+          </div>
+        )}
       </div>
     </div>
   );
