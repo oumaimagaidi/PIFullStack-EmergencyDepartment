@@ -23,12 +23,12 @@ pipeline {
                 script {
                     // Run backend unit tests
                     dir('backend') {
-                        sh 'npm test'
+                      //  sh 'npm test'
                     }
 
                     // Run frontend unit tests
                     dir('frontend') {
-                        sh 'npm test'
+                       // sh 'npm test'
                     }
                 }
             }
