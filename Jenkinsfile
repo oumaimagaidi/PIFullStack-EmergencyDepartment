@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        SONAR_TOKEN = credentials('sonar-token') // Replace 'sonar-token' with your Jenkins credential ID
+    }
+
     stages {
         stage('Install Dependencies') {
             steps {
@@ -54,7 +58,10 @@ pipeline {
             steps {
                 script { 
                     def scannerHome = tool 'scanner'
-                    sh "${scannerHome}/bin/sonar-scanner"
+                    sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.login=$squ_15e2556c809394546921c16f0b9b2ec1647d38b2
+                    """
                 } 
             } 
         }
