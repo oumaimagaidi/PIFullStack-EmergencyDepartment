@@ -58,7 +58,7 @@ const Register = () => {
           withCredentials: true, // Inclure les cookies
         }
       );
-
+      console.log(response);
       // Si l'inscription réussit, afficher un message et activer l'OTP
       setMessage("Inscription réussie ! Veuillez vérifier votre email pour l'OTP.");
       setOtpSent(true);
