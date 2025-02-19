@@ -23,12 +23,12 @@ pipeline {
                 script {
                     // Run backend unit tests
                     dir('backend') {
-                      //  sh 'npm test'
+                        // sh 'npm test'
                     }
 
                     // Run frontend unit tests
                     dir('frontend') {
-                       // sh 'npm test'
+                        // sh 'npm test'
                     }
                 }
             }
@@ -39,7 +39,7 @@ pipeline {
                 script {
                     // Build the backend (optional, depending on your project)
                     dir('backend') {
-                       // sh 'npm run build'
+                        // sh 'npm run build'
                     }
 
                     // Build the frontend
@@ -48,6 +48,17 @@ pipeline {
                     }
                 }
             }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script { 
+                    def scannerHome = tool 'scanner'
+                    withSonarQubeEnv('SonarQube') {  // Ensure 'SonarQube' matches your Jenkins SonarQube configuration name
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                } 
+            } 
         }
     }
 }
