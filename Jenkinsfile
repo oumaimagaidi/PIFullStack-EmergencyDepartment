@@ -54,9 +54,7 @@ pipeline {
             steps {
                 script { 
                     def scannerHome = tool 'scanner'
-                    withSonarQubeEnv('SonarQube') {  // Ensure 'SonarQube' matches your Jenkins SonarQube configuration name
-                        sh "${scannerHome}/bin/sonar-scanner"
-                    }
+                    sh "${scannerHome}/bin/sonar-scanner"
                 } 
             } 
         }
