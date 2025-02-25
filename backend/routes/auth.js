@@ -8,7 +8,9 @@ import nodemailer from "nodemailer";
 import { generateOTP, saveOTPToUser,verifyOTP } from "../services/otpService.js";
 import { sendOTP } from "../services/emailService.js";
 import { OAuth2Client } from "google-auth-library";
-
+import multer from "multer";
+import upload from "../middleware/uploadMiddleware.js"
+import { authenticateToken } from "../middleware/authMiddleware.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -16,6 +18,17 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 import cors from "cors";
 
 const router = express.Router();
+// 📂 Définir le stockage des fichiers
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Dossier où enregistrer les images
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Nom unique
+  }
+});
+
+
 
 router.use(cors({ origin: "http://localhost:3000", credentials: true }));
 dotenv.config();
@@ -26,21 +39,52 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Utilisateur non trouvé" });
 
-    if (!user.isValidated)
+    if (!user.isValidated) {
       return res.status(400).json({ message: "Votre compte est en attente de validation par un administrateur" });
+    }
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(400).json({ message: "Mot de passe incorrect" });
 
+    // Generate JWT Token
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-    res.status(200).json({ message: "Connexion réussie", token, user });
+    // Store token in an HTTP-only cookie
+    res.cookie("token", token, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production", // Set secure in production (HTTPS only)
+      sameSite: "strict", // Protect against CSRF attacks
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expires in 7 days
+    });
+
+    res.status(200).json({ message: "Connexion réussie", user });
   } catch (error) {
     console.error("Erreur serveur:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 });
+router.post("/logout", (req, res) => {
+  console.log("Logout route hit");
+  res.clearCookie("token", { httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production" });
+  res.status(200).json({ message: "Déconnexion réussie" });
+});
+router.get("/me", authenticateToken , (req, res) => {
+  try {
+    // If the token is valid, `req.user` will have the decoded data
+    const user = req.user;
 
+    // Optionally, you can fetch the full user from the database if necessary
+    res.status(200).json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      profilePicture: user.profilePicture, // Add additional info as needed
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
 // Route de login avec Google
 router.post("/google-login", async (req, res) => {
   try {
@@ -70,7 +114,7 @@ router.post("/google-login", async (req, res) => {
 
 
 
-router.post("/register", async (req, res) => {
+router.post("/register",  upload.single("profileImage"),async (req, res) => {
   try {
     const { username, email, password, phoneNumber, role, ...roleSpecificData } = req.body;
 
@@ -91,7 +135,7 @@ router.post("/register", async (req, res) => {
     const isValidated = role === "Patient"; // Si rôle Patient, utilisateur est validé
 
     // Créer un nouvel utilisateur
-    const newUserData = { username, email, password: hashedPassword, phoneNumber, role, isValidated };
+    const newUserData = { username, email, password: hashedPassword, phoneNumber, role, isValidated,profileImage: req.file ? `/uploads/${req.file.filename}` : null };
 
     // Ajouter les champs spécifiques au rôle
     switch (role) {

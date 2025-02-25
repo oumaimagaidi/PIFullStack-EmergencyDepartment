@@ -14,16 +14,21 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-      const response = await axios.post("http://localhost:8080/api/auth/login", { email, password });
+      const response = await axios.post(
+        "http://localhost:8089/api/auth/login",
+        { email, password },
+        { withCredentials: true } // Ensures cookies are stored
+      );
+
       const userData = response.data.user;
       userData.profilePicture = userData.gender === "male" ? "/images/male.jpg" : "/images/female.jpg";
-      
-      localStorage.setItem("user", JSON.stringify(userData));
-      localStorage.setItem("token", response.data.token);
-      
-      setMessage(`Connexion réussie ! Bienvenue, ${response.data.user.username}`);
+
+      // Store user info in session storage (alternative to localStorage)
+      sessionStorage.setItem("user", JSON.stringify(userData));
+
+      setMessage(`Connexion réussie ! Bienvenue, ${userData.username}`);
       navigate("/home");
     } catch (error) {
       setMessage(error.response?.data?.message || "Erreur lors de la connexion");
@@ -34,7 +39,7 @@ const Login = () => {
 
   const handleGoogleLoginSuccess = async (response) => {
     try {
-      const res = await axios.post("http://localhost:8080/api/auth/google-login", {
+      const res = await axios.post("http://localhost:8089/api/auth/google-login", {
         token: response.credential,
       });
 

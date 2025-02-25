@@ -12,6 +12,7 @@ const UserSchema = new mongoose.Schema(
 	  phoneNumber: { type: String, required: true },
 	  role: { type: String, required: true, enum: ["Patient", "Doctor", "Nurse", "Administrator"] },
 	  isValidated: { type: Boolean, default: false } , // Nouveau champ
+    profileImage: { type: String },
 	  resetPasswordToken: String, // Nouveau champ
     resetPasswordExpires: Date, // Nouveau champ
     otp : { type: String, required: false,default: 0},

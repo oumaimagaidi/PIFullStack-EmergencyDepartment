@@ -12,7 +12,7 @@ const ForgotPassword = () => {
         setMessage(""); // Réinitialiser le message avant chaque requête
 
         try {
-            const res = await axios.post("http://localhost:8080/api/auth/forgot-password", { email }, { withCredentials: true });
+            const res = await axios.post("http://localhost:8089/api/auth/forgot-password", { email }, { withCredentials: true });
             
             if (res.data.message) {
                 setMessage("✅ Email de réinitialisation envoyé !");

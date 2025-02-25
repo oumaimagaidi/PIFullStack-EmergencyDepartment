@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import connectDB from "./db.js";
+import cookieParser from "cookie-parser";
+import profileRoutes from "./routes/profile.js";
 
 dotenv.config();
 
@@ -12,6 +14,9 @@ const app = express();
 
 // ✅ Connexion à MongoDB
 connectDB();
+
+
+
 
 // ✅ Middlewares
 app.use(express.json());
@@ -21,11 +26,11 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"], // Autoriser ces méthodes
   allowedHeaders: ["Content-Type", "Authorization"], // Headers autorisés
 }));
-
+app.use(cookieParser());
 // ✅ Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-
+app.use("/api/", profileRoutes);
 // ✅ Lancement du serveur
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`✅ Serveur démarré sur le port ${PORT}`));

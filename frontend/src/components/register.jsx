@@ -23,6 +23,7 @@ const Register = () => {
     specialization: "",
     licenseNumber: "",
     shift: "",
+    profileImage: null,
   });
 
   const [message, setMessage] = useState("");
@@ -34,7 +35,9 @@ const Register = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, profileImage: e.target.files[0] });
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -45,20 +48,21 @@ const Register = () => {
       setIsLoading(false);
       return;
     }
+    
 
     try {
       // Envoyer les données d'inscription au backend
       const response = await axios.post(
-        "http://localhost:8080/api/auth/register",
+        "http://localhost:8089/api/auth/register",
         formData,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
           withCredentials: true, // Inclure les cookies
         }
       );
-      console.log(response);
+
       // Si l'inscription réussit, afficher un message et activer l'OTP
       setMessage("Inscription réussie ! Veuillez vérifier votre email pour l'OTP.");
       setOtpSent(true);
@@ -77,7 +81,7 @@ const Register = () => {
     try {
       // Vérifier l'OTP
       await axios.post(
-        "http://localhost:8080/api/auth/verify-otp",
+        "http://localhost:8089/api/auth/verify-otp",
         {
           email: formData.email,
           otp,
@@ -320,6 +324,17 @@ const Register = () => {
                   </>
                 )}
               </div>
+            </div>
+{/* Ajouter le champ pour l'upload d'image */}
+<div className="form-group">
+              <label htmlFor="profileImage">Image de profil</label>
+              <input
+                type="file"
+                name="profileImage"
+                id="profileImage"
+                className="form-control mb-2"
+                onChange={handleFileChange}
+              />
             </div>
 
             <button

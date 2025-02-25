@@ -1,50 +1,88 @@
 import React from "react";
-import { BsDribbble, BsFacebook, BsGithub, BsInstagram, BsTwitter } from "react-icons/bs";
+import { Link } from "react-router-dom";
+import { FaLocationArrow, FaPhone } from "react-icons/fa6";
+import { MdEmail } from "react-icons/md";
 
-export function FooterComponent() {
+const Footer = () => {
+  const hours = [
+    {
+      id: 1,
+      day: "Monday",
+      time: "9:00 AM - 11:00 PM",
+    },
+    {
+      id: 2,
+      day: "Tuesday",
+      time: "12:00 PM - 12:00 AM",
+    },
+    {
+      id: 3,
+      day: "Wednesday",
+      time: "10:00 AM - 10:00 PM",
+    },
+    {
+      id: 4,
+      day: "Thursday",
+      time: "9:00 AM - 9:00 PM",
+    },
+    {
+      id: 5,
+      day: "Monday",
+      time: "3:00 PM - 9:00 PM",
+    },
+    {
+      id: 6,
+      day: "Saturday",
+      time: "9:00 AM - 3:00 PM",
+    },
+  ];
+
   return (
-    <footer className="py-5 text-white text-center" style={{ backgroundColor: "#005477" }}>
-      <div className="container">
-        <div className="d-flex flex-column align-items-center gap-3">
-          
-          {/* Liens rapides */}
-          <div className="d-flex flex-wrap justify-content-center gap-5">
+    <>
+      <footer className={"container"}>
+        <hr />
+        <div className="content">
+          <div>
+            <img src="./images/logo1.png" alt="logo" className="logo-img"/>
+          </div>
+          <div>
+            <h4>Quick Links</h4>
+            <ul>
+              <Link to={"/"}>Home</Link>
+              <Link to={"/appointment"}>Appointment</Link>
+              <Link to={"/about"}>About</Link>
+            </ul>
+          </div>
+          <div>
+            <h4>Hours</h4>
+            <ul>
+              {hours.map((element) => (
+                <li key={element.id}>
+                  <span>{element.day}</span>
+                  <span>{element.time}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h4>Contact</h4>
             <div>
-              <h6 className="font-weight-bold">About</h6>
-              <ul className="list-unstyled">
-                <li><a href="/about" className="text-white text-decoration-none">About Us</a></li>
-                <li><a href="/mission" className="text-white text-decoration-none">Our Mission</a></li>
-              </ul>
+              <FaPhone />
+              <span>+21656800822</span>
             </div>
             <div>
-              <h6 className="font-weight-bold">Legal</h6>
-              <ul className="list-unstyled">
-                <li><a href="/privacy-policy" className="text-white text-decoration-none">Privacy Policy</a></li>
-                <li><a href="/terms" className="text-white text-decoration-none">Terms & Conditions</a></li>
-              </ul>
+              <MdEmail />
+              <span>Edepartement@gmail.com</span>
             </div>
             <div>
-            <h6 className="font-weight-bold">Follow Us</h6>
-            <div className="d-flex justify-content-center gap-3">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-white"><BsFacebook size={24} /></a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-white"><BsInstagram size={24} /></a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-white"><BsTwitter size={24} /></a>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-white"><BsGithub size={24} /></a>
-              <a href="https://dribbble.com" target="_blank" rel="noopener noreferrer" className="text-white"><BsDribbble size={24} /></a>
+              <FaLocationArrow />
+              <span>Karachi, Pakistan</span>
             </div>
           </div>
-
-          {/* Réseaux Sociaux */}
-          
-          </div>
-
         </div>
-
-        {/* Bas du footer */}
-        <div className="text-center pt-4 mt-4 border-top">
-          <span>&copy; 2025 Emergency Departments™. All Rights Reserved.</span>
-        </div>
-      </div>
-    </footer>
+      </footer>
+    </>
   );
-}
+};
+
+export default Footer;
