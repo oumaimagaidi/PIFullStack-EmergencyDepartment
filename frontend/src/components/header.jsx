@@ -4,13 +4,15 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { FiUser } from "react-icons/fi";
 import Cookies from "js-cookie";
 import axios from "axios";
+import "./header.css"; // Import du fichier CSS spécifique au Header
 
 const Header = () => {
-  const [showMenu, setShowMenu] = useState(false);
+  const [show, setShow] = useState(false);
   const [user, setUser] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -57,49 +59,50 @@ const Header = () => {
   }
 
   return (
-    <nav className="container">
-      <div className="logo">
-        <img src="./images/logo1.png" alt="logo" className="logo-img" />
+    <nav className={"header_container"}>
+      <div className="header_logo">
+        <img src="./images/logo1.png" alt="logo" className="header_logo-img" />
       </div>
-      <div className={`navLinks ${showMenu ? "showmenu" : ""}`}>
-        <div className="links">
-          <Link to="/" onClick={() => setShowMenu(false)}>Home</Link>
-          <Link to="/appointment" onClick={() => setShowMenu(false)}>Emergency</Link>
-          <Link to="/document" onClick={() => setShowMenu(false)}>Medical document</Link>
-          <Link to="/ambulance" onClick={() => setShowMenu(false)}>Ambulance check</Link>
-          <Link to="/ressources" onClick={() => setShowMenu(false)}>Resources check</Link>
+      <div className={show ? "header_navLinks header_showmenu" : "header_navLinks"}>
+        <div className="header_links">
+          <Link to={"/"} onClick={() => setShow(!show)}>Home</Link>
+          <Link to={"/appointment"} onClick={() => setShow(!show)}>Emergency</Link>
+          <Link to={"/document"} onClick={() => setShow(!show)}>Medical document</Link>
+          <Link to={"/ambulance"} onClick={() => setShow(!show)}>Ambulance check</Link>
+          <Link to={"/ressources"} onClick={() => setShow(!show)}>Resources check</Link>
         </div>
 
         {user ? (
-          <div className="user-menu">
-            <div className="user-info" onClick={toggleDropdown}>
+          <div className="header_user-menu">
+            <div className="header_user-info" onClick={toggleDropdown}>
               {user.profileImage && (
                 <img
                   src={`http://localhost:8089${user.profileImage}`}
                   alt="Profile"
-                  className="user-avatar"
+                  className="header_user-avatar"
                   onError={(e) => {
                     console.error("Failed to load image:", user.profileImage);
-                    e.target.style.display = "none";
+                    e.target.style.display = "none"; // Masquer l'image si elle ne charge pas
                   }}
                 />
               )}
               <span>{user.username}</span>
-              <FiUser className="user-icon" />
+              <FiUser className="header_user-icon" /> {/* Ajout de l'icône */}
             </div>
 
             {dropdownOpen && (
-              <div className="dropdown-menu">
-                <Link to="/profile" onClick={closeDropdown}>My Profile</Link>
+              <div className="header_dropdown-menu">
+                               <Link to="/profile" onClick={closeDropdown}>My Profile</Link>
+
                 <button onClick={handleLogout}>Logout</button>
               </div>
             )}
           </div>
         ) : (
-          <button className="btn loginBtn" onClick={() => navigate("/login")}>Login</button>
+          <button className="header_btn header_loginBtn" onClick={() => navigate("/login")}>Login</button>
         )}
       </div>
-      <div className="hamburger" onClick={() => setShowMenu(!showMenu)}>
+      <div className="header_hamburger" onClick={() => setShow(!show)}>
         <GiHamburgerMenu />
       </div>
     </nav>
