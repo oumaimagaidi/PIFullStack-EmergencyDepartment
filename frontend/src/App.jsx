@@ -32,6 +32,7 @@ import Settings from "./pages/Settings";
 import Forum from "./pages/Forum";
 import Doctors from "./pages/Doctors";
 import NotFound from "./pages/NotFound";
+import Profile from "./components/profile";
 
 const queryClient = new QueryClient();
 
@@ -98,7 +99,7 @@ function MainContent() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/forum" element={<Forum />} />
             <Route path="/doctors" element={<Doctors />} />
-            
+            <Route path="/profile" element={<Profile />} />
             {/* Catch-All Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
