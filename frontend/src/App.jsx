@@ -107,7 +107,7 @@ const App = () => (
 
 function MainContent() {
   const location = useLocation();
-  const noSidebarRoutes = ["/login", "/", "/register", "/forgotpassword", "/reset-password/:token", "/home"];
+  const noSidebarRoutes = ["/login", "/", "/register", "/forgotpassword", "/reset-password/:token", "/home", "/profile"];
   const showSidebar = !noSidebarRoutes.includes(location.pathname);
   const showHeaderFooter = location.pathname === "/home";
 
@@ -124,6 +124,7 @@ function MainContent() {
               <Route path="/forgotpassword" element={<ForgotPassword />} />
               <Route path="/reset-password/:token" element={<ResetPassword />} />
               <Route path="/home" element={<Home />} />
+              <Route path="/profile" element={<Profile />} />
 
               {/* Role-based Protected Routes */}
               <Route path="/dashboard" element={<ProtectedRoute element={Dashboard} roles={["Administrator", "doctor", "nurse"]} />} />
@@ -136,7 +137,6 @@ function MainContent() {
               <Route path="/settings" element={<ProtectedRoute element={Settings} roles={["Administrator"]} />} />
               <Route path="/forum" element={<ProtectedRoute element={Forum} roles={["Administrator", "doctor", "nurse", "patient"]} />} />
               <Route path="/doctors" element={<ProtectedRoute element={Doctors} roles={["Administrator", "doctor"]} />} />
-              <Route path="/profile" element={<ProtectedRoute element={Profile} roles={["Administrator", "doctor", "nurse", "patient"]} />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
