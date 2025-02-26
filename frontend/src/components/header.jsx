@@ -4,7 +4,7 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { FiUser } from "react-icons/fi";
 import Cookies from "js-cookie";
 import axios from "axios";
-import "./header.css";
+import "./header.css"; // Import du fichier CSS spécifique au Header
 
 const Header = () => {
   const [show, setShow] = useState(false);

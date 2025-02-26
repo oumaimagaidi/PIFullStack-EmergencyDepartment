@@ -21,7 +21,6 @@ const Login = () => {
         { email, password },
         { withCredentials: true } // Ensures cookies are stored
       );
-
       const userData = response.data.user;
       userData.profilePicture = userData.gender === "male" ? "/images/male.jpg" : "/images/female.jpg";
 
@@ -29,7 +28,12 @@ const Login = () => {
       sessionStorage.setItem("user", JSON.stringify(userData));
 
       setMessage(`Connexion réussie ! Bienvenue, ${userData.username}`);
-      navigate("/home");
+
+      if (userData.role === "Patient") {
+        navigate("/home");
+      } else {
+        navigate(`/dashboard`);
+      }
     } catch (error) {
       setMessage(error.response?.data?.message || "Erreur lors de la connexion");
     } finally {
