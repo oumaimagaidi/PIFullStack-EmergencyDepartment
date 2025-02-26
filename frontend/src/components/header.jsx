@@ -4,6 +4,7 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { FiUser } from "react-icons/fi";
 import Cookies from "js-cookie";
 import axios from "axios";
+import "./header.css";
 
 const Header = () => {
   const [showMenu, setShowMenu] = useState(false);

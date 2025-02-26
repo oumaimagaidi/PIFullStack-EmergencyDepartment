@@ -27,10 +27,9 @@ import Login from "./components/Login";
 import Register from "./components/register";
 import ForgotPassword from "./components/ForgotPassword";
 import Home from "./components/Home";
+import Profile from "./components/profile";
 import ResetPassword from "./components/ResetPassword";
 import { ToastContainer } from "react-toastify";
-import NotFound from "./pages/NotFound";
-import Profile from "./components/profile";
 
 const queryClient = new QueryClient();
 
@@ -77,64 +76,14 @@ function MainContent() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/forum" element={<Forum />} />
               <Route path="/doctors" element={<Doctors />} />
+              <Route path="/profile" element={<Profile />} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
           <ToastContainer position="top-center" />
           {showHeaderFooter && <Footer />}
         </div>
-    const location = useLocation();
-    const hideHeaderFooterRoutes = [
-      "/login", 
-      "/", 
-      "/register", 
-      "/forgotpassword", 
-      "/reset-password/:token",
-      "/dashboard",
-      "/patients",
-      "/calendar",
-      "/records",
-      "/emergency",
-      "/staff",
-      "/alerts",
-      "/settings",
-      "/forum",
-      "/doctors"
-    ];
-  
-    const hideHeaderFooter = hideHeaderFooterRoutes.includes(location.pathname);
-  
-    return (
-      <div className="App">
-        {!hideHeaderFooter && <Header />}
-        <main className="container mt-5">
-          <Routes>
-            {/* Auth Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgotpassword" element={<ForgotPassword />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
-            <Route path="/home" element={<Home />} />
-            
-            {/* Dashboard Routes */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/patients" element={<Patients />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/records" element={<Records />} />
-            <Route path="/emergency" element={<Emergency />} />
-            <Route path="/staff" element={<Staff />} />
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/forum" element={<Forum />} />
-            <Route path="/doctors" element={<Doctors />} />
-            <Route path="/profile" element={<Profile />} />
-            {/* Catch-All Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-        <ToastContainer position="top-center" />
-        {!hideHeaderFooter && <Footer />}
       </div>
     </SidebarProvider>
   );

@@ -1,0 +1,142 @@
+/* Header Container */
+nav.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 10;
+  }
+  
+  /* Logo */
+  .logo {
+    align-items: center;
+  }
+  
+  .logo-img {
+    max-height: 90px;
+  }
+  
+  /* Navigation Links */
+  .navLinks {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: transform 0.3s ease;
+  }
+  
+  .navLinks a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+  
+  .navLinks a:hover {
+    color: #007bff;
+  }
+  
+  /* Hamburger Menu */
+  .hamburger {
+    display: none;
+    font-size: 28px;
+    cursor: pointer;
+  }
+  
+  /* User Menu */
+  .user-menu {
+    position: relative;
+    cursor: pointer;
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  .user-icon {
+    font-size: 20px;
+  }
+  
+  /* Dropdown Menu */
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    z-index: 10;
+  }
+  
+  .dropdown-menu a,
+  .dropdown-menu button {
+    display: block;
+    padding: 10px 20px;
+    text-align: left;
+    width: 100%;
+    color: #333;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  
+  .dropdown-menu a:hover,
+  .dropdown-menu button:hover {
+    background-color: #f5f5f5;
+  }
+  
+  /* Login Button */
+  .btn.loginBtn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .btn.loginBtn:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .navLinks {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: #fff;
+      flex-direction: column;
+      align-items: center;
+      transform: translateY(-200%);
+      opacity: 0;
+      pointer-events: none;
+    }
+  
+    .navLinks.showmenu {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: all;
+    }
+  
+    .hamburger {
+      display: block;
+    }
+    
+  }
+  
