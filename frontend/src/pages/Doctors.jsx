@@ -1,4 +1,5 @@
-import { useState } from "react";
+// Doctors.jsx (React component)
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,219 +21,153 @@ import {
     Mail,
     Phone,
 } from "lucide-react";
-
-const initialDoctors = [
-    {
-        id: "1",
-        name: "Dr. Sarah Johnson",
-        specialty: "Cardiology",
-        experience: "15 years",
-        email: "sarah.j@hospital.com",
-        phone: "123-456-7890",
-        availability: "Mon, Wed, Fri",
-        patients: 45,
-        rating: 4.8,
-        image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-        posts: [
-            {
-                id: "1",
-                title: "New Cardiac Treatment Guidelines",
-                content:
-                    "Recent studies have shown promising results in minimally invasive cardiac procedures. I'll be implementing these techniques starting next week.",
-                date: "2024-02-20",
-            },
-            {
-                id: "2",
-                title: "Patient Care Update",
-                content:
-                    "Updated post-operative care guidelines for cardiac patients. Please review and implement accordingly.",
-                date: "2024-02-18",
-            },
-        ],
-    },
-    {
-        id: "2",
-        name: "Dr. Michael Chen",
-        specialty: "Neurology",
-        experience: "12 years",
-        email: "michael.c@hospital.com",
-        phone: "123-456-7891",
-        availability: "Tue, Thu, Sat",
-        patients: 38,
-        rating: 4.9,
-        image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
-        posts: [
-            {
-                id: "1",
-                title: "Advances in Neurological Research",
-                content:
-                    "Our team has made significant progress in treating neurological disorders using new techniques.",
-                date: "2024-02-19",
-            },
-        ],
-    },
-];
+import axios from 'axios'; // Import axios
 
 const Doctors = () => {
-    const [doctors, setDoctors] = useState(initialDoctors);
+    const [doctors, setDoctors] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [editingDoctor, setEditingDoctor] = useState(null);
     const [newDoctor, setNewDoctor] = useState({
-        name: "",
-        specialty: "",
-        experience: "",
+        username: "",
         email: "",
-        phone: "",
-        availability: "",
+        password: "",
+        phoneNumber: "",
+        specialization: "",
+        licenseNumber: "",
+        badgeNumber: "",
     });
+
+    const fetchDoctors = async () => {
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await axios.get('http://localhost:8089/api/users/doctors', { withCredentials: true });
+
+            setDoctors(response.data); // axios automatically parses JSON response
+        } catch (error) {
+            console.error("Error fetching doctors:", error);
+             if (error.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                console.error("Server responded with status code:", error.response.status);
+                console.error("Response data:", error.response.data); // Log response data for backend errors
+                console.error("Response headers:", error.response.headers);
+            } else if (error.request) {
+                // The request was made but no response was received
+                console.error("No response received from server:", error.request);
+            } else {
+                // Something happened in setting up the request that triggered an Error
+                console.error("Error setting up the request:", error.message);
+            }
+        }
+    };
+
+    useEffect(() => {
+        fetchDoctors();
+    }, []);
 
     const handleSearch = (query) => {
         setSearchQuery(query);
         if (!query.trim()) {
-            setDoctors(initialDoctors);
+            fetchDoctors();
             return;
         }
-        const filtered = initialDoctors.filter(
+        const filtered = doctors.filter(
             (doctor) =>
-                doctor.name.toLowerCase().includes(query.toLowerCase()) ||
-                doctor.specialty.toLowerCase().includes(query.toLowerCase())
+                doctor.username.toLowerCase().includes(query.toLowerCase()) ||
+                doctor.specialization?.toLowerCase().includes(query.toLowerCase())
         );
         setDoctors(filtered);
     };
 
     const handleDelete = (id) => {
-        setDoctors(doctors.filter((doctor) => doctor.id !== id));
+        setDoctors(doctors.filter((doctor) => doctor._id !== id));
     };
 
-    const handleAdd = () => {
-        const id = (doctors.length + 1).toString();
-        const newDoctorData = {
-            ...newDoctor,
-            id,
-            patients: 0,
-            rating: 5.0,
-            posts: [],
-            image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${newDoctor.name}`,
-        };
-        setDoctors([newDoctorData, ...doctors]);
-        setNewDoctor({
-            name: "",
-            specialty: "",
-            experience: "",
-            email: "",
-            phone: "",
-            availability: "",
-        });
-    };
+    const handleAdd = async () => {
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await axios.post("/api/auth/register", { // Use axios.post
+                ...newDoctor,
+                role: "Doctor",
+                isValidated: true
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
 
-    const handleUpdate = () => {
-        if (editingDoctor) {
-            setDoctors(
-                doctors.map((d) => (d.id === editingDoctor.id ? editingDoctor : d))
-            );
-            setEditingDoctor(null);
+            fetchDoctors();
+            setNewDoctor({
+                username: "",
+                email: "",
+                password: "",
+                phoneNumber: "",
+                specialization: "",
+                licenseNumber: "",
+                badgeNumber: "",
+            });
+        } catch (error) {
+            console.error("Error adding doctor:", error);
+             if (error.response) {
+                console.error("Server responded with status code:", error.response.status);
+                console.error("Response data:", error.response.data);
+            } else if (error.request) {
+                console.error("No response received from server:", error.request);
+            } else {
+                console.error("Error setting up the request:", error.message);
+            }
         }
     };
 
+
+    const handleUpdate = async () => {
+        if (editingDoctor) {
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await axios.put(`/api/users/${editingDoctor._id}`, editingDoctor, { // Use axios.put
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                fetchDoctors();
+                setEditingDoctor(null);
+            } catch (error) {
+                console.error("Error updating doctor:", error);
+                 if (error.response) {
+                    console.error("Server responded with status code:", error.response.status);
+                    console.error("Response data:", error.response.data);
+                } else if (error.request) {
+                    console.error("No response received from server:", error.request);
+                } else {
+                    console.error("Error setting up the request:", error.message);
+                }
+            }
+        }
+    };
+
+
     return (
         <div className="space-y-6 p-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold">Doctors Dashboard</h1>
-                <Sheet>
-                    <SheetTrigger asChild>
-                        <Button>
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Add Doctor
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent>
-                        <SheetHeader>
-                            <SheetTitle>Add New Doctor</SheetTitle>
-                        </SheetHeader>
-                        <div className="space-y-4 mt-6">
-                            <Input
-                                placeholder="Full Name"
-                                value={newDoctor.name}
-                                onChange={(e) =>
-                                    setNewDoctor({ ...newDoctor, name: e.target.value })
-                                }
-                            />
-                            <Input
-                                placeholder="Specialty"
-                                value={newDoctor.specialty}
-                                onChange={(e) =>
-                                    setNewDoctor({ ...newDoctor, specialty: e.target.value })
-                                }
-                            />
-                            <Input
-                                placeholder="Experience (e.g., 5 years)"
-                                value={newDoctor.experience}
-                                onChange={(e) =>
-                                    setNewDoctor({ ...newDoctor, experience: e.target.value })
-                                }
-                            />
-                            <Input
-                                placeholder="Email"
-                                type="email"
-                                value={newDoctor.email}
-                                onChange={(e) =>
-                                    setNewDoctor({ ...newDoctor, email: e.target.value })
-                                }
-                            />
-                            <Input
-                                placeholder="Phone"
-                                value={newDoctor.phone}
-                                onChange={(e) =>
-                                    setNewDoctor({ ...newDoctor, phone: e.target.value })
-                                }
-                            />
-                            <Input
-                                placeholder="Availability (e.g., Mon, Wed, Fri)"
-                                value={newDoctor.availability}
-                                onChange={(e) =>
-                                    setNewDoctor({ ...newDoctor, availability: e.target.value })
-                                }
-                            />
-                            <Button onClick={handleAdd} className="w-full">
-                                Add Doctor
-                            </Button>
-                        </div>
-                    </SheetContent>
-                </Sheet>
-            </div>
-
-            <div className="flex gap-4 mb-6">
-                <div className="flex-1">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search doctors..."
-                            className="pl-10"
-                            value={searchQuery}
-                            onChange={(e) => handleSearch(e.target.value)}
-                        />
-                    </div>
-                </div>
-                <Button variant="outline">
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filter
-                </Button>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {/* ... rest of your Doctors component JSX - same as before ... */}
+             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {doctors.map((doctor) => (
-                    <Card key={doctor.id} className="hover:shadow-lg transition-shadow">
+                    <Card key={doctor._id} className="hover:shadow-lg transition-shadow">
                         <CardContent className="p-6">
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-4">
                                     <img
-                                        src={doctor.image}
-                                        alt={doctor.name}
+                                        src={`http://localhost:8089${doctor.profileImage}`}
+                                        //src={`http://localhost:8089${user.profileImage}`}
+
+                                        alt={doctor.username}
                                         className="w-16 h-16 rounded-full"
                                     />
                                     <div>
-                                        <h2 className="text-xl font-semibold">{doctor.name}</h2>
-                                        <p className="text-muted-foreground">{doctor.specialty}</p>
+                                        <h2 className="text-xl font-semibold">{doctor.username}</h2>
+                                        <p className="text-muted-foreground">{doctor.specialization}</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
@@ -246,7 +181,7 @@ const Doctors = () => {
                                     <Button
                                         variant="outline"
                                         size="icon"
-                                        onClick={() => handleDelete(doctor.id)}
+                                        onClick={() => handleDelete(doctor._id)}
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -255,8 +190,12 @@ const Doctors = () => {
 
                             <div className="mt-4 space-y-2">
                                 <div className="flex items-center gap-2 text-sm">
-                                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                                    <span>{doctor.availability}</span>
+                                    <span className="font-semibold">Badge:</span>
+                                    <span>{doctor.badgeNumber || "N/A"}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                    <span className="font-semibold">License:</span>
+                                    <span>{doctor.licenseNumber || "N/A"}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
                                     <Mail className="w-4 h-4 text-muted-foreground" />
@@ -264,45 +203,14 @@ const Doctors = () => {
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
                                     <Phone className="w-4 h-4 text-muted-foreground" />
-                                    <span>{doctor.phone}</span>
-                                </div>
-                            </div>
-
-                            <div className="mt-4">
-                                <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                                    <span>Patients: {doctor.patients}</span>
-                                    <span>Rating: {doctor.rating}/5.0</span>
-                                </div>
-                            </div>
-
-                            <div className="mt-4">
-                                <h3 className="text-lg font-semibold mb-2">Recent Posts</h3>
-                                <div className="space-y-2">
-                                    {doctor.posts.map((post) => (
-                                        <Card key={post.id} className="p-3">
-                                            <h4 className="font-medium">{post.title}</h4>
-                                            <p className="text-sm text-muted-foreground mt-1">
-                                                {post.content}
-                                            </p>
-                                            <div className="flex justify-between items-center mt-2">
-                                                <span className="text-xs text-muted-foreground">
-                                                    {post.date}
-                                                </span>
-                                                <Button variant="ghost" size="sm">
-                                                    <MessageCircle className="w-4 h-4 mr-2" />
-                                                    Reply
-                                                </Button>
-                                            </div>
-                                        </Card>
-                                    ))}
+                                    <span>{doctor.phoneNumber}</span>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
                 ))}
             </div>
-
-            {editingDoctor && (
+             {editingDoctor && (
                 <Sheet open={!!editingDoctor} onOpenChange={() => setEditingDoctor(null)}>
                     <SheetContent>
                         <SheetHeader>
@@ -310,27 +218,10 @@ const Doctors = () => {
                         </SheetHeader>
                         <div className="space-y-4 mt-6">
                             <Input
-                                placeholder="Full Name"
-                                value={editingDoctor.name}
+                                placeholder="Username"
+                                value={editingDoctor.username}
                                 onChange={(e) =>
-                                    setEditingDoctor({ ...editingDoctor, name: e.target.value })
-                                }
-                            />
-                            <Input
-                                placeholder="Specialty"
-                                value={editingDoctor.specialty}
-                                onChange={(e) =>
-                                    setEditingDoctor({ ...editingDoctor, specialty: e.target.value })
-                                }
-                            />
-                            <Input
-                                placeholder="Experience"
-                                value={editingDoctor.experience}
-                                onChange={(e) =>
-                                    setEditingDoctor({
-                                        ...editingDoctor,
-                                        experience: e.target.value,
-                                    })
+                                    setEditingDoctor({ ...editingDoctor, username: e.target.value })
                                 }
                             />
                             <Input
@@ -341,20 +232,38 @@ const Doctors = () => {
                                     setEditingDoctor({ ...editingDoctor, email: e.target.value })
                                 }
                             />
+
                             <Input
-                                placeholder="Phone"
-                                value={editingDoctor.phone}
+                                placeholder="Phone Number"
+                                value={editingDoctor.phoneNumber}
                                 onChange={(e) =>
-                                    setEditingDoctor({ ...editingDoctor, phone: e.target.value })
+                                    setEditingDoctor({ ...editingDoctor, phoneNumber: e.target.value })
                                 }
                             />
                             <Input
-                                placeholder="Availability"
-                                value={editingDoctor.availability}
+                                placeholder="Specialty"
+                                value={editingDoctor.specialization}
+                                onChange={(e) =>
+                                    setEditingDoctor({ ...editingDoctor, specialization: e.target.value })
+                                }
+                            />
+                            <Input
+                                placeholder="License Number"
+                                value={editingDoctor.licenseNumber}
                                 onChange={(e) =>
                                     setEditingDoctor({
                                         ...editingDoctor,
-                                        availability: e.target.value,
+                                        licenseNumber: e.target.value,
+                                    })
+                                }
+                            />
+                            <Input
+                                placeholder="Badge Number"
+                                value={editingDoctor.badgeNumber}
+                                onChange={(e) =>
+                                    setEditingDoctor({
+                                        ...editingDoctor,
+                                        badgeNumber: e.target.value,
                                     })
                                 }
                             />

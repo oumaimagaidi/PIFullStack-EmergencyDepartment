@@ -21,7 +21,6 @@ const Login = () => {
         { email, password },
         { withCredentials: true } // Ensures cookies are stored
       );
-
       const userData = response.data.user;
       userData.profilePicture = userData.gender === "male" ? "/images/male.jpg" : "/images/female.jpg";
 
@@ -29,7 +28,12 @@ const Login = () => {
       sessionStorage.setItem("user", JSON.stringify(userData));
 
       setMessage(`Connexion réussie ! Bienvenue, ${userData.username}`);
-      navigate("/home");
+
+      if (userData.role === "Patient") {
+        navigate("/home");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error) {
       setMessage(error.response?.data?.message || "Erreur lors de la connexion");
     } finally {
@@ -59,8 +63,8 @@ const Login = () => {
 
   return (
     <div className="d-flex vh-100 bg-light ">
-      <div className="col-md-6 d-flex flex-column align-items-center justify-content-center text-white" 
-     style={{ backgroundColor: "#6DDCCF" }}>
+      <div className="col-md-6 d-flex flex-column align-items-center justify-content-center text-white"
+        style={{ backgroundColor: "#6DDCCF" }}>
         <h1 className="mb-4">ED</h1>
         <img src="/images/image1.png" alt="Project Logo" className="mb-4 rounded shadow-lg img-fluid" style={{ maxWidth: "300px" }} />
         <h2 className="mb-2">Emergency departments </h2>
@@ -85,9 +89,9 @@ const Login = () => {
             </div>
             <Link to="/forgotpassword" className="text-primary">Forgot Password?</Link>
           </div>
-          <button 
-            type="submit" 
-            className="btn w-100" 
+          <button
+            type="submit"
+            className="btn w-100"
             style={{ backgroundColor: "#6DDCCF", borderColor: "#6DDCCF", color: "white" }}
             disabled={isLoading}
           >

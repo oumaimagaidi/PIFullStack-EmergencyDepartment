@@ -1,9 +1,26 @@
 import express from "express";
 import { User } from "../models/User.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
+import cors from "cors";
+import dotenv from "dotenv";
 
 const router = express.Router();
+router.use(cors({ origin: "http://localhost:3000", credentials: true }));
+dotenv.config();
 
+
+router.get("/doctors", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const doctors = await User.find({ role: "Doctor" }); // Find users with role "Doctor"
+    res.status(200).json(doctors);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
 // Obtenir tous les utilisateurs (admin uniquement)
 router.get("/", authenticateToken, async (req, res) => {
   try {

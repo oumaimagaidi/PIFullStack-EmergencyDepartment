@@ -5,12 +5,13 @@ import { User } from "../models/User.js";
 import dotenv from "dotenv";
 import crypto from "crypto"; // Utilisez cette syntaxe pour les modules ES
 import nodemailer from "nodemailer";
-import { generateOTP, saveOTPToUser,verifyOTP } from "../services/otpService.js";
+import { generateOTP, saveOTPToUser, verifyOTP } from "../services/otpService.js";
 import { sendOTP } from "../services/emailService.js";
 import { OAuth2Client } from "google-auth-library";
 import multer from "multer";
 import upload from "../middleware/uploadMiddleware.js"
 import { authenticateToken } from "../middleware/authMiddleware.js";
+import sendSMS from "../sendSMS.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -40,6 +41,7 @@ router.post("/login", async (req, res) => {
     if (!user) return res.status(400).json({ message: "Utilisateur non trouvé" });
 
     if (!user.isValidated) {
+      if (user.role === "Patient") return res.status(400).json({ message: "Votre compte est en attente de validation de mail via otp" });
       return res.status(400).json({ message: "Votre compte est en attente de validation par un administrateur" });
     }
 
@@ -68,7 +70,7 @@ router.post("/logout", (req, res) => {
   res.clearCookie("token", { httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production" });
   res.status(200).json({ message: "Déconnexion réussie" });
 });
-router.get("/me", authenticateToken , (req, res) => {
+router.get("/me", authenticateToken, (req, res) => {
   try {
     // If the token is valid, `req.user` will have the decoded data
     const user = req.user;
@@ -114,7 +116,8 @@ router.post("/google-login", async (req, res) => {
 
 
 
-router.post("/register",  upload.single("profileImage"),async (req, res) => {
+
+router.post("/register", upload.single("profileImage"), async (req, res) => {
   try {
     const { username, email, password, phoneNumber, role, ...roleSpecificData } = req.body;
 
@@ -132,10 +135,18 @@ router.post("/register",  upload.single("profileImage"),async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Si le rôle est un rôle restreint (Doctor, Nurse, Admin), l'utilisateur doit être en attente
-    const isValidated = role === "Patient"; // Si rôle Patient, utilisateur est validé
+    const isValidated = false; // Si rôle Patient, utilisateur est validé
 
     // Créer un nouvel utilisateur
-    const newUserData = { username, email, password: hashedPassword, phoneNumber, role, isValidated,profileImage: req.file ? `/uploads/${req.file.filename}` : null };
+    const newUserData = {
+      username,
+      email,
+      password: hashedPassword,
+      phoneNumber,
+      role,
+      isValidated,
+      profileImage: req.file ? `/uploads/${req.file.filename}` : null
+    };
 
     // Ajouter les champs spécifiques au rôle
     switch (role) {
@@ -219,12 +230,18 @@ router.post("/register",  upload.single("profileImage"),async (req, res) => {
     await sendOTP(email, otp);
     console.log("OTP envoyé à :", email);
 
+    // Envoyer un SMS de confirmation avec le numéro de téléphone
+    const smsMessage = `Bienvenue ${username}, votre inscription a été réussie !  Veuillez vérifier votre email pour l'OTP.`;
+    await sendSMS(smsMessage, phoneNumber); // <--- CORRECT
+    console.log("SMS envoyé à :", phoneNumber);
+
     res.status(201).json({ message: "Utilisateur créé avec succès. Veuillez vérifier votre email pour l'OTP.", user: newUser });
   } catch (error) {
     console.error("Erreur lors de l'inscription :", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 });
+
 // Route pour réinitialiser le mot de passe
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com", // Serveur SMTP d'Outlook
@@ -239,7 +256,7 @@ const transporter = nodemailer.createTransport({
 router.post("/forgot-password", async (req, res) => {
   try {
     console.log("📩 Requête reçue :", req.body);
-    const { email } = req.body; 
+    const { email } = req.body;
 
     // Vérifier si l'utilisateur existe
     const user = await User.findOne({ email });
@@ -365,7 +382,7 @@ router.post("/reset-password/:token", async (req, res) => {
     user.resetPasswordExpires = undefined;
     await user.save();
 
-  res.status(200).json({ success: true, message: "Mot de passe réinitialisé avec succès" });
+    res.status(200).json({ success: true, message: "Mot de passe réinitialisé avec succès" });
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error });
   }
@@ -456,57 +473,82 @@ router.put("/change-role/:id", async (req, res) => {
 
 // Send OTP Route
 router.post("/send-otp", async (req, res) => {
-    try {
-      const { email } = req.body;
-      if (!email) return res.status(400).json({ message: "Email is required" });
-  
-      // Generate OTP
-      const { otp, hashedOTP } = await generateOTP();
-      
-      // Store OTP with expiration (e.g., 5 minutes)
-      saveOTPToUser(email, hashedOTP);
-  
-      // Send OTP to email
-      await sendOTP(email, otp);
-      
-      res.status(200).json({ message: "OTP sent successfully" });
-    } catch (error) {
-      console.error("Error sending OTP:", error);
-      res.status(500).json({ message: "Server error", error });
-    }
-  });
-  router.post("/verify-otp", async (req, res) => {
-    const { email, otp } = req.body;
-  
-    if (!email || !otp) {
-      return res.status(400).json({ message: "Email et OTP sont requis" });
-    }
-  
-    try {
-      const user = await User.findOne({ email });
-      if (!user) return res.status(400).json({ message: "Utilisateur non trouvé" });
-  
-      if (Date.now() > user.otpExpires) {
-        return res.status(400).json({ message: "OTP expiré" });
-      }
-  
-      const isValid = await verifyOTP(otp, user.otp);
-      if (!isValid) {
-        return res.status(400).json({ message: "OTP incorrect" });
-      }
-  
-      // Mettre à jour l'utilisateur après vérification
-      user.otpValidated = true;
-      user.otp = undefined;
-      user.otpExpires = undefined;
-      await user.save();
-  
-      res.status(200).json({ message: "OTP vérifié avec succès. Vous pouvez maintenant vous connecter." });
-    } catch (error) {
-      console.error("Erreur lors de la vérification de l'OTP:", error);
-      res.status(500).json({ message: "Erreur serveur", error });
-    }
-  });
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
 
-  ///////router export 
+    // Generate OTP
+    const { otp, hashedOTP } = await generateOTP();
+
+    // Store OTP with expiration (e.g., 5 minutes)
+    saveOTPToUser(email, hashedOTP);
+
+    // Send OTP to email
+    await sendOTP(email, otp);
+
+    res.status(200).json({ message: "OTP sent successfully" });
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+router.post("/verify-otp", async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ message: "Email et OTP sont requis" });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "Utilisateur non trouvé" });
+
+    if (Date.now() > user.otpExpires) {
+      return res.status(400).json({ message: "OTP expiré" });
+    }
+
+    const isValid = await verifyOTP(otp, user.otp);
+    if (!isValid) {
+      if (user.role === "Patient") user.isValidated = true;
+      return res.status(400).json({ message: "OTP incorrect" });
+
+    }
+
+    // Mettre à jour l'utilisateur après vérification
+    user.otpValidated = true;
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    user.isValidated = true;
+    await user.save();
+
+    res.status(200).json({ message: "OTP vérifié avec succès. Vous pouvez maintenant vous connecter." });
+  } catch (error) {
+    console.error("Erreur lors de la vérification de l'OTP:", error);
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+
+
+router.post('/send-sms', async (req, res) => {
+  const { body, phoneNumber } = req.body;
+
+  // Vérifier que le corps du message et le numéro de téléphone sont fournis
+  if (!body || !phoneNumber) {
+    return res.status(400).json({ success: false, message: 'Body and phone number are required' });
+  }
+
+  try {
+    const result = await sendSMS(body, phoneNumber);
+    if (result.success) {
+      return res.status(200).json(result);
+    } else {
+      return res.status(500).json(result);
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Failed to send SMS', error: error.message });
+  }
+});
+
+///////router export 
 export default router;

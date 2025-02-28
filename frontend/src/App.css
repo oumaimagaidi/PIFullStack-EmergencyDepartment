@@ -1,19 +1,42 @@
+/* General Styles & Resets */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* overflow-x: hidden;  Removed this as it breaks layout in many places */
+  font-family: "Montserrat", sans-serif;
+}
+
+body {
+  background: #e5e5e5;
+  /* Keep existing background */
+  /* overflow-x: hidden is generally bad practice.  Remove it. */
+}
+
+
+/* Root and Basic Elements (from original App.css, cleaned up) */
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
+  /* Keep original padding */
   text-align: center;
 }
 
 .logo {
+  /* If you have a logo, these styles will apply */
   height: 6em;
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -22,6 +45,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -32,17 +56,14 @@
     animation: logo-spin infinite 20s linear;
   }
 }
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  overflow-x: hidden;
-  font-family: "Montserrat", sans-serif;
+
+/*  Remove .card styles from here.  They are redefined later. */
+
+.read-the-docs {
+  color: #888;
 }
-body {
-  background: #e5e5e5;
-}
+
+/* Buttons */
 .btn {
   padding: 7px 20px;
   border-radius: 12px;
@@ -50,72 +71,91 @@ body {
   font-weight: bold;
   letter-spacing: 2px;
 }
+
 .white-btn {
   background: #fff;
   color: #111;
 }
+
 .purple-btn {
+  /* You might not use this anymore, given your new styling */
   background: #9083d5;
   color: #fff;
 }
+
+/* Typography */
 p,
 span,
 a {
   font-size: 20px;
 }
+
 h1 {
   font-size: 36px;
   font-weight: 900;
 }
-h1 {
-  font-size: 36px;
-  font-weight: 900;
-}
+
 h2 {
   font-size: 32px;
   font-weight: 900;
 }
+
 h3 {
   font-size: 28px;
   font-weight: 900;
 }
+
 h4 {
   font-size: 24px;
   font-weight: 900;
 }
+
 h5,
 h6 {
   font-size: 24px;
   font-weight: 700;
 }
+
 @media (max-width: 1186px) {
   h1 {
     font-size: 32px;
-    font-weight: 900;
   }
+
   h2 {
     font-size: 30px;
-    font-weight: 900;
   }
 }
+
+/* Container */
 .container {
-  padding: 0; /* Supprimez le padding */
-  max-width: 100%; /* Assurez-vous que le conteneur prend toute la largeur */
-  margin: 0; /* Centrez le contenu si nécessaire */
+  padding: 0;
+  /* Reset padding, might be overridden later */
+  max-width: 100%;
+  /* Full width by default */
+  margin: 0;
+  /* Reset margin */
 }
+
 @media (max-width: 700px) {
   .container {
     padding: 0 20px;
+    /* Add padding on smaller screens */
   }
 }
+
+
+
+/* ---  Component-Specific Styles (Adapted and Integrated) --- */
+
+/* Hero Section (You likely won't use this exact structure with your profile layout) */
 .hero {
   display: flex;
   gap: 50px;
   padding-top: 120px;
   padding-bottom: 120px;
   position: relative;
-  width: 100%; /* Assurez-vous que la largeur est de 100% */
-  max-width: 100%; /* Assurez-vous que la largeur maximale est de 100% */
+  width: 100%;
+  max-width: 100%;
 }
 
 .hero .banner {
@@ -124,37 +164,44 @@ h6 {
   justify-content: center;
   align-items: center;
 }
+
 .hero .banner h1,
 .hero .banner p {
   max-width: 650px;
 }
+
 .hero .banner h1 {
   letter-spacing: 2px;
   word-spacing: 5px;
   font-size: 40px;
 }
+
 .hero .banner p {
   color: #111;
   letter-spacing: 2px;
 }
+
 .hero .banner span {
   position: absolute;
   right: -300px;
   top: -200px;
   z-index: -1;
 }
+
 .hero .banner:first-child {
   display: flex;
   justify-content: center;
   flex-direction: column;
   gap: 50px;
 }
+
 .hero .banner:last-child {
   display: flex;
   justify-content: center;
   align-items: center;
   overflow-y: hidden;
 }
+
 .animated-image {
   animation: moveUpDown 1s infinite alternate ease-in-out;
 }
@@ -163,62 +210,77 @@ h6 {
   0% {
     transform: translateY(0);
   }
+
   100% {
     transform: translateY(20px);
   }
 }
+
 @media (max-width: 1186px) {
   .hero .banner span {
     right: -400px;
   }
+
   .hero .banner h1 {
     font-size: 32px;
   }
 }
+
 @media (max-width: 1085px) {
   .hero .banner span {
     right: -480px;
     top: -315px;
   }
 }
+
 @media (max-width: 925px) {
   .hero {
     flex-direction: column;
   }
-  @media (max-width: 700px) {
-    .hero {
-      padding-bottom: 40px;
-    }
+}
+
+@media (max-width: 700px) {
+  .hero {
+    padding-bottom: 40px;
   }
 }
+
+
+/* Form Component */
 .form-component {
   padding-top: 40px;
   padding-bottom: 60px;
 }
+
 .form-component h2 {
   color: gray;
   letter-spacing: 4px;
   margin-bottom: 30px;
 }
+
 .form-component h4 {
   color: gray;
   font-weight: 700;
   margin-bottom: 20px;
 }
+
 .form-component p {
   max-width: 750px;
   color: gray;
   margin-bottom: 20px;
 }
+
 .form-component form {
   display: flex;
   flex-direction: column;
   gap: 30px;
 }
+
 .form-component form div {
   display: flex;
   gap: 30px;
 }
+
 .form-component form input,
 .form-component form select,
 .form-component form textarea {
@@ -228,6 +290,15 @@ h6 {
   border-radius: 7px;
   border: 1px solid gray;
 }
+
+/* Placeholder styles for date and time inputs. */
+input[type="date"]:before,
+input[type="time"]:before {
+  content: attr(placeholder);
+  color: #444;
+  margin-right: 0.5em;
+}
+
 .form-component button {
   padding: 10px 35px;
   color: #fff;
@@ -239,54 +310,68 @@ h6 {
   margin-bottom: 30px;
   background: linear-gradient(140deg, #9083d5, #271776ca);
 }
+
 .form-component .wrapper {
   display: flex;
   gap: 50px;
 }
+
 .form-component .wrapper .banner {
   flex: 1;
 }
+
 .form-component .wrapper .banner:last-child {
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 .form-component .wrapper .banner:last-child img {
   max-width: 450px;
 }
-.login-form {
+
+/* Generic Form Styles (adjust as needed) */
+.login-form,
+.register-form {
   margin: 100px auto 20px auto;
-  max-width: 800px;
+  /* Keep these */
   text-align: center;
 }
+
+.login-form {
+  max-width: 800px;
+}
+
 .register-form {
   max-width: 1200px;
-  margin: 100px auto 20px auto;
 }
-.login-form h2 {
-  color: #000;
-}
+
+.login-form h2,
 .register-form h2 {
   color: #000;
 }
+
 @media (max-width: 1110px) {
-  .appointment-form form div:nth-child(4) {
-    flex-direction: column;
-  }
+
+  .appointment-form form div:nth-child(4),
   .appointment-form form div:nth-child(5) {
     flex-direction: column;
   }
 }
+
 @media (max-width: 888px) {
   .form-component {
     padding-top: 30px;
     padding-bottom: 30px;
   }
+
   .form-component form div {
     flex-direction: column;
   }
 }
+
 @media (max-width: 667px) {
+
   .form-component form input,
   .form-component form select,
   .form-component form textarea {
@@ -294,45 +379,56 @@ h6 {
     padding: 10px;
   }
 }
+
+/* Biography Section (You may not need this section in your profile) */
 .biography {
   display: flex;
   gap: 50px;
   padding-top: 40px;
   padding-bottom: 60px;
 }
+
 .biography .banner:first-child {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 .biography .banner:last-child {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
 .biography .banner h3 {
   font-weight: 700;
   letter-spacing: 3px;
 }
+
 .biography .banner p:first-child {
   font-size: 24px;
   letter-spacing: 2px;
 }
+
 @media (max-width: 925px) {
   .biography {
     flex-direction: column-reverse;
   }
 }
+
+/* Message Form (Likely not needed for a profile page) */
 .message-form {
   position: relative;
 }
+
 .message-form h2 {
   text-align: center;
   color: #000;
   position: relative;
 }
+
 .message-form img {
   position: absolute;
   top: 0;
@@ -340,6 +436,7 @@ h6 {
   height: 600px;
   z-index: -1;
 }
+
 @media (max-width: 700px) {
   .message-form img {
     right: -35%;
@@ -347,42 +444,54 @@ h6 {
     top: 10%;
   }
 }
+
+/* Footer */
 footer {
   padding-bottom: 30px !important;
 }
+
 footer hr {
   margin-bottom: 30px;
 }
+
 footer .content {
   display: flex;
   gap: 20px;
 }
+
 footer .content div {
   flex: 1;
 }
+
 footer .content div:nth-child(3) {
   flex: 2;
 }
+
 footer .content div h4 {
   font-weight: 700;
   margin-bottom: 20px;
 }
+
 footer .content div ul {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
 footer .content div ul a {
   color: gray;
   text-decoration: none;
 }
+
 footer .content div ul a:hover {
   color: #8570ed;
   transition: 0.3s;
 }
+
 footer .content div ul li span {
   color: gray;
 }
+
 footer .content div ul li span:first-child {
   width: 150px;
   display: inline-block;
@@ -394,14 +503,17 @@ footer .content div:last-child div {
   gap: 12px;
   margin-bottom: 10px;
 }
+
 footer .content div:last-child div svg {
   font-size: 24px;
 }
+
 @media (max-width: 1135px) {
   footer .content {
     flex-wrap: wrap;
     justify-content: space-between;
   }
+
   footer .content div,
   footer .content div:nth-child(3) {
     flex: none;
@@ -409,15 +521,18 @@ footer .content div:last-child div svg {
     margin-bottom: 30px;
   }
 }
+
 @media (max-width: 900px) {
   footer {
     padding-bottom: 0 !important;
   }
+
   footer .content div,
   footer .content div:nth-child(3) {
     width: 100%;
   }
 }
+
 @media (max-width: 390px) {
   footer .content div:nth-child(3) ul li {
     display: flex;
@@ -429,10 +544,13 @@ footer .content div:last-child div svg {
   padding-top: 30px;
   padding-bottom: 50px;
 }
+
 .departments h2 {
   color: gray;
   margin-bottom: 30px;
 }
+
+/* Card Styles (Keep and adapt these) */
 .card {
   position: relative;
   border-radius: 8px;
@@ -446,7 +564,9 @@ footer .content div:last-child div svg {
   min-height: 360px;
   margin: 0 10px;
   text-decoration: none;
+  /* Remove conflicting overflow property */
 }
+
 .card img {
   position: absolute;
   width: 100%;
@@ -454,7 +574,12 @@ footer .content div:last-child div svg {
   z-index: -1;
   top: 0;
   left: 0;
+  object-fit: cover;
+  /*  Ensure images cover the card properly */
+  border-radius: 8px;
+  /*  Match card border-radius */
 }
+
 .card .depart-name {
   margin-bottom: 30px;
   background: #e5e5e5;
@@ -470,222 +595,17 @@ footer .content div:last-child div svg {
   font-weight: 700;
 }
 
-/**********************************************************************************************************************/
-nav {
-  display: flex;
-  width: 100%; /* Assurez-vous que la largeur est de 100% */
-  margin: 0; /* Supprimez la marge automatique */
-  justify-content: space-between;
-  position: absolute;
-  align-items: center;
-  border-bottom-right-radius: 7px;
-  border-bottom-left-radius: 7px;
-  padding-top:20px !important;
-  padding-bottom: 20px !important;
-  z-index: 2;
-}
-nav .logo {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  font-size: 2rem;
-}
-nav .navLinks {
-  flex: 4;
-}
-nav .navLinks {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-nav .navLinks .links {
-  display: flex;
-  gap: 25px; /* Augmentez l'espacement */
-  align-items: center; /* Alignement vertical */
-}
-nav .navLinks .links a {
-  text-decoration: none;
-  color: #222;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: 1.4px;
-}
-nav .navLinks .links a:hover {
-  color: #000;
-  transition: 0.3s;
-  cursor: pointer;
-}
-nav .btn {
-  padding: 8px 20px;
-  color: #e5e5e5;
-  background: transparent;
-  border: none;
-  border-radius: 20px;
-  font-size: 20px;
-  font-weight: 600;
-  z-index: 2;
-}
-nav .logoutBtn {
-  background: linear-gradient(135deg, black, rgb(49, 49, 49));
-}
-nav .loginBtn {
-  background: linear-gradient(135deg, black, rgb(49, 49, 49));
-}
-nav .hamburger {
-  display: none;
-}
-nav svg {
-  font-size: 1.75rem;
-}
-@media (max-width: 1520px) {
-  nav {
-    min-width: 100%;
-    padding: 25px 20px 40px 20px;
-  }
-}
-@media (max-width: 1100px) {
-  nav {
-    background: #ffffffbf;
-    position: fixed;
-    top: 0;
-    left: 0;
-  }
-  nav .hamburger {
-    display: flex;
-  }
-  nav .navLinks {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    padding: 15px 7.5px;
-    z-index: 2;
-    transition: 0.3s;
-    position: fixed;
-    left: 0;
-    height: 100%;
-    width: 400px;
-    background: #ffffffbf;
-    top: 9px;
-  }
-  nav .showmenu {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    padding: 15px 7.5px;
-    z-index: 2;
-    transition: 0.3s;
-    position: fixed;
-    left: -100%;
-    width: 400px;
-    height: 100%;
-    background: #ffffffbf;
-    top: 10px;
-  }
-  nav .navLinks .links {
-    flex-direction: column;
-    text-align: center;
-  }
-  nav .navLinks .links a {
-    font-weight: 700;
-  }
-  nav .logoutBtn {
-    margin-top: 5px;
-  }
-}
-@media (max-width: 800px) {
-  nav .showmenu {
-    width: 96vw;
-  }
-}
-@media (max-width: 650px) {
-  nav .showmenu {
-    margin: 0;
-    width: 100%;
-    border-radius: 0;
-  }
-}
-@media (max-width: 555px) {
-  nav {
-    background: #fff;
-  }
-  nav .navLinks {
-    background: #fff;
-    width: 100%;
-  }
-}
-
-input[type="date"]:before {
-  content: attr(placeholder);
-  color: #444;
-  margin-right: 0.5em;
-}
-input[type="time"]:before {
-  content: attr(placeholder);
-  color: #444;
-  margin-right: 0.5em;
-}
-.logo-img{
+.logo-img {
+  /* If you use logo images */
   width: 150px;
 }
-footer .logo-img{
+
+footer .logo-img {
   width: 100%;
 }
-.user-menu {
-  position: relative;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
+/* User Icon */
 .user-icon {
   font-size: 20px;
   cursor: pointer;
 }
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: white;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-}
-
-.dropdown-menu a, .dropdown-menu button {
-  text-decoration: none;
-  color: black;
-  padding: 8px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  text-align: left;
-}
-
-.dropdown-menu button:hover, .dropdown-menu a:hover {
-  background-color: #f0f0f0;
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-

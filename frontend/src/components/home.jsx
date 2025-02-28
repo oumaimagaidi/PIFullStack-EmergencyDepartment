@@ -1,109 +1,111 @@
 import React from "react";
-import {  Button, Carousel, Container, Row, Col } from "react-bootstrap";
-import "bootstrap/dist/css/bootstrap.min.css";
+import Carousel from "react-multi-carousel";
+import "react-multi-carousel/lib/styles.css";
+import { Card } from "react-bootstrap";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa"; // Icônes de navigation
 
 const Home = () => {
-  return (
-    <div>
-   {/* Main Carousel */}
-<main role="main" style={{ paddingTop: "0.9rem", width: "100%" }}>
-  <Carousel fade className="w-100">
-    <Carousel.Item>
-      <img 
-        className="d-block w-100" 
-        src="/images/cover.jpg" 
-        alt="Team member 1" 
-        style={{ maxHeight: "600px", objectFit: "cover" }}
-      />
-    </Carousel.Item>
+  const departmentsArray = [
+    { name: "Emergency", imageUrl: "public/images/Emergecy.png" },
+    { name: "Medical Document", imageUrl: "/images/electronic_medical_records-removebg-preview.png" },
+    { name: "Ambulance Check", imageUrl: "/images/stafambulace.png" },
+    { name: "Resources Check", imageUrl: "/images/ressources-removebg-preview.png" },
+    { name: "Patient Feedback", imageUrl: "/images/equipe2-removebg-preview.png" },
+  ];
 
-    <Carousel.Item>
-      <img 
-        className="d-block w-100" 
-        src="/images/cover2.jpg" 
-        alt="Team member 2" 
-        style={{ maxHeight: "600px", objectFit: "cover" }}
-      />
-    </Carousel.Item>
+  // Configuration du carrousel
+  const responsive = {
+    desktop: {
+      breakpoint: { max: 3000, min: 1024 },
+      items: 3, // Affiche 3 cartes à la fois
+      slidesToSlide: 1, // Défile une carte à la foisc
+    },
+    tablet: {
+      breakpoint: { max: 1024, min: 768 },
+      items: 2, // Affiche 2 cartes à la fois
+      slidesToSlide: 1,
+    },
+    mobile: {
+      breakpoint: { max: 768, min: 0 },
+      items: 1, // Affiche 1 carte à la fois
+      slidesToSlide: 1,
+    },
+  };
 
-    <Carousel.Item>
-      <img 
-        className="d-block w-100" 
-        src="/images/patients_emergency_flow.jpg" 
-        alt="Team members in emergency department" 
-        style={{ maxHeight: "600px", objectFit: "cover" }}
-      />
-    </Carousel.Item>
-  </Carousel>
-
-
-
-        {/* Marketing Section */}
-        <Container className="marketing">
-          <Row>
-            <Col lg={4} className="text-center mb-3">
-              <img 
-                className="rounded-circle" 
-                src="/images/Emergecy.png" 
-                alt="Team member 1" 
-                width="140" 
-                height="140" 
-                
-                style={{ objectFit: "cover",backgroundColor: "#005477" }}
-              />
-              <h2>Heading</h2>
-              <p>Donec sed odio dui. Etiam porta sem malesuada magna mollis euismod.</p>
-              <Button style={{ backgroundColor: "#005477", borderColor: "#005477", color: "white" }}>View details &raquo;</Button>
-            </Col>
-            <Col lg={4} className="text-center mb-3">
-              <img 
-                className="rounded-circle" 
-                src="/images/equipe2-removebg-preview.png" 
-                alt="Team member 2" 
-                width="140" 
-                height="140" 
-                style={{ objectFit: "cover" ,backgroundColor: "#005477"}}
-              />
-              <h2>Heading</h2>
-              <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula.</p>
-              <Button  style={{ backgroundColor: "#005477", borderColor: "#005477", color: "white" }}>View details &raquo;</Button>
-            </Col>
-            <Col lg={4} className="text-center mb-3">
-              <img 
-                className="rounded-circle" 
-                src="/images/electronic_medical_records-removebg-preview.png" 
-                alt="Team members in emergency department" 
-                width="140" 
-                height="140" 
-                style={{ objectFit: "cover" ,backgroundColor: "#005477"}}
-              />
-              <h2>Heading</h2>
-              <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam.</p>
-              <Button style={{ backgroundColor: "#005477", borderColor: "#005477", color: "white" }}>View details &raquo;</Button>
-            </Col>
-          </Row>
-
-          {/* Featurettes */}
-          <hr className="featurette-divider" />
-          <Row className="featurette">
-            <Col md={7}>
-              <h2 className="featurette-heading" style={{ color: "#6DDDCF" }}>First featurette heading. <span className="text-muted">It'll blow your mind.</span></h2>
-              <p className="lead" style={{ color: "#5a5a5a" }}>Donec ullamcorper nulla non metus auctor fringilla. Fusce dapibus, tellus ac cursus commodo.</p>
-            </Col>
-            <Col md={5}>
-              <img 
-                className="featurette-image img-fluid mx-auto" 
-                src="/images/Emergecy.png" 
-                alt="Emergency department overview" 
-                style={{ maxHeight: "400px", objectFit: "cover" }}
-              />
-            </Col>
-          </Row>
-          <hr className="featurette-divider" />
-        </Container>
-      </main>
+  // Icônes de navigation personnalisées
+  const CustomLeftArrow = ({ onClick }) => (
+    <div className="custom-arrow left-arrow" onClick={onClick}>
+      <FaArrowLeft size={24} />
     </div>
   );
-}
+
+  const CustomRightArrow = ({ onClick }) => (
+    <div className="custom-arrow right-arrow" onClick={onClick}>
+      <FaArrowRight size={24} />
+    </div>
+  );
+
+  return (
+    <>
+      {/* Hero Section */}
+      <div className="hero container">
+        <div className="banner">
+          <h1>Transforming Emergency Care with Smart & Efficient Solutions</h1>
+          <p>
+            Our Intelligent Emergency Department Management System is designed to revolutionize patient care by optimizing resource allocation, reducing waiting times, and enhancing real-time collaboration among healthcare professionals. With AI-driven predictive analytics and secure electronic health records, we empower emergency departments to provide faster, more accurate, and efficient care to all patients.
+          </p>
+        </div>
+        <div className="banner">
+          <img src="./images/hero.png" alt="hero" className="animated-image" />
+          <span>
+            <img src="./images/Vector.png" alt="vector" />
+          </span>
+        </div>
+      </div>
+
+      {/* Biography Section */}
+      <div className="container biography">
+        <div className="banner">
+          <img src="./images/about.png" alt="whoweare" />
+        </div>
+        <div className="banner">
+          <p>Biography</p>
+          <h3>Who We Are</h3>
+          <p>
+            Emergency departments (ED) play a crucial role as the first point of contact for patients requiring urgent medical attention. Our mission is to enhance emergency care by addressing key challenges such as overcrowding, resource limitations, and patient flow management.
+          </p>
+          <p>We are all in 2025!</p>
+          <p>We are working on a MERN STACK PROJECT.</p>
+        </div>
+      </div>
+
+      {/* Services Section */}
+      <div className="container departments">
+        <h2>Services</h2>
+        <Carousel
+          responsive={responsive}
+          customLeftArrow={<CustomLeftArrow />}
+          customRightArrow={<CustomRightArrow />}
+          infinite={true} // Défilement infini
+          autoPlay={false} // Désactive l'autoplay
+          keyBoardControl={true} // Permet la navigation au clavier
+          containerClass="carousel-container" // Classe personnalisée pour le conteneur
+        >
+          {departmentsArray.map((depart, index) => (
+            <div key={index} className="card-wrapper">
+              <Card className="service-card">
+                <Card.Img variant="top" src={depart.imageUrl} alt={depart.name} />
+
+                <Card.Title>{depart.name}</Card.Title>
+
+              </Card>
+
+            </div>
+          ))}
+        </Carousel>
+      </div>
+    </>
+  );
+};
 
 export default Home;
