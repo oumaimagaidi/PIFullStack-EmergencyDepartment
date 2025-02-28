@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -32,12 +31,12 @@ import Login from "./components/Login";
 import Register from "./components/register";
 import ForgotPassword from "./components/ForgotPassword";
 import Home from "./components/Home";
-import Profile from "./components/profile";  // Import Profile
+import Profile from "./components/profile";
 import ResetPassword from "./components/ResetPassword";
 import { ToastContainer } from "react-toastify";
 
 const queryClient = new QueryClient();
-console.log("het");
+
 // Custom hook to get user role
 const useAuth = () => {
   const [user, setUser] = useState(null);
@@ -125,7 +124,7 @@ function MainContent() {
               <Route path="/forgotpassword" element={<ForgotPassword />} />
               <Route path="/reset-password/:token" element={<ResetPassword />} />
               <Route path="/home" element={<Home />} />
-              <Route path="/profile" element={<Profile />} /> {/* Add the Profile route */}
+              <Route path="/profile" element={<Profile />} />
 
               {/* Role-based Protected Routes */}
               <Route path="/dashboard" element={<ProtectedRoute element={Dashboard} roles={["Administrator", "Doctor", "Nurse"]} />} />

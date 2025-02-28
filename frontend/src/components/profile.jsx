@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Button, Form, Table, Nav, Row, Col } from 'react-bootstrap';
-import "bootstrap/dist/css/bootstrap.min.css";
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import ProfileHeader from './ProfileHeader';  // Assuming this is a separate file
+import ProfileContent from './ProfileContent'; // Assuming this is a separate file
+import LoadingState from './LoadingState'; // Assuming this is a separate file
+import { toast } from 'sonner';
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -16,8 +18,8 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-        const token = Cookies.get("token");
-    
+    const token = Cookies.get("token");
+
     axios.get('http://localhost:8089/api/profile', {
       headers: {
         Authorization: `Bearer ${token}`
@@ -36,7 +38,7 @@ const Profile = () => {
 
   const handleSave = async () => {
     try {
-        const token = Cookies.get("token");
+      const token = Cookies.get("token");
       const response = await axios.put('http://localhost:8089/api/profile', profileData, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -47,12 +49,14 @@ const Profile = () => {
         const updatedData = response.data;
         setProfileData(updatedData);
         setIsEditing(false);
+        toast.success('Profile updated successfully');
       } else {
         throw new Error('Failed to update profile');
       }
     } catch (error) {
       console.error('Error:', error);
       setError('Error saving changes');
+      toast.error('Failed to update profile');
     }
   };
 
@@ -66,182 +70,49 @@ const Profile = () => {
     }));
   };
 
-  // Get available tabs based on user role
-  const getTabs = () => {
-    const tabs = ['personal'];
-    if (profileData.personal?.role === 'Patient') {
-      tabs.push('medical');
-    } else if (['Doctor', 'Nurse', 'Administrator'].includes(profileData.personal?.role)) {
-      tabs.push('professional');
-    }
-    return tabs;
-  };
-
-  // Render fields based on section and user role
-  const renderFields = (section) => {
-    const data = profileData[section] || {};
-    
-    // Skip certain fields that shouldn't be editable
-    const skipFields = ['role'];
-    
-    return Object.entries(data).map(([field, value]) => {
-      if (skipFields.includes(field)) return null;
-
-      return (
-        <Col md={6} key={field}>
-          <div className="p-3 bg-light rounded">
-            <Form.Group>
-              <Form.Label className="text-muted text-capitalize">
-                {field.replace(/([A-Z])/g, ' $1').trim()}
-              </Form.Label>
-              {isEditing ? (
-                field === 'allergies' ? (
-                  <Form.Control
-                    as="textarea"
-                    value={Array.isArray(value) ? value.join(', ') : value}
-                    onChange={(e) => handleEdit(section, field, e.target.value.split(',').map(item => item.trim()))}
-                  />
-                ) : field === 'dateOfBirth' ? (
-                  <Form.Control
-                    type="date"
-                    value={value ? new Date(value).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleEdit(section, field, e.target.value)}
-                  />
-                ) : (
-                  <Form.Control
-                    value={value || ''}
-                    onChange={(e) => handleEdit(section, field, e.target.value)}
-                  />
-                )
-              ) : (
-                <p className="mb-0" style={{ color: '#005477' }}>
-                  {Array.isArray(value) ? value.join(', ') : value}
-                </p>
-              )}
-            </Form.Group>
+  if (loading) return <LoadingState />;
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+          <div className="text-center">
+            <div className="bg-red-100 text-red-600 p-3 rounded-full inline-flex mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">Error Loading Profile</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-profileBlue-500 hover:bg-profileBlue-600 text-white font-medium py-2 px-4 rounded transition-colors"
+            >
+              Try Again
+            </button>
           </div>
-        </Col>
-      );
-    });
-  };
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div className="text-danger">{error}</div>;
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
-      {/* Header section */}
-      <div 
-        className="position-relative"
-        style={{
-          height: '250px',
-          background: 'linear-gradient(to right, #005477, #6DDDCF)',
-          overflow: 'hidden'
-        }}
-      >
-        <div 
-          className="position-absolute w-100 h-100"
-          style={{
-            background: 'linear-gradient(to right, #005477, #6DDDCF)',
-            opacity: 0.2,
-            animation: 'pulse 2s infinite'
-          }}
+    <div className="min-h-screen bg-slate-50">
+      <ProfileHeader 
+        username={profileData.personal.username} 
+        role={profileData.personal.role} 
+      />
+      
+      <div className="container -mt-16 relative z-30 pb-16">
+        <ProfileContent
+          profileData={profileData}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+          handleEdit={handleEdit}
+          handleSave={handleSave}
         />
-        
-        <Container className="h-100 position-relative">
-          <div className="d-flex align-items-center h-100" style={{ animation: 'fadeIn 0.5s ease-out' }}>
-            <div className="position-relative" style={{ 
-              width: '128px',
-              height: '128px',
-              borderRadius: '50%',
-              border: '4px solid white',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-              overflow: 'hidden',
-              transition: 'transform 0.3s',
-              cursor: 'pointer'
-            }}>
-              <img
-                src="/images/Emergecy.png"
-                alt="Profile"
-                className="w-100 h-100"
-                style={{ objectFit: 'cover' }}
-              />
-            </div>
-            
-            <div className="text-white ms-4">
-              <h1 className="display-6 fw-bold mb-0">
-                {profileData.personal.username || 'User'}
-              </h1>
-              <p className="lead opacity-75">{profileData.personal.role}</p>
-            </div>
-          </div>
-        </Container>
       </div>
-
-      {/* Main content */}
-      <Container className="mt-n5">
-        <Card className="shadow" style={{ animation: 'slideUp 0.5s ease-out' }}>
-          <Card.Header className="bg-white">
-            <div className="d-flex justify-content-between align-items-center">
-              <Nav variant="tabs">
-                {getTabs().map((tab) => (
-                  <Nav.Item key={tab}>
-                    <Nav.Link
-                      active={activeTab === tab}
-                      onClick={() => setActiveTab(tab)}
-                      style={{
-                        color: activeTab === tab ? '#005477' : '#6c757d',
-                        borderBottom: activeTab === tab ? '2px solid #6DDDCF' : 'none'
-                      }}
-                    >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)} Information
-                    </Nav.Link>
-                  </Nav.Item>
-                ))}
-              </Nav>
-              <Button
-                onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-                variant="outline-primary"
-                style={{ backgroundColor: isEditing ? '#005477' : 'transparent', color: isEditing ? 'white' : '#005477' }}
-              >
-                {isEditing ? 'Save Changes' : 'Edit Profile'}
-              </Button>
-            </div>
-          </Card.Header>
-          
-          <Card.Body>
-            <Row className="g-4">
-              {renderFields(activeTab)}
-            </Row>
-          </Card.Body>
-        </Card>
-      </Container>
-
-      <style>
-        {`
-          @keyframes pulse {
-            0% { opacity: 0.2; }
-            50% { opacity: 0.3; }
-            100% { opacity: 0.2; }
-          }
-
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-
-          @keyframes slideUp {
-            from {
-              transform: translateY(20px);
-              opacity: 0;
-            }
-            to {
-              transform: translateY(0);
-              opacity: 1;
-            }
-          }
-        `}
-      </style>
     </div>
   );
 };
