@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/toaster";
 import Cookies from "js-cookie";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -13,9 +12,11 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
+import Layout from "./components/Layout";
 import DashboardSidebar from "./components/DashboardSidebar";
 import Header from "./components/header";
 import Footer from "./components/Footer";
+import { ToastContainer } from "react-toastify";
 import Dashboard from "./pages/Dashboard";
 import Patients from "./pages/Patients";
 import Calendar from "./pages/Calendar";
@@ -27,17 +28,16 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Forum from "./pages/Forum";
 import Doctors from "./pages/Doctors";
-import Login from "./components/Login/login";
+import Login from "./components/Login";
 import Register from "./components/register";
 import ForgotPassword from "./components/ForgotPassword";
 import Home from "./components/Home";
 import Profile from "./components/profile";
 import ResetPassword from "./components/ResetPassword";
-import { ToastContainer } from "react-toastify";
-import "./index.css"
+import EmergencyRegister from "./pages/EmergencyRegister";
+
 const queryClient = new QueryClient();
 
-// Custom hook to get user role
 const useAuth = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,18 +45,16 @@ const useAuth = () => {
   useEffect(() => {
     const fetchUser = async () => {
       const token = Cookies.get("token");
-      console.log("Token:", token);
       if (token) {
         try {
           const response = await axios.get("http://localhost:8089/api/auth/me", { withCredentials: true });
           setUser(response.data);
-          console.log("User Data:", response.data);
         } catch (error) {
           console.error("Error fetching user data:", error);
           setUser(null);
         }
       }
-      setLoading(false); // Stop loading after fetching
+      setLoading(false);
     };
     fetchUser();
   }, []);
@@ -64,39 +62,22 @@ const useAuth = () => {
   return { user, loading };
 };
 
-// Protected Route Component
-const ProtectedRoute = ({ element: Component, roles }) => {
+const ProtectedRoute = ({ element, roles }) => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    if (!loading) { // Only check after loading is complete
-      if (user) {
-        if (roles.includes(user.role)) {
-          return; // Authorized
-        } else {
-          navigate("/login", { state: { from: location }, replace: true });
-        }
-      } else {
-        navigate("/login");
-      }
-    }
-  }, [user, loading, roles, navigate, location]);
-
-  if (loading) {
-    return <div>Loading...</div>; // Show loading spinner or placeholder
+  if (loading) return <div>Loading...</div>;
+  if (!user || !roles.includes(user.role)) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
-
-  return user ? <Component /> : null;
+  return element;
 };
 
 const App = () => (
-  <GoogleOAuthProvider clientId="681587327914-bh8qlfn9kr76hci8d4n0v1mces8ac0r0.apps.googleusercontent.com">
+  <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Sonner />
         <Router>
           <MainContent />
         </Router>
@@ -107,43 +88,41 @@ const App = () => (
 
 function MainContent() {
   const location = useLocation();
-  const noSidebarRoutes = ["/login", "/", "/register", "/forgotpassword", "/reset-password/:token", "/home", "/profile"];
-  const showSidebar = !noSidebarRoutes.includes(location.pathname);
-  const showHeaderFooter = location.pathname === "/home";
+  const noSidebarRoutes = ["/login", "/", "/register", "/forgotpassword", "/reset-password/:token", "/home", "/profile", "/emergency-register"];
+  const showHeaderFooter = ["/home", "/emergency-register"];
 
   return (
     <SidebarProvider>
-      <div className="App d-flex">
-        {showSidebar && <DashboardSidebar />}
-        <div className="content-container flex-grow-1">
-          {showHeaderFooter && <Header />}
-          <main className="container mt-5">
+      <div className="App d-flex flex-column" style={{ minHeight: "100vh" }}>
+        {showHeaderFooter.includes(location.pathname) && <Header />}
+        <div className="d-flex flex-grow-1">
+          {!noSidebarRoutes.includes(location.pathname) && <DashboardSidebar />}
+          <main className="container mt-5 flex-grow-1">
             <Routes>
+              <Route path="/" element={<Navigate to="/login" />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgotpassword" element={<ForgotPassword />} />
               <Route path="/reset-password/:token" element={<ResetPassword />} />
               <Route path="/home" element={<Home />} />
               <Route path="/profile" element={<Profile />} />
-
-              {/* Role-based Protected Routes */}
-              <Route path="/dashboard" element={<ProtectedRoute element={Dashboard} roles={["Administrator", "Doctor", "Nurse"]} />} />
-              <Route path="/patients" element={<ProtectedRoute element={Patients} roles={["Administrator", "Doctor", "Nurse"]} />} />
-              <Route path="/calendar" element={<ProtectedRoute element={Calendar} roles={["Administrator", "Doctor", "Nurse"]} />} />
-              <Route path="/records" element={<ProtectedRoute element={Records} roles={["Administrator", "Doctor", "Nurse"]} />} />
-              <Route path="/emergency" element={<ProtectedRoute element={Emergency} roles={["Administrator", "Doctor", "Nurse"]} />} />
-              <Route path="/staff" element={<ProtectedRoute element={Staff} roles={["Administrator"]} />} />
-              <Route path="/alerts" element={<ProtectedRoute element={Alerts} roles={["Administrator", "Doctor", "Nurse"]} />} />
-              <Route path="/settings" element={<ProtectedRoute element={Settings} roles={["Administrator"]} />} />
-              <Route path="/forum" element={<ProtectedRoute element={Forum} roles={["Administrator", "Doctor", "Nurse", "Patient"]} />} />
-              <Route path="/doctors" element={<ProtectedRoute element={Doctors} roles={["Administrator", "Doctor"]} />} />
-
+              <Route path="/emergency-register" element={<EmergencyRegister />} />
+              <Route path="/dashboard" element={<ProtectedRoute element={<Layout><Dashboard /></Layout>} roles={["Administrator", "Doctor", "Nurse"]} />} />
+              <Route path="/patients" element={<ProtectedRoute element={<Layout><Patients /></Layout>} roles={["Administrator", "Doctor", "Nurse"]} />} />
+              <Route path="/calendar" element={<ProtectedRoute element={<Layout><Calendar /></Layout>} roles={["Administrator", "Doctor", "Nurse"]} />} />
+              <Route path="/records" element={<ProtectedRoute element={<Layout><Records /></Layout>} roles={["Administrator", "Doctor", "Nurse"]} />} />
+              <Route path="/emergency" element={<ProtectedRoute element={<Layout><Emergency /></Layout>} roles={["Administrator", "Doctor", "Nurse"]} />} />
+              <Route path="/staff" element={<ProtectedRoute element={<Layout><Staff /></Layout>} roles={["Administrator"]} />} />
+              <Route path="/alerts" element={<ProtectedRoute element={<Layout><Alerts /></Layout>} roles={["Administrator", "Doctor", "Nurse"]} />} />
+              <Route path="/settings" element={<ProtectedRoute element={<Layout><Settings /></Layout>} roles={["Administrator"]} />} />
+              <Route path="/forum" element={<ProtectedRoute element={<Layout><Forum /></Layout>} roles={["Administrator", "Doctor", "Nurse", "Patient"]} />} />
+              <Route path="/doctors" element={<ProtectedRoute element={<Layout><Doctors /></Layout>} roles={["Administrator", "Doctor"]} />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
-          <ToastContainer position="top-center" />
-          {showHeaderFooter && <Footer />}
         </div>
+        {showHeaderFooter.includes(location.pathname) && <Footer />}
+        <ToastContainer position="top-center" />
       </div>
     </SidebarProvider>
   );

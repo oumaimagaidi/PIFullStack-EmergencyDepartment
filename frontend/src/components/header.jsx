@@ -4,7 +4,7 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { FiUser } from "react-icons/fi";
 import Cookies from "js-cookie";
 import axios from "axios";
-import "./header.css"; // Import the CSS file
+import "./header.css"; // Import du fichier CSS spécifique au Header
 
 const Header = () => {
     const [show, setShow] = useState(false);
@@ -58,36 +58,39 @@ const Header = () => {
     }
 
     return (
-        <nav className="header_container">
+        <nav className={"header_container"}>
             <div className="header_logo">
                 <img src="./images/logo1.png" alt="logo" className="header_logo-img" />
             </div>
             <div className={show ? "header_navLinks header_showmenu" : "header_navLinks"}>
                 <div className="header_links">
                     <Link to={"/home"} onClick={() => setShow(!show)}>Home</Link>
-                    <Link to={"/emergency"} onClick={() => setShow(!show)}>Emergency</Link>
-                    <Link to={"/document"} onClick={() => setShow(!show)}>Medical Document</Link>
-                    <Link to={"/ambulance"} onClick={() => setShow(!show)}>Ambulance Check</Link>
-                    <Link to={"/ressources"} onClick={() => setShow(!show)}>Resources Check</Link>
+                    {/* Change the 'to' prop here: */}
+                    <Link to={"/emergency-register"} onClick={() => setShow(!show)}>Emergency</Link>
+                    <Link to={"/document"} onClick={() => setShow(!show)}>Medical document</Link>
+                    <Link to={"/ambulance"} onClick={() => setShow(!show)}>Ambulance check</Link>
+                    <Link to={"/ressources"} onClick={() => setShow(!show)}>Resources check</Link>
                 </div>
 
                 {user ? (
                     <div className="header_user-menu">
-                        <div className="header_user-info" onClick={toggleDropdown}>
-                            {user.profileImage && (
-                                <img
-                                    src={`http://localhost:8089${user.profileImage}`}
-                                    alt="Profile"
-                                    className="header_user-avatar"
-                                    onError={(e) => {
-                                        console.error("Failed to load image:", user.profileImage);
-                                        e.target.style.display = "none"; // Hide image if load fails
-                                    }}
-                                />
-                            )}
-                            <span>{user.username}</span>
-                            <FiUser className="header_user-icon" />
-                        </div>
+                        <Link to="/profile" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <div className="header_user-info" onClick={toggleDropdown}>
+                                {user.profileImage && (
+                                    <img
+                                        src={`http://localhost:8089${user.profileImage}`}
+                                        alt="Profile"
+                                        className="header_user-avatar"
+                                        onError={(e) => {
+                                            console.error("Failed to load image:", user.profileImage);
+                                            e.target.style.display = "none"; // Hide image if load fails
+                                        }}
+                                    />
+                                )}
+                                <span>{user.username}</span>
+                                <FiUser className="header_user-icon" /> {/* Profile Icon */}
+                            </div>
+                        </Link>
 
                         {dropdownOpen && (
                             <div className="header_dropdown-menu">
@@ -100,7 +103,9 @@ const Header = () => {
                     <button className="header_btn header_loginBtn" onClick={() => navigate("/login")}>Login</button>
                 )}
             </div>
-           
+            <div className="header_hamburger" onClick={() => setShow(!show)}>
+                <GiHamburgerMenu />
+            </div>
         </nav>
     );
 };
