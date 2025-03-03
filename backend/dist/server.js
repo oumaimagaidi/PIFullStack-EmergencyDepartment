@@ -13,6 +13,10 @@ var app = (0, _express["default"])();
 
 // ✅ Connexion à MongoDB
 (0, _db["default"])();
+  
+
+
+
 
 // ✅ Middlewares
 app.use(_express["default"].json());

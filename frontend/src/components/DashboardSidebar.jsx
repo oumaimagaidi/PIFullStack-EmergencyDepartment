@@ -22,7 +22,7 @@ import {
   LogIn,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-
+import "../app.css";
 const menuItems = [
   { title: "Dashboard", icon: Home, path: "/dashboard" },
   { title: "Doctors", icon: Stethoscope, path: "/doctors" },

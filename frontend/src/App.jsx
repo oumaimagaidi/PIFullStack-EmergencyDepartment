@@ -27,14 +27,14 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Forum from "./pages/Forum";
 import Doctors from "./pages/Doctors";
-import Login from "./components/Login";
+import Login from "./components/Login/login";
 import Register from "./components/register";
 import ForgotPassword from "./components/ForgotPassword";
 import Home from "./components/Home";
 import Profile from "./components/profile";
 import ResetPassword from "./components/ResetPassword";
 import { ToastContainer } from "react-toastify";
-
+import "./index.css"
 const queryClient = new QueryClient();
 
 // Custom hook to get user role
