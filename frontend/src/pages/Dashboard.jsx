@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
-import "../app.css";
+
 // Static patient data
 const initialPatients = [
     { id: "1", name: "John Doe", email: "john@example.com", condition: "Hypertension" },

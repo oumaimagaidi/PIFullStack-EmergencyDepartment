@@ -1,26 +1,23 @@
 /* Updated Header Styles for a Professional Blue Look */
 .header_container {
- 
+  background-color: #E0F2FE;
   /* Secondary Blue for background */
-  padding: 10px 20px ;
+  padding: 15px 20px;
   display: flex;
   justify-content: space-between;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
- background-color: #edf4f8;
+  align-items: center;
   border-bottom: 1px solid #E0F2FE;
   /* Match border color to background for subtle effect */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* Subtle shadow for depth */
 }
+
 .header_logo {
   /* Logo styles remain the same */
 }
 
 .header_logo-img {
-  height: 60px;
+  height: 45px;
   /* Slightly smaller logo for a cleaner look */
   vertical-align: middle;
 }
@@ -36,7 +33,7 @@
 }
 
 .header_links a {
-  color: #3c7f77;
+  color: #0D47A1;
   /* Dark Blue for links */
   text-decoration: none;
   margin: 0 15px;
@@ -46,7 +43,7 @@
 }
 
 .header_links a:hover {
-  color: #C3DAFD;
+  color: #007BFF;
   /* Primary Blue on hover */
 }
 
@@ -56,7 +53,7 @@
   border: none;
   border-radius: 5px;
   /* Slightly rounded buttons */
-  background-color: #C4DBFF;
+  background-color: #007BFF;
   /* Primary Blue for button background */
   color: white;
   cursor: pointer;

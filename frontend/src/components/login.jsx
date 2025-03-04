@@ -62,7 +62,7 @@ const Login = () => {
   };
 
   return (
-    <div className="d-flex vh-100 bg-light  ">
+    <div className="d-flex vh-100 bg-light ">
       <div className="col-md-6 d-flex flex-column align-items-center justify-content-center text-white"
         style={{ backgroundColor: "#6DDCCF" }}>
         <h1 className="mb-4">ED</h1>

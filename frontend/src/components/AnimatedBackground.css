@@ -1,0 +1,91 @@
+/* 🌟 Dégradé animé */
+@keyframes gradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.background-container {
+    min-height: 100vh; /* Permet au contenu de pousser le fond */
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(-45deg, #ffff, #5CB8FF, #f4faff, #cce5f8);
+  background-size: 300% 300%;
+  animation: gradientAnimation 10s ease infinite;
+  overflow: hidden;
+  }
+  
+/* Animation du stéthoscope */
+.stethoscope {
+    position: absolute;
+    width: 100px;
+    top: 50%;
+    left: -100px;
+    animation: moveStethoscope 10s linear infinite;
+  }
+  
+  @keyframes moveStethoscope {
+    0% {
+      left: -100px;
+      transform: rotate(0deg);
+    }
+    50% {
+      transform: rotate(10deg);
+    }
+    100% {
+      left: 100%;
+      transform: rotate(-10deg);
+    }
+  }
+
+/* 🌟 Particules flottantes */
+.particles, .particles2 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.particles::before, .particles::after {
+  content: "";
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  box-shadow: 
+    10vw 20vh 8px rgba(255, 255, 255, 0.2),
+    30vw 40vh 12px rgba(255, 255, 255, 0.3),
+    50vw 10vh 6px rgba(255, 255, 255, 0.1),
+    80vw 60vh 10px rgba(255, 255, 255, 0.2);
+  animation: floatParticles 20s linear infinite;
+}
+
+.particles2::before, .particles2::after {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  box-shadow: 
+    15vw 50vh 5px rgba(255, 255, 255, 0.1),
+    35vw 25vh 7px rgba(255, 255, 255, 0.2),
+    60vw 70vh 6px rgba(255, 255, 255, 0.15),
+    90vw 20vh 8px rgba(255, 255, 255, 0.2);
+  animation: floatParticles2 15s linear infinite;
+}
+
+/* 🌟 Animation des particules */
+@keyframes floatParticles {
+  0% { transform: translateY(0); opacity: 0.8; }
+  50% { transform: translateY(-50px); opacity: 0.5; }
+  100% { transform: translateY(0); opacity: 0.8; }
+}
+
+@keyframes floatParticles2 {
+  0% { transform: translateY(0); opacity: 0.7; }
+  50% { transform: translateY(-30px); opacity: 0.4; }
+  100% { transform: translateY(0); opacity: 0.7; }
+}
