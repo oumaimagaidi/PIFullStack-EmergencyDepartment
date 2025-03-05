@@ -9,4 +9,4 @@ RUN cd ./frontend && npm install --legacy-peer-deps
 CMD ["sh", "-c", "cd ./frontend && npm run dev"]
 
 # Expose port for frontend development server (default Vite port)
-EXPOSE 5000
+EXPOSE 3000
