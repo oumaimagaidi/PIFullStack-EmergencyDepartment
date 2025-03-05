@@ -17,7 +17,7 @@ pipeline {
 
                     // Install frontend dependencies
                     dir('frontend') {
-                        sh 'npm install --legacy-peer-deps'
+                        sh 'npm install'
                     }
                 }
             }
