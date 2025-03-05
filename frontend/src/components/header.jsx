@@ -65,7 +65,7 @@ const Header = () => {
             <div className={show ? "header_navLinks header_showmenu" : "header_navLinks"}>
                 <div className="header_links">
                     <Link to={"/home"} onClick={() => setShow(!show)}>Home</Link>
-                    <Link to={"/emergency"} onClick={() => setShow(!show)}>Emergency</Link>
+                    <Link to={"/emergency-register"} onClick={() => setShow(!show)}>Emergency</Link>
                     <Link to={"/document"} onClick={() => setShow(!show)}>Medical Document</Link>
                     <Link to={"/ambulance"} onClick={() => setShow(!show)}>Ambulance Check</Link>
                     <Link to={"/ressources"} onClick={() => setShow(!show)}>Resources Check</Link>

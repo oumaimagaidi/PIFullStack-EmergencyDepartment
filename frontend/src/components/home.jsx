@@ -2,7 +2,7 @@ import React from "react";
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-
+import "../App.css";
 const Home = () => {
   const servicesArray = [
     { name: "Emergency", imageUrl: "/images/Emergecy.png" },

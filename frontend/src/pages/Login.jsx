@@ -126,7 +126,6 @@ export default function Login() {
           ))}
         </div>
       </div>
-
       {/* Right side - Login Form */}
       <div className="login-form-container w-full md:w-1/2 flex items-center justify-center p-4 md:p-10">
         <div className="login-form-wrapper w-full max-w-md p-8 bg-white rounded-xl shadow-lg">

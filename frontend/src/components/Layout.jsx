@@ -1,23 +1,47 @@
-// src/components/Layout.jsx
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import DashboardSidebar from "./DashboardSidebar";
-import DashboardHeader from "@/components/DashboardHeader"; // Importez DashboardHeader
+import { Outlet } from "react-router-dom";
+import Header from "./components/header";
+import Footer from "./components/footer";
+import DashboardSidebar from "./components/DashboardSidebar";
 
-const Layout = ({ children }) => {
+/**
+ * Layout avec Header et Footer
+ * Utilisé pour les pages comme Home et Profile
+ */
+export const HeaderFooterLayout = () => {
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-950">
-        <DashboardSidebar />
-        <div className="flex-1"> {/* Conteneur pour Header et Main */}
-          <DashboardHeader /> {/* Ajoutez le composant DashboardHeader ici */}
-          <main className="flex-1 p-6">
-            <SidebarTrigger />
-            <div className="fade-in">{children}</div>
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+    <>
+      <Header />
+      <main>
+        <Outlet /> {/* Affiche les composants enfants des routes imbriquées */}
+      </main>
+      <Footer />
+    </>
   );
 };
 
-export default Layout;
+/**
+ * Layout avec DashboardSidebar
+ * Utilisé pour les pages comme Dashboard, Doctors, Patients, etc.
+ */
+export const DashboardLayout = () => {
+  return (
+    <div style={{ display: "flex" }}>
+      <DashboardSidebar />
+      <main style={{ flex: 1 }}>
+        <Outlet /> {/* Affiche les composants enfants des routes imbriquées */}
+      </main>
+    </div>
+  );
+};
+
+/**
+ * Layout de base sans Header, Footer ou Sidebar
+ * Utilisé pour les pages comme Login, Register, ForgotPassword, etc.
+ */
+export const BasicLayout = () => {
+  return (
+    <main>
+      <Outlet /> {/* Affiche les composants enfants des routes imbriquées */}
+    </main>
+  );
+};
