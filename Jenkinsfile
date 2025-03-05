@@ -55,6 +55,14 @@ pipeline {
             }
         }
 
+        stage('Building images (node and mongo)') {
+            steps {
+                script {
+                    sh('docker-compose build')
+                }
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 script { 
@@ -65,14 +73,6 @@ pipeline {
                     }
                 } 
             } 
-        }
-
-        stage('Building images (node and mongo)') {
-            steps {
-                script {
-                    sh('docker-compose build')
-                }
-            }
         }
 
         stage('Deploy to Nexus') {
