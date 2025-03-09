@@ -3,9 +3,11 @@ import { Users, Calendar, Bell, Hospital, Pencil, UserPlus, UserMinus } from "lu
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import axios from "axios";
 import "../App.css";
+
 // Static patient data
 const initialPatients = [
     { id: "1", name: "John Doe", email: "john@example.com", condition: "Hypertension" },
@@ -23,41 +25,42 @@ const departmentData = [
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-const statsCards = [
-    {
-        title: "Total Patients",
-        value: "1,234",
-        icon: Users,
-        color: "text-blue-600",
-        bg: "bg-blue-100",
-    },
-    {
-        title: "Appointments Today",
-        value: "48",
-        icon: Calendar,
-        color: "text-blue-700",
-        bg: "bg-blue-50",
-    },
-    {
-        title: "Emergency Cases",
-        value: "7",
-        icon: Hospital,
-        color: "text-red-500",
-        bg: "bg-red-50",
-    },
-    {
-        title: "Pending Alerts",
-        value: "12",
-        icon: Bell,
-        color: "text-blue-500",
-        bg: "bg-blue-50",
-    },
-];
-
 const Dashboard = () => {
     const [patients, setPatients] = useState(initialPatients);
     const [editingPatient, setEditingPatient] = useState(null);
     const [newPatient, setNewPatient] = useState({ name: "", email: "", condition: "" });
+    const [patientsCount, setPatientsCount] = useState(0);
+
+    const statsCards = [
+        {
+            title: "Total Patients",
+            value: patientsCount.toLocaleString(),
+            icon: Users,
+            color: "text-blue-600",
+            bg: "bg-blue-100",
+        },
+        {
+            title: "Appointments Today",
+            value: "48",
+            icon: Calendar,
+            color: "text-blue-700",
+            bg: "bg-blue-50",
+        },
+        {
+            title: "Emergency Cases",
+            value: "7",
+            icon: Hospital,
+            color: "text-red-500",
+            bg: "bg-red-50",
+        },
+        {
+            title: "Pending Alerts",
+            value: "12",
+            icon: Bell,
+            color: "text-blue-500",
+            bg: "bg-blue-50",
+        },
+    ];
 
     const handleDelete = (id) => {
         setPatients(patients.filter(patient => patient.id !== id));
@@ -79,6 +82,21 @@ const Dashboard = () => {
         setPatients([...patients, { ...newPatient, id }]);
         setNewPatient({ name: "", email: "", condition: "" });
     };
+
+    useEffect(() => {
+        const fetchPatientsCount = async () => {
+            try {
+                const response = await axios.get("http://localhost:8089/api/users/patients/count", {
+                    withCredentials: true,
+                });
+                setPatientsCount(response.data.count);
+            } catch (error) {
+                console.error("Erreur lors de la récupération du nombre de patients", error);
+            }
+        };
+
+        fetchPatientsCount();
+    }, []);
 
     return (
         <div className="space-y-6">

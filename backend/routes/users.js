@@ -96,5 +96,30 @@ router.post("/validate-user", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error });
   }
 });
+router.get("/patients/count", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const patientCount = await User.countDocuments({ role: "Patient" });
+    res.status(200).json({ count: patientCount });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+router.get("/patients", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const patients = await User.find({ role: "Patient" });
+    res.status(200).json(patients);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+
 
 export default router;
