@@ -1,4 +1,3 @@
-// Doctors.jsx (React component)
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,7 @@ import {
     Mail,
     Phone,
 } from "lucide-react";
-import axios from 'axios'; // Import axios
+import axios from 'axios';
 
 const Doctors = () => {
     const [doctors, setDoctors] = useState([]);
@@ -41,21 +40,15 @@ const Doctors = () => {
         try {
             const token = localStorage.getItem('authToken');
             const response = await axios.get('http://localhost:8089/api/users/doctors', { withCredentials: true });
-
-            setDoctors(response.data); // axios automatically parses JSON response
+            setDoctors(response.data);
         } catch (error) {
             console.error("Error fetching doctors:", error);
-             if (error.response) {
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
+            if (error.response) {
                 console.error("Server responded with status code:", error.response.status);
-                console.error("Response data:", error.response.data); // Log response data for backend errors
-                console.error("Response headers:", error.response.headers);
+                console.error("Response data:", error.response.data);
             } else if (error.request) {
-                // The request was made but no response was received
                 console.error("No response received from server:", error.request);
             } else {
-                // Something happened in setting up the request that triggered an Error
                 console.error("Error setting up the request:", error.message);
             }
         }
@@ -79,14 +72,24 @@ const Doctors = () => {
         setDoctors(filtered);
     };
 
-    const handleDelete = (id) => {
-        setDoctors(doctors.filter((doctor) => doctor._id !== id));
+    const handleDelete = async (id) => {
+        try {
+            const token = localStorage.getItem('authToken');
+            await axios.delete(`/api/users/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+            fetchDoctors();
+        } catch (error) {
+            console.error("Error deleting doctor:", error);
+        }
     };
 
     const handleAdd = async () => {
         try {
             const token = localStorage.getItem('authToken');
-            const response = await axios.post("/api/auth/register", { // Use axios.post
+            const response = await axios.post("/api/auth/register", {
                 ...newDoctor,
                 role: "Doctor",
                 isValidated: true
@@ -109,7 +112,7 @@ const Doctors = () => {
             });
         } catch (error) {
             console.error("Error adding doctor:", error);
-             if (error.response) {
+            if (error.response) {
                 console.error("Server responded with status code:", error.response.status);
                 console.error("Response data:", error.response.data);
             } else if (error.request) {
@@ -120,12 +123,11 @@ const Doctors = () => {
         }
     };
 
-
     const handleUpdate = async () => {
         if (editingDoctor) {
             try {
                 const token = localStorage.getItem('authToken');
-                const response = await axios.put(`/api/users/${editingDoctor._id}`, editingDoctor, { // Use axios.put
+                const response = await axios.put(`/api/users/${editingDoctor._id}`, editingDoctor, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`,
@@ -136,7 +138,7 @@ const Doctors = () => {
                 setEditingDoctor(null);
             } catch (error) {
                 console.error("Error updating doctor:", error);
-                 if (error.response) {
+                if (error.response) {
                     console.error("Server responded with status code:", error.response.status);
                     console.error("Response data:", error.response.data);
                 } else if (error.request) {
@@ -148,11 +150,100 @@ const Doctors = () => {
         }
     };
 
-
     return (
         <div className="space-y-6 p-6">
-            {/* ... rest of your Doctors component JSX - same as before ... */}
-             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold">Doctors Dashboard</h1>
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button>
+                            <UserPlus className="w-4 h-4 mr-2 " />
+                            Add Doctor
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent>
+                        <SheetHeader>
+                            <SheetTitle>Add New Doctor</SheetTitle>
+                        </SheetHeader>
+                        <div className="space-y-4 mt-6">
+                            <Input
+                                placeholder="Username"
+                                value={newDoctor.username}
+                                onChange={(e) =>
+                                    setNewDoctor({ ...newDoctor, username: e.target.value })
+                                }
+                            />
+                            <Input
+                                placeholder="Email"
+                                type="email"
+                                value={newDoctor.email}
+                                onChange={(e) =>
+                                    setNewDoctor({ ...newDoctor, email: e.target.value })
+                                }
+                            />
+                            <Input
+                                placeholder="Password"
+                                type="password"
+                                value={newDoctor.password}
+                                onChange={(e) =>
+                                    setNewDoctor({ ...newDoctor, password: e.target.value })
+                                }
+                            />
+                            <Input
+                                placeholder="Phone Number"
+                                value={newDoctor.phoneNumber}
+                                onChange={(e) =>
+                                    setNewDoctor({ ...newDoctor, phoneNumber: e.target.value })
+                                }
+                            />
+                            <Input
+                                placeholder="Specialization"
+                                value={newDoctor.specialization}
+                                onChange={(e) =>
+                                    setNewDoctor({ ...newDoctor, specialization: e.target.value })
+                                }
+                            />
+                            <Input
+                                placeholder="License Number"
+                                value={newDoctor.licenseNumber}
+                                onChange={(e) =>
+                                    setNewDoctor({ ...newDoctor, licenseNumber: e.target.value })
+                                }
+                            />
+                            <Input
+                                placeholder="Badge Number"
+                                value={newDoctor.badgeNumber}
+                                onChange={(e) =>
+                                    setNewDoctor({ ...newDoctor, badgeNumber: e.target.value })
+                                }
+                            />
+                            <Button onClick={handleAdd} className="w-full">
+                                Add Doctor
+                            </Button>
+                        </div>
+                    </SheetContent>
+                </Sheet>
+            </div>
+
+            <div className="flex gap-4 mb-6">
+                <div className="flex-1">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search doctors..."
+                            className="pl-10"
+                            value={searchQuery}
+                            onChange={(e) => handleSearch(e.target.value)}
+                        />
+                    </div>
+                </div>
+                <Button variant="outline">
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filter
+                </Button>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {doctors.map((doctor) => (
                     <Card key={doctor._id} className="hover:shadow-lg transition-shadow">
                         <CardContent className="p-6">
@@ -160,8 +251,6 @@ const Doctors = () => {
                                 <div className="flex items-center gap-4">
                                     <img
                                         src={`http://localhost:8089${doctor.profileImage}`}
-                                        //src={`http://localhost:8089${user.profileImage}`}
-
                                         alt={doctor.username}
                                         className="w-16 h-16 rounded-full"
                                     />
@@ -210,7 +299,8 @@ const Doctors = () => {
                     </Card>
                 ))}
             </div>
-             {editingDoctor && (
+
+            {editingDoctor && (
                 <Sheet open={!!editingDoctor} onOpenChange={() => setEditingDoctor(null)}>
                     <SheetContent>
                         <SheetHeader>
@@ -232,7 +322,6 @@ const Doctors = () => {
                                     setEditingDoctor({ ...editingDoctor, email: e.target.value })
                                 }
                             />
-
                             <Input
                                 placeholder="Phone Number"
                                 value={editingDoctor.phoneNumber}

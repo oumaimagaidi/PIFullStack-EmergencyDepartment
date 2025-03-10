@@ -1,6 +1,5 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities;
 
 @layer base {
   :root {
@@ -26,11 +25,11 @@
     --radius: 0.75rem;
 
     /* Sidebar specific colors */
-    --sidebar-background: 217 91% 60%;
+    --sidebar-background: 198 100% 23%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 0 0% 100%;
     --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 210 40% 98%;
+    --sidebar-accent: 198 100% 23%;
     --sidebar-accent-foreground: 217 91% 60%;
     --sidebar-border: 214 100% 75%;
     --sidebar-ring: 210 40% 98%;
@@ -74,17 +73,8 @@
     @apply border-border;
   }
 
-  html, body {
-    height: 100%;
-    width: 100%;
-  }
-
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-  }
-
-  #root {
-    @apply h-full w-full;
+    @apply bg-background text-foreground;
   }
 }
 
@@ -111,12 +101,11 @@
 .hover-scale {
   @apply transition-transform duration-200 hover:scale-[1.02];
 }
-
 @layer components {
   .profile-glass {
     @apply bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg border border-white border-opacity-20;
   }
-
+  
   .profile-card {
     @apply bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300;
   }
@@ -128,7 +117,7 @@
   .profile-field-label {
     @apply text-sm font-medium text-profileBlue-600 mb-1;
   }
-
+  
   .profile-field-value {
     @apply text-gray-800 font-normal;
   }
@@ -154,25 +143,13 @@
     @apply rounded-full flex items-center justify-center transition-all duration-300 ease-in-out;
   }
 }
-
-@layer base {
-  .register-emergency {
-    @apply bg-background text-foreground;
+@layer utilities {
+  .glass-card {
+    @apply bg-white/90 backdrop-blur-sm border border-white/20 shadow-xl;
   }
-
-  .register-emergency__label {
-    @apply block text-sm font-medium text-gray-700;
-  }
-
-  .register-emergency__input {
-    @apply mt-1 p-2 w-full border rounded-md;
-  }
-
-  .register-emergency__error {
-    @apply text-red-500 text-sm;
-  }
-
-  .register-emergency__button {
-    @apply w-full bg-blue-500 text-white p-2 rounded-md;
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-[1.02];
   }
 }
+@tailwind utilities;
+

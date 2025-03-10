@@ -1,3 +1,4 @@
+// backend/server.js
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -7,30 +8,32 @@ import userRoutes from "./routes/users.js";
 import connectDB from "./db.js";
 import cookieParser from "cookie-parser";
 import profileRoutes from "./routes/profile.js";
+import emergencyPatientRoutes from './routes/emergencyPatients.js';
 
 dotenv.config();
 
 const app = express();
 
-// ✅ Connexion à MongoDB
 connectDB();
 
-
-
-
-// ✅ Middlewares
-app.use(express.json());
+// *** CORS MUST BE FIRST ***
 app.use(cors({
-  origin: "http://localhost:3000", // Autoriser uniquement cette origine
-  credentials: true, // Permettre l'envoi des cookies
-  methods: ["GET", "POST", "PUT", "DELETE"], // Autoriser ces méthodes
-  allowedHeaders: ["Content-Type", "Authorization"], // Headers autorisés
+  origin: "http://localhost:3000",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
+
+// THEN other middleware
+app.use(express.json());
 app.use(cookieParser());
-// ✅ Routes
+
+
+// THEN your routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/", profileRoutes);
-// ✅ Lancement du serveur
+app.use('/api/emergency-patients', emergencyPatientRoutes);
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`✅ Serveur démarré sur le port ${PORT}`));

@@ -22,7 +22,7 @@ import {
   LogIn,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-
+import "../app.css";
 const menuItems = [
   { title: "Dashboard", icon: Home, path: "/dashboard" },
   { title: "Doctors", icon: Stethoscope, path: "/doctors" },
@@ -42,7 +42,7 @@ const DashboardSidebar = () => {
     <Sidebar>
       <SidebarContent>
         <div className="p-4">
-          <h1 className="text-xl font-bold text-primary">Emergency Care</h1>
+          <h1 className="text-xl font-bold text-white">Emergency Care</h1>
         </div>
         <SidebarGroup>
           <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
@@ -51,7 +51,7 @@ const DashboardSidebar = () => {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link to={item.path} className="flex items-center gap-2">
+                    <Link to={item.path} className="flex items-center gap-2 text-white">
                       <item.icon className="w-5 h-5" />
                       <span>{item.title}</span>
                     </Link>

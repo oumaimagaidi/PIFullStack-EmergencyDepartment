@@ -16,11 +16,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import axios from 'axios';
 
-
 const emergencyFormSchema = z.object({
     firstName: z.string().min(2, { message: "First name must be at least 2 characters" }),
     lastName: z.string().min(2, { message: "Last name must be at least 2 characters" }),
-    dateOfBirth: z.string().min(1, { message: "Date of birth is required" }),
+    dateOfBirth: z.string().min(1, { message: "Date of birth is required" }), // Keep as string for now, handle formatting later if needed
     gender: z.enum(["male", "female", "other"], {
         required_error: "Please select a gender"
     }),
@@ -51,6 +50,7 @@ const EmergencyRegister = () => {
             firstName: "",
             lastName: "",
             dateOfBirth: "",
+            gender: "", // Initialize gender
             phoneNumber: "",
             email: "",
             address: "",
@@ -60,41 +60,65 @@ const EmergencyRegister = () => {
             currentMedications: "",
             medicalHistory: "",
             currentSymptoms: "",
+            painLevel: "", // Initialize painLevel
+            emergencyLevel: "", // Initialize emergencyLevel
             acceptTerms: false,
         },
     });
 
     async function onSubmit(data) {
         try {
-            const response = await axios.post('http://localhost:5000/api/patients', data);
+            // Correct URL for the backend endpoint
+            const response = await axios.post('http://localhost:8089/api/emergency-patients', data);
             console.log(response.data);
             toast.success("Your emergency request has been registered", {
                 description: "A member of our medical team will contact you shortly.",
             });
+            form.reset(); // Reset the form after successful submission
+
         } catch (error) {
             if (error.response) {
                 console.error("Server error:", error.response.data);
+                // Handle specific validation errors from the backend
+                if (error.response.data.message && Array.isArray(error.response.data.message)) {
+                    error.response.data.message.forEach(errorMessage => {
+                        toast.error("Validation Error", { description: errorMessage });
+                    });
+
+                } else {
+                    toast.error("Failed to register emergency request", {
+                        description: error.response.data.message || "An error occurred on the server.",
+                    });
+                }
+
+
             } else if (error.request) {
                 console.error("No response received from server");
+                toast.error("Failed to register emergency request", {
+                    description: "No response received from the server. Please check your network connection.",
+                });
             } else {
                 console.error("Error setting up request:", error.message);
+                toast.error("Failed to register emergency request", {
+                    description: "An unexpected error occurred. Please try again later.",
+                });
             }
         }
     }
 
+
     return (
-        <div className="container mx-auto py-6 px-4 md:px-6 bg-medical-blue-light/20">
-            <Card className="w-full max-w-4xl mx-auto border-medical-blue-light shadow-lg">
-                {/* Form Header */}
-                <CardHeader className="bg-gradient-to-r from-medical-blue-light to-medical-blue/10 border-b border-medical-blue/20">
-                    <div className="flex items-center gap-2 text-medical-blue">
+        <div className="container mx-auto py-6 px-4 md:px-6">
+            <Card className="w-full max-w-4xl mx-auto shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-400 text-white">
+                    <div className="flex items-center gap-2">
                         <AlertTriangle className="h-6 w-6" />
                         <Heart className="h-6 w-6" />
                     </div>
-                    <CardTitle className="text-2xl md:text-3xl font-bold text-medical-blue">
+                    <CardTitle className="text-2xl md:text-3xl font-bold">
                         Patient Emergency Registration
                     </CardTitle>
-                    <CardDescription className="text-base text-medical-blue-dark/80">
+                    <CardDescription className="text-base">
                         Please fill out this form with your information and the issues you are currently experiencing.
                     </CardDescription>
                 </CardHeader>
@@ -105,18 +129,17 @@ const EmergencyRegister = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Personal Information Section */}
                                 <div className="space-y-6">
-                                    <h3 className="text-lg font-medium text-medical-blue-dark">Personal Information</h3>
-
+                                    <h3 className="text-lg font-medium text-blue-600">Personal Information</h3>
                                     <FormField
                                         control={form.control}
                                         name="firstName"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>First Name</FormLabel>
+                                                <FormLabel className="text-blue-800">First Name</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="First Name" {...field} />
+                                                    <Input placeholder="First Name" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -126,11 +149,11 @@ const EmergencyRegister = () => {
                                         name="lastName"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Last Name</FormLabel>
+                                                <FormLabel className="text-blue-800">Last Name</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Last Name" {...field} />
+                                                    <Input placeholder="Last Name" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -140,11 +163,11 @@ const EmergencyRegister = () => {
                                         name="dateOfBirth"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Date of Birth</FormLabel>
+                                                <FormLabel className="text-blue-800">Date of Birth</FormLabel>
                                                 <FormControl>
-                                                    <Input type="date" {...field} />
+                                                    <Input type="date" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -154,7 +177,7 @@ const EmergencyRegister = () => {
                                         name="gender"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Gender</FormLabel>
+                                                <FormLabel className="text-blue-800">Gender</FormLabel>
                                                 <FormControl>
                                                     <RadioGroup
                                                         onValueChange={field.onChange}
@@ -163,31 +186,31 @@ const EmergencyRegister = () => {
                                                     >
                                                         <FormItem className="flex items-center space-x-3 space-y-0">
                                                             <FormControl>
-                                                                <RadioGroupItem value="male" />
+                                                                <RadioGroupItem value="male" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" />
                                                             </FormControl>
-                                                            <FormLabel className="font-normal">
+                                                            <FormLabel className="font-normal text-blue-700">
                                                                 Male
                                                             </FormLabel>
                                                         </FormItem>
                                                         <FormItem className="flex items-center space-x-3 space-y-0">
                                                             <FormControl>
-                                                                <RadioGroupItem value="female" />
+                                                                <RadioGroupItem value="female" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" />
                                                             </FormControl>
-                                                            <FormLabel className="font-normal">
+                                                            <FormLabel className="font-normal text-blue-700">
                                                                 Female
                                                             </FormLabel>
                                                         </FormItem>
                                                         <FormItem className="flex items-center space-x-3 space-y-0">
                                                             <FormControl>
-                                                                <RadioGroupItem value="other" />
+                                                                <RadioGroupItem value="other" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" />
                                                             </FormControl>
-                                                            <FormLabel className="font-normal">
+                                                            <FormLabel className="font-normal text-blue-700">
                                                                 Other
                                                             </FormLabel>
                                                         </FormItem>
                                                     </RadioGroup>
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -197,11 +220,11 @@ const EmergencyRegister = () => {
                                         name="phoneNumber"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Phone Number</FormLabel>
+                                                <FormLabel className="text-blue-800">Phone Number</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="+1 555-555-5555" {...field} />
+                                                    <Input placeholder="+1 555-555-5555" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -211,11 +234,11 @@ const EmergencyRegister = () => {
                                         name="email"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Email (optional)</FormLabel>
+                                                <FormLabel className="text-blue-800">Email (optional)</FormLabel>
                                                 <FormControl>
-                                                    <Input type="email" placeholder="email@example.com" {...field} />
+                                                    <Input type="email" placeholder="email@example.com" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -225,11 +248,11 @@ const EmergencyRegister = () => {
                                         name="address"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Address</FormLabel>
+                                                <FormLabel className="text-blue-800">Address</FormLabel>
                                                 <FormControl>
-                                                    <Textarea placeholder="Your full address" {...field} />
+                                                    <Textarea placeholder="Your full address" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -239,14 +262,14 @@ const EmergencyRegister = () => {
                                         name="emergencyContact"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Emergency Contact</FormLabel>
+                                                <FormLabel className="text-blue-800">Emergency Contact</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Name and phone number" {...field} />
+                                                    <Input placeholder="Name and phone number" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
                                                 </FormControl>
-                                                <FormDescription>
+                                                <FormDescription className="text-blue-600">
                                                     Person to contact in case of emergency
                                                 </FormDescription>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -254,18 +277,18 @@ const EmergencyRegister = () => {
 
                                 {/* Medical Information Section */}
                                 <div className="space-y-6">
-                                    <h3 className="text-lg font-medium text-medical-blue-dark">Medical Information</h3>
+                                    <h3 className="text-lg font-medium text-blue-600">Medical Information</h3>
 
                                     <FormField
                                         control={form.control}
                                         name="insuranceInfo"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Insurance Information (optional)</FormLabel>
+                                                <FormLabel className="text-blue-800">Insurance Information (optional)</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Insurance policy number" {...field} />
+                                                    <Input placeholder="Insurance policy number" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -275,11 +298,11 @@ const EmergencyRegister = () => {
                                         name="allergies"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Allergies (optional)</FormLabel>
+                                                <FormLabel className="text-blue-800">Allergies (optional)</FormLabel>
                                                 <FormControl>
-                                                    <Textarea placeholder="List any known allergies" {...field} />
+                                                    <Textarea placeholder="List any known allergies" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -289,11 +312,11 @@ const EmergencyRegister = () => {
                                         name="currentMedications"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Current Medications (optional)</FormLabel>
+                                                <FormLabel className="text-blue-800">Current Medications (optional)</FormLabel>
                                                 <FormControl>
-                                                    <Textarea placeholder="Medications you are currently taking" {...field} />
+                                                    <Textarea placeholder="Medications you are currently taking" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -302,11 +325,11 @@ const EmergencyRegister = () => {
                                         name="medicalHistory"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Medical History (optional)</FormLabel>
+                                                <FormLabel className="text-blue-800">Medical History (optional)</FormLabel>
                                                 <FormControl>
-                                                    <Textarea placeholder="Pre-existing medical conditions" {...field} />
+                                                    <Textarea placeholder="Pre-existing medical conditions" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -316,15 +339,15 @@ const EmergencyRegister = () => {
                                         name="currentSymptoms"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Current Symptoms</FormLabel>
+                                                <FormLabel className="text-blue-800">Current Symptoms</FormLabel>
                                                 <FormControl>
                                                     <Textarea
                                                         placeholder="Describe in detail the symptoms you are experiencing"
-                                                        className="min-h-[120px]"
+                                                        className="min-h-[120px] border-blue-300 focus:ring-blue-500 focus:border-blue-500"
                                                         {...field}
                                                     />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -334,10 +357,10 @@ const EmergencyRegister = () => {
                                         name="painLevel"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Pain Level (1-10)</FormLabel>
+                                                <FormLabel className="text-blue-800">Pain Level (1-10)</FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                     <FormControl>
-                                                        <SelectTrigger>
+                                                        <SelectTrigger className="border-blue-300 focus:ring-blue-500 focus:border-blue-500">
                                                             <SelectValue placeholder="Select pain level" />
                                                         </SelectTrigger>
                                                     </FormControl>
@@ -354,7 +377,7 @@ const EmergencyRegister = () => {
                                                         <SelectItem value="10">10 - Unbearable</SelectItem>
                                                     </SelectContent>
                                                 </Select>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -364,10 +387,10 @@ const EmergencyRegister = () => {
                                         name="emergencyLevel"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Emergency Level</FormLabel>
+                                                <FormLabel className="text-blue-800">Emergency Level</FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                     <FormControl>
-                                                        <SelectTrigger>
+                                                        <SelectTrigger className="border-blue-300 focus:ring-blue-500 focus:border-blue-500">
                                                             <SelectValue placeholder="Select emergency level" />
                                                         </SelectTrigger>
                                                     </FormControl>
@@ -378,7 +401,7 @@ const EmergencyRegister = () => {
                                                         <SelectItem value="critical">Critical - Life-threatening emergency</SelectItem>
                                                     </SelectContent>
                                                 </Select>
-                                                <FormMessage />
+                                                <FormMessage className="text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -390,30 +413,30 @@ const EmergencyRegister = () => {
                                 control={form.control}
                                 name="acceptTerms"
                                 render={({ field }) => (
-                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-medical-blue-light p-4 bg-medical-blue-light/10">
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-blue-300 p-4 bg-blue-50">
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className="data-[state=checked]:bg-medical-blue data-[state=checked]:border-medical-blue"
+                                                className="data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
                                             />
                                         </FormControl>
                                         <div className="space-y-1 leading-none">
-                                            <FormLabel className="text-medical-blue-dark">
+                                            <FormLabel className="text-blue-800">
                                                 I accept the terms and conditions and authorize the facility to process my medical data
                                             </FormLabel>
-                                            <FormDescription className="text-medical-blue-dark/70">
+                                            <FormDescription className="text-blue-600">
                                                 By checking this box, you agree to your information being used for your medical care.
                                             </FormDescription>
                                         </div>
-                                        <FormMessage />
+                                        <FormMessage className="text-red-500" />
                                     </FormItem>
                                 )}
                             />
 
                             <Button
                                 type="submit"
-                                className="w-full bg-medical-blue hover:bg-medical-blue-dark text-white"
+                                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
                                 size="lg"
                             >
                                 Submit Emergency Request
@@ -426,4 +449,4 @@ const EmergencyRegister = () => {
     );
 };
 
-export default EmergencyRegister; 
+export default EmergencyRegister;

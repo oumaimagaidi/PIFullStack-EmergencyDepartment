@@ -1,20 +1,37 @@
 // src/components/Layout.jsx
 import React from 'react';
-import DashboardSidebar from './DashboardSidebar';
-import { SidebarProvider } from "@/components/ui/sidebar"; // Import SidebarProvider
+import { Outlet } from "react-router-dom";
+import Header from "./header";
+import Footer from "./footer";
+import DashboardSidebar from "./DashboardSidebar";
 
-const Layout = ({ children }) => {
+export const HeaderFooterLayout = () => {
   return (
-      <div className="d-flex">
-        <DashboardSidebar />
-        <div className="content-container flex-grow-1 p-4">
-            {/* No Header here! */}
-            <main className="container mt-5">
-                {children}
-            </main>
-        </div>
-      </div>
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-grow">
+        <Outlet />
+      </main>
+      <Footer />
+    </div>
   );
 };
 
-export default Layout;
+export const DashboardLayout = () => {
+  return (
+    <div className="flex">
+      <DashboardSidebar />
+      <main className="flex-1">
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
+export const BasicLayout = () => {
+  return (
+    <main>
+      <Outlet />
+    </main>
+  );
+};
