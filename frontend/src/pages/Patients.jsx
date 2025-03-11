@@ -1,174 +1,131 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  Search,
-  UserPlus,
-} from "lucide-react";
-import { // Importez les composants Dialog nécessaires
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog"; // Assurez-vous d'importer Dialog de votre bibliothèque UI
-
-// Déclaration de la variable patients (DONNÉES STATIQUES) - **AJOUTÉ ICI**
-const patients = [
-  {
-    id: "1",
-    name: "John Doe",
-    age: 45,
-    status: "Stable",
-    lastVisit: new Date(),
-    condition: "Hypertension",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    age: 32,
-    status: "Under Treatment",
-    lastVisit: new Date(),
-    condition: "Diabetes",
-  },
-];
-
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Search, UserPlus, Calendar, Phone, User, Mail, Heart } from "lucide-react";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Patients = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleViewDetails = (patient) => {
-    setSelectedPatient(patient);
-    setIsDetailsOpen(true);
-  };
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const response = await axios.get("http://localhost:8089/api/users/patients", { withCredentials: true });
+        setPatients(response.data);
+      } catch (err) {
+        setError("Impossible de récupérer les patients.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleCloseDetails = () => {
-    setIsDetailsOpen(false);
-    setSelectedPatient(null);
-  };
+    fetchPatients();
+  }, []);
 
+  const filteredPatients = patients.filter(patient => patient.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div className="space-y-6">
+    
+<div className="p-6 space-y-6 bg-gradient-to-br from-blue-100 to-blue-300 h-screen rounded-lg shadow-lg">
+
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Patient Management</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Gestion des Patients</h1>
         <Sheet>
           <SheetTrigger asChild>
-            <Button className="gap-2">
-              <UserPlus className="h-4 w-4" />
-              Add Patient
+            <Button className="bg-blue-600 text-white gap-2 hover:bg-blue-500">
+              <UserPlus className="h-4 w-4" /> Ajouter Patient
             </Button>
           </SheetTrigger>
           <SheetContent>
             <SheetHeader>
-              <SheetTitle>Add New Patient</SheetTitle>
+              <SheetTitle>Ajouter un Nouveau Patient</SheetTitle>
             </SheetHeader>
             <div className="space-y-4 mt-6">
-              <Input placeholder="Full Name" />
-              <Input placeholder="Age" type="number" />
-              <Input placeholder="Condition" />
-              <Button className="w-full">Save Patient</Button>
+              <Input placeholder="Nom Complet" />
+              <Input placeholder="Âge" type="number" />
+              <Input placeholder="Condition Médicale" />
+              <Button className="w-full bg-blue-600 text-white hover:bg-blue-500">Enregistrer</Button>
             </div>
           </SheetContent>
         </Sheet>
       </div>
 
-      <Card className="glass-card">
+      <Card className="shadow-xl bg-white rounded-lg">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Patient List</CardTitle>
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search patients..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 w-[300px]"
-                />
-              </div>
+          <div className="flex justify-between items-center">
+            <CardTitle>Liste des Patients</CardTitle>
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Rechercher..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 w-72 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400"
+              />
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {patients.map((patient) => (  // patients est maintenant défini et accessible
-              <div
-                key={patient.id}
-                className="flex items-center justify-between p-4 border rounded-lg bg-white/50 hover-scale"
-              >
-                <div>
-                  <h3 className="font-semibold">{patient.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Age: {patient.age} | Condition: {patient.condition}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm">{patient.status}</span>
-                  <Button size="sm" onClick={() => handleViewDetails(patient)}>
-                    View Details
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+          {loading ? (
+            <p className="text-center text-gray-600">Chargement...</p>
+          ) : error ? (
+            <p className="text-center text-red-500">{error}</p>
+          ) : (
+            <div className="space-y-4">
+              {filteredPatients.map((patient) => (
+                <motion.div
+                  key={patient._id}
+                  className="flex justify-between items-center p-4 bg-gray-100 rounded-lg hover:bg-gray-200 cursor-pointer transition"
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => { setSelectedPatient(patient); setIsDetailsOpen(true); }}
+                >
+                  <div>
+                    <h3 className="font-semibold">{patient.name}</h3>
+                    <p className="text-sm text-gray-600">Âge: {patient.age} | {patient.condition}</p>
+                  </div>
+                  <Button className="bg-blue-600 text-white hover:bg-blue-500">Voir</Button>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Patient Details</DialogTitle>
-            <DialogDescription>
-              Detailed information about {selectedPatient?.name}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {selectedPatient && (
-              <>
-                <div className="grid gap-2">
-                  <div className="font-semibold">Name</div>
-                  <div>{selectedPatient.name}</div>
+      <AnimatePresence>
+        {isDetailsOpen && selectedPatient && (
+          <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+            <DialogContent>
+              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                <DialogHeader>
+                  <DialogTitle>Détails du Patient</DialogTitle>
+                  <DialogDescription>Informations sur {selectedPatient.name}</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 p-4">
+                  <p><strong><User className="inline w-4 h-4" /> Nom:</strong> {selectedPatient.name}</p>
+                  <p><strong><Mail className="inline w-4 h-4" /> Email:</strong> {selectedPatient.email}</p>
+                  <p><strong><Phone className="inline w-4 h-4" /> Téléphone:</strong> {selectedPatient.phoneNumber}</p>
+                  <p><strong><Calendar className="inline w-4 h-4" /> Date de Naissance:</strong> {new Date(selectedPatient.dateOfBirth).toLocaleDateString()}</p>
+                  <p><strong><Heart className="inline w-4 h-4" /> Groupe Sanguin:</strong> {selectedPatient.bloodType}</p>
                 </div>
-                <div className="grid gap-2">
-                  <div className="font-semibold">Age</div>
-                  <div>{selectedPatient.age}</div>
-                </div>
-                <div className="grid gap-2">
-                  <div className="font-semibold">Condition</div>
-                  <div>{selectedPatient.condition}</div>
-                </div>
-                <div className="grid gap-2">
-                  <div className="font-semibold">Status</div>
-                  <div>{selectedPatient.status}</div>
-                </div>
-                <div className="grid gap-2">
-                  <div className="font-semibold">Last Visit</div>
-                  <div>{selectedPatient.lastVisit.toLocaleDateString()}</div>
-                </div>
-              </>
-            )}
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="secondary">Close</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button className="bg-blue-600 text-white hover:bg-blue-500">Fermer</Button>
+                  </DialogClose>
+                </DialogFooter>
+              </motion.div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

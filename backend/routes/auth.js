@@ -50,7 +50,7 @@ router.post("/login", async (req, res) => {
 
     // Generate JWT Token
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
+    console.log("Generated Token:", token);
     // Store token in an HTTP-only cookie
     res.cookie("token", token, {
       httpOnly: false,
@@ -58,8 +58,9 @@ router.post("/login", async (req, res) => {
       sameSite: "strict", // Protect against CSRF attacks
       maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expires in 7 days
     });
+    
 
-    res.status(200).json({ message: "Connexion réussie", user });
+    res.status(200).json({ message: "Connexion réussie", user },);
   } catch (error) {
     console.error("Erreur serveur:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
