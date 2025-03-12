@@ -86,8 +86,8 @@ const ProfileContent = ({
 
                 <motion.button
                     className={`profile-edit-button p-2 ${isEditing
-                            ? 'bg-gradient-to-r from-profileBlue-500 to-profileBlue-600 text-white'
-                            : 'bg-profileBlue-50 text-profileBlue-500 hover:bg-profileBlue-100'
+                            ? 'bg-gradient-to-r from-[#42A5FF] to-[#1E88E5] text-white'
+                            : 'bg-[#42A5FF]/10 text-[#42A5FF] hover:bg-[#42A5FF]/20'
                         }`}
                     onClick={() => isEditing ? handleSave() : setIsEditing(true)}
                     whileHover={{ scale: 1.05 }}

@@ -17,29 +17,29 @@ import { Checkbox } from "@/components/ui/checkbox";
 import axios from 'axios';
 
 const emergencyFormSchema = z.object({
-  firstName: z.string().min(2, { message: "First name must be at least 2 characters" }),
-  lastName: z.string().min(2, { message: "Last name must be at least 2 characters" }),
-  dateOfBirth: z.string().min(1, { message: "Date of birth is required" }), // Keep as string for now, handle formatting later if needed
+  firstName: z.string().min(2, { message: "Le prénom doit contenir au moins 2 caractères" }),
+  lastName: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères" }),
+  dateOfBirth: z.string().min(1, { message: "La date de naissance est requise" }),
   gender: z.enum(["male", "female", "other"], {
-    required_error: "Please select a gender"
+    required_error: "Veuillez sélectionner un genre"
   }),
-  phoneNumber: z.string().min(8, { message: "Invalid phone number" }),
-  email: z.string().email({ message: "Invalid email address" }).optional(),
-  address: z.string().min(5, { message: "Address must be at least 5 characters" }),
-  emergencyContact: z.string().min(8, { message: "Invalid emergency contact" }),
+  phoneNumber: z.string().min(8, { message: "Numéro de téléphone invalide" }),
+  email: z.string().email({ message: "Adresse e-mail invalide" }).optional(),
+  address: z.string().min(5, { message: "L'adresse doit contenir au moins 5 caractères" }),
+  emergencyContact: z.string().min(8, { message: "Contact d'urgence invalide" }),
   insuranceInfo: z.string().optional(),
   allergies: z.string().optional(),
   currentMedications: z.string().optional(),
   medicalHistory: z.string().optional(),
-  currentSymptoms: z.string().min(5, { message: "Please describe your current symptoms" }),
+  currentSymptoms: z.string().min(5, { message: "Veuillez décrire vos symptômes actuels" }),
   painLevel: z.enum(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], {
-    required_error: "Please select your pain level"
+    required_error: "Veuillez indiquer votre niveau de douleur"
   }),
   emergencyLevel: z.enum(["low", "medium", "high", "critical"], {
-    required_error: "Please select the emergency level"
+    required_error: "Veuillez indiquer le niveau d'urgence"
   }),
   acceptTerms: z.boolean().refine(val => val === true, {
-    message: "You must accept the terms and conditions",
+    message: "Vous devez accepter les conditions",
   }),
 });
 
@@ -50,7 +50,6 @@ const EmergencyRegister = () => {
       firstName: "",
       lastName: "",
       dateOfBirth: "",
-      gender: "", // Initialize gender
       phoneNumber: "",
       email: "",
       address: "",
@@ -60,67 +59,32 @@ const EmergencyRegister = () => {
       currentMedications: "",
       medicalHistory: "",
       currentSymptoms: "",
-      painLevel: "", // Initialize painLevel
-      emergencyLevel: "", // Initialize emergencyLevel
       acceptTerms: false,
     },
   });
-  const navigate = useNavigate(); // Initialisez useNavigate
-  async function onSubmit(data) {
-    try {
-      // Correct URL for the backend endpoint
-      const response = await axios.post('http://localhost:8089/api/emergency-patients', data);
-      console.log(response.data);
-      toast.success("Your emergency request has been registered", {
-        description: "A member of our medical team will contact you shortly.",
-      });
-      form.reset(); // Reset the form after successful submission
-      navigate('/emergency-confirmation', { state: { formData: data } }); // Redirection après succès
 
-    } catch (error) {
-      if (error.response) {
-        console.error("Server error:", error.response.data);
-        // Handle specific validation errors from the backend
-        if (error.response.data.message && Array.isArray(error.response.data.message)) {
-          error.response.data.message.forEach(errorMessage => {
-            toast.error("Validation Error", { description: errorMessage });
-          });
-
-        } else {
-          toast.error("Failed to register emergency request", {
-            description: error.response.data.message || "An error occurred on the server.",
-          });
-        }
-
-
-      } else if (error.request) {
-        console.error("No response received from server");
-        toast.error("Failed to register emergency request", {
-          description: "No response received from the server. Please check your network connection.",
-        });
-      } else {
-        console.error("Error setting up request:", error.message);
-        toast.error("Failed to register emergency request", {
-          description: "An unexpected error occurred. Please try again later.",
-        });
-      }
-    }
+  function onSubmit(data) {
+    console.log(data);
+    toast.success("Votre demande d'urgence a été enregistrée", {
+      description: "Un membre de notre équipe médicale vous contactera rapidement.",
+    });
+    // Ici vous pouvez ajouter le code pour envoyer les données à votre backend
   }
 
-
   return (
-    <div className="container mx-auto py-6 px-4 md:px-6">
-      <Card className="w-full max-w-4xl mx-auto shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-400 text-white">
-          <div className="flex items-center gap-2">
+    <div className="container mx-auto py-6 px-4 md:px-6 bg-medical-blue-light/20">
+      <Card className="w-full max-w-4xl mx-auto border-medical-blue-light shadow-lg">
+        {/* En-tête du formulaire */}
+        <CardHeader className="bg-gradient-to-r from-medical-blue-light to-medical-blue/10 border-b border-medical-blue/20">
+          <div className="flex items-center gap-2 text-medical-blue">
             <AlertTriangle className="h-6 w-6" />
             <Heart className="h-6 w-6" />
           </div>
-          <CardTitle className="text-2xl md:text-3xl font-bold">
-            Patient Emergency Registration
+          <CardTitle className="text-2xl md:text-3xl font-bold text-medical-blue">
+            Enregistrement d'Urgence Patient
           </CardTitle>
-          <CardDescription className="text-base">
-            Please fill out this form with your information and the issues you are currently experiencing.
+          <CardDescription className="text-base text-medical-blue-dark/80">
+            Veuillez remplir ce formulaire avec vos informations et les problèmes que vous rencontrez actuellement.
           </CardDescription>
         </CardHeader>
 
@@ -128,19 +92,20 @@ const EmergencyRegister = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Personal Information Section */}
+                {/* Section d'informations personnelles */}
                 <div className="space-y-6">
-                  <h3 className="text-lg font-medium text-blue-600">Personal Information</h3>
+                  <h3 className="text-lg font-medium text-medical-blue-dark">Informations personnelles</h3>
+
                   <FormField
                     control={form.control}
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">First Name</FormLabel>
+                        <FormLabel>Prénom</FormLabel>
                         <FormControl>
-                          <Input placeholder="First Name" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                          <Input placeholder="Prénom" {...field} />
                         </FormControl>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -150,11 +115,11 @@ const EmergencyRegister = () => {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Last Name</FormLabel>
+                        <FormLabel>Nom</FormLabel>
                         <FormControl>
-                          <Input placeholder="Last Name" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                          <Input placeholder="Nom" {...field} />
                         </FormControl>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -164,11 +129,11 @@ const EmergencyRegister = () => {
                     name="dateOfBirth"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Date of Birth</FormLabel>
+                        <FormLabel>Date de naissance</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                          <Input type="date" {...field} />
                         </FormControl>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -178,7 +143,7 @@ const EmergencyRegister = () => {
                     name="gender"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Gender</FormLabel>
+                        <FormLabel>Genre</FormLabel>
                         <FormControl>
                           <RadioGroup
                             onValueChange={field.onChange}
@@ -187,31 +152,31 @@ const EmergencyRegister = () => {
                           >
                             <FormItem className="flex items-center space-x-3 space-y-0">
                               <FormControl>
-                                <RadioGroupItem value="male" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" />
+                                <RadioGroupItem value="male" />
                               </FormControl>
-                              <FormLabel className="font-normal text-blue-700">
-                                Male
+                              <FormLabel className="font-normal">
+                                Homme
                               </FormLabel>
                             </FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0">
                               <FormControl>
-                                <RadioGroupItem value="female" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" />
+                                <RadioGroupItem value="female" />
                               </FormControl>
-                              <FormLabel className="font-normal text-blue-700">
-                                Female
+                              <FormLabel className="font-normal">
+                                Femme
                               </FormLabel>
                             </FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0">
                               <FormControl>
-                                <RadioGroupItem value="other" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" />
+                                <RadioGroupItem value="other" />
                               </FormControl>
-                              <FormLabel className="font-normal text-blue-700">
-                                Other
+                              <FormLabel className="font-normal">
+                                Autre
                               </FormLabel>
                             </FormItem>
                           </RadioGroup>
                         </FormControl>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -221,11 +186,11 @@ const EmergencyRegister = () => {
                     name="phoneNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Phone Number</FormLabel>
+                        <FormLabel>Numéro de téléphone</FormLabel>
                         <FormControl>
-                          <Input placeholder="+1 555-555-5555" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                          <Input placeholder="+33 6 12 34 56 78" {...field} />
                         </FormControl>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -235,11 +200,11 @@ const EmergencyRegister = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Email (optional)</FormLabel>
+                        <FormLabel>Email (optionnel)</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="email@example.com" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                          <Input type="email" placeholder="email@exemple.fr" {...field} />
                         </FormControl>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -249,11 +214,11 @@ const EmergencyRegister = () => {
                     name="address"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Address</FormLabel>
+                        <FormLabel>Adresse</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Your full address" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                          <Textarea placeholder="Votre adresse complète" {...field} />
                         </FormControl>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -263,33 +228,33 @@ const EmergencyRegister = () => {
                     name="emergencyContact"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Emergency Contact</FormLabel>
+                        <FormLabel>Contact d'urgence</FormLabel>
                         <FormControl>
-                          <Input placeholder="Name and phone number" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                          <Input placeholder="Nom et numéro" {...field} />
                         </FormControl>
-                        <FormDescription className="text-blue-600">
-                          Person to contact in case of emergency
+                        <FormDescription>
+                          Personne à contacter en cas d'urgence
                         </FormDescription>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
 
-                {/* Medical Information Section */}
+                {/* Section d'informations médicales */}
                 <div className="space-y-6">
-                  <h3 className="text-lg font-medium text-blue-600">Medical Information</h3>
+                  <h3 className="text-lg font-medium text-medical-blue-dark">Informations médicales</h3>
 
                   <FormField
                     control={form.control}
                     name="insuranceInfo"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Insurance Information (optional)</FormLabel>
+                        <FormLabel>Informations d'assurance (optionnel)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Insurance policy number" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                          <Input placeholder="Numéro de sécurité sociale / Mutuelle" {...field} />
                         </FormControl>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -299,11 +264,11 @@ const EmergencyRegister = () => {
                     name="allergies"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Allergies (optional)</FormLabel>
+                        <FormLabel>Allergies (optionnel)</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="List any known allergies" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                          <Textarea placeholder="Listez vos allergies connues" {...field} />
                         </FormControl>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -313,24 +278,25 @@ const EmergencyRegister = () => {
                     name="currentMedications"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Current Medications (optional)</FormLabel>
+                        <FormLabel>Médicaments actuels (optionnel)</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Medications you are currently taking" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                          <Textarea placeholder="Médicaments que vous prenez actuellement" {...field} />
                         </FormControl>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="medicalHistory"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Medical History (optional)</FormLabel>
+                        <FormLabel>Antécédents médicaux (optionnel)</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Pre-existing medical conditions" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                          <Textarea placeholder="Conditions médicales préexistantes" {...field} />
                         </FormControl>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -340,15 +306,15 @@ const EmergencyRegister = () => {
                     name="currentSymptoms"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Current Symptoms</FormLabel>
+                        <FormLabel>Symptômes actuels</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Describe in detail the symptoms you are experiencing"
-                            className="min-h-[120px] border-blue-300 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Décrivez en détail les symptômes que vous ressentez"
+                            className="min-h-[120px]"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -358,27 +324,27 @@ const EmergencyRegister = () => {
                     name="painLevel"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Pain Level (1-10)</FormLabel>
+                        <FormLabel>Niveau de douleur (1-10)</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="border-blue-300 focus:ring-blue-500 focus:border-blue-500">
-                              <SelectValue placeholder="Select pain level" />
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionnez le niveau de douleur" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="1">1 - Very mild</SelectItem>
+                            <SelectItem value="1">1 - Très légère</SelectItem>
                             <SelectItem value="2">2</SelectItem>
                             <SelectItem value="3">3</SelectItem>
                             <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5 - Moderate</SelectItem>
+                            <SelectItem value="5">5 - Modérée</SelectItem>
                             <SelectItem value="6">6</SelectItem>
                             <SelectItem value="7">7</SelectItem>
                             <SelectItem value="8">8</SelectItem>
                             <SelectItem value="9">9</SelectItem>
-                            <SelectItem value="10">10 - Unbearable</SelectItem>
+                            <SelectItem value="10">10 - Insupportable</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -388,59 +354,59 @@ const EmergencyRegister = () => {
                     name="emergencyLevel"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-blue-800">Emergency Level</FormLabel>
+                        <FormLabel>Niveau d'urgence</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="border-blue-300 focus:ring-blue-500 focus:border-blue-500">
-                              <SelectValue placeholder="Select emergency level" />
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionnez le niveau d'urgence" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="low">Low - I can wait</SelectItem>
-                            <SelectItem value="medium">Medium - I need to see a doctor today</SelectItem>
-                            <SelectItem value="high">High - I need care quickly</SelectItem>
-                            <SelectItem value="critical">Critical - Life-threatening emergency</SelectItem>
+                            <SelectItem value="low">Faible - Je peux attendre</SelectItem>
+                            <SelectItem value="medium">Moyen - J'ai besoin de voir un médecin aujourd'hui</SelectItem>
+                            <SelectItem value="high">Élevé - J'ai besoin de soins rapidement</SelectItem>
+                            <SelectItem value="critical">Critique - Situation d'urgence vitale</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormMessage className="text-red-500" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
               </div>
 
-              {/* Terms and Conditions Section */}
+              {/* Section des conditions */}
               <FormField
                 control={form.control}
                 name="acceptTerms"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-blue-300 p-4 bg-blue-50">
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-medical-blue-light p-4 bg-medical-blue-light/10">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className="data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                        className="data-[state=checked]:bg-medical-blue data-[state=checked]:border-medical-blue"
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel className="text-blue-800">
-                        I accept the terms and conditions and authorize the facility to process my medical data
+                      <FormLabel className="text-medical-blue-dark">
+                        J'accepte les conditions et j'autorise l'établissement à traiter mes données médicales
                       </FormLabel>
-                      <FormDescription className="text-blue-600">
-                        By checking this box, you agree to your information being used for your medical care.
+                      <FormDescription className="text-medical-blue-dark/70">
+                        En cochant cette case, vous acceptez que vos informations soient utilisées pour votre prise en charge médicale.
                       </FormDescription>
                     </div>
-                    <FormMessage className="text-red-500" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
 
               <Button
                 type="submit"
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                className="w-full bg-medical-blue hover:bg-medical-blue-dark text-white"
                 size="lg"
               >
-                Submit Emergency Request
+                Soumettre la demande d'urgence
               </Button>
             </form>
           </Form>

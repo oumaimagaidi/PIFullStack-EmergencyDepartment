@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import ProfileHeader from './ProfileHeader';  // Assuming this is a separate file
-import ProfileContent from './ProfileContent'; // Assuming this is a separate file
-import LoadingState from './LoadingState'; // Assuming this is a separate file
+import ProfileHeader from './ProfileHeader';
+import ProfileContent from './ProfileContent';
+import LoadingState from './LoadingState';
 import { toast } from 'sonner';
 
 const Profile = () => {
@@ -85,7 +85,7 @@ const Profile = () => {
             <p className="text-gray-600 mb-4">{error}</p>
             <button 
               onClick={() => window.location.reload()}
-              className="bg-profileBlue-500 hover:bg-profileBlue-600 text-white font-medium py-2 px-4 rounded transition-colors"
+              className="bg-[#42A5FF] hover:bg-[#1E88E5] text-white font-medium py-2 px-4 rounded transition-colors"
             >
               Try Again
             </button>
@@ -100,6 +100,7 @@ const Profile = () => {
       <ProfileHeader 
         username={profileData.personal.username} 
         role={profileData.personal.role} 
+        profileImage={profileData.personal.profileImage} // Passer l'image de profil
       />
       
       <div className="container -mt-16 relative z-30 pb-16">

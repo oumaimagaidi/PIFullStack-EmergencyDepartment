@@ -11,15 +11,15 @@ services:
     ports:
       - 27017:27017
     volumes:
-      -data:/data/db
+      - ./data/dump:/dump 
 
   app:
     build: .
-    image: 192.168.33.10:8083/nodemongoapp:6.0
+    image: 192.168.252.114:8083/nodemongoapp:5.0
     restart: always
     container_name: back
     ports:
-      - '5000:5000'
+      - '3000:3000'
     depends_on:
       - db
 

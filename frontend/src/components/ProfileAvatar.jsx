@@ -10,7 +10,7 @@ const sizes = {
 
 const ProfileAvatar = ({ imageUrl, altText, size = 'lg' }) => {
     return (
-        <div className={`profile-avatar ${sizes[size]} animate-fade-in`}>
+        <div className={`profile-avatar ${sizes[size]} rounded-full overflow-hidden animate-fade-in`}>
             {imageUrl ? (
                 <img
                     src={imageUrl}
@@ -19,9 +19,9 @@ const ProfileAvatar = ({ imageUrl, altText, size = 'lg' }) => {
                     loading="lazy"
                 />
             ) : (
-                <div className="w-full h-full flex items-center justify-center bg-profileBlue-100">
+                <div className="w-full h-full flex items-center justify-center bg-[#42A5FF]/20">
                     <UserRound
-                        className="text-profileBlue-500"
+                        className="text-[#42A5FF]"
                         size={size === 'xl' ? 64 : size === 'lg' ? 48 : size === 'md' ? 36 : 24}
                     />
                 </div>
