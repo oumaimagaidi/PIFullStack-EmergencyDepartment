@@ -19,6 +19,8 @@ import Alerts from "./pages/Alerts";
 import Settings from "./pages/Settings";
 import Forum from "./pages/Forum";
 import EmergencyRegister from "./pages/EmergencyRegister";
+import ConfirmationEmergencyRegister from "./pages/ConfirmationEmergencyRegister";
+import EmergencyStatus from "./pages/EmergencyStatus"; // Importez le composant de statut
 function App() {
   return (
       <Routes>
@@ -27,13 +29,17 @@ function App() {
 
         {/* Routes publiques sans header/footer/sidebar */}
         <Route path="/login" element={<PublicLayout><Login /></PublicLayout>} />
-        <Route path="/emergency-register" element={<PublicLayout><EmergencyRegister /></PublicLayout>} />
+      
+        <Route path="/emergency-confirmation" element={<PublicLayout><ConfirmationEmergencyRegister /></PublicLayout>} />
+        <Route path="/emergency-status/:patientId" element={<EmergencyStatus />} /> {/* Nouvelle route pour le statut */}
         <Route path="/register" element={<PublicLayout><Register /></PublicLayout>} />
         <Route path="/forgotpassword" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
 
         {/* Routes Main avec header/footer */}
         <Route path="/home" element={<MainLayout><Home /></MainLayout>} />
         <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
+        <Route path="/emergency-register" element={<MainLayout><EmergencyRegister /></MainLayout>} />
+        <Route path="/emergency-confirmation" element={<MainLayout><ConfirmationEmergencyRegister /></MainLayout>} />
 
         {/* Routes Dashboard avec sidebar */}
         <Route path="/dashboard" element={

@@ -45,12 +45,15 @@ Additional Info:
 ================================================================
 Directory Structure
 ================================================================
+.babelrc
 db.js
 middleware/authMiddleware.js
 middleware/uploadMiddleware.js
+models/EmergencyPatient.js
 models/User.js
 package.json
 routes/auth.js
+routes/emergencyPatients.js
 routes/profile.js
 routes/users.js
 sendSMS.js
@@ -61,6 +64,13 @@ services/otpService.js
 ================================================================
 Files
 ================================================================
+
+================
+File: .babelrc
+================
+{
+    "presets": ["@babel/preset-env"]
+  }
 
 ================
 File: db.js
@@ -125,6 +135,45 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 export default upload;
+
+================
+File: models/EmergencyPatient.js
+================
+// backend/models/EmergencyPatient.js
+import mongoose from 'mongoose'; // Use import
+
+const emergencyPatientSchema = new mongoose.Schema({
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    dateOfBirth: { type: String, required: true }, // Consider using Date type for easier date manipulation if needed later
+    gender: { type: String, required: true, enum: ['male', 'female', 'other'] },
+    phoneNumber: { type: String, required: true },
+    email: {
+        type: String,
+        validate: {
+            validator: function (v) {
+                // Basic email validation (you might want a more robust library)
+                return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
+            },
+            message: props => `${props.value} is not a valid email address!`
+        }
+    },
+    address: { type: String, required: true },
+    emergencyContact: { type: String, required: true },
+    insuranceInfo: { type: String },
+    allergies: { type: String },
+    currentMedications: { type: String },
+    medicalHistory: { type: String },
+    currentSymptoms: { type: String, required: true },
+    painLevel: { type: String, required: true, enum: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] },
+    emergencyLevel: { type: String, required: true, enum: ['low', 'medium', 'high', 'critical'] },
+    status: { type: String, default: 'Demande Enregistrée' }, // Added status field with default value
+    createdAt: { type: Date, default: Date.now }
+}, { timestamps: true });
+
+const EmergencyPatient = mongoose.model('EmergencyPatient', emergencyPatientSchema);
+
+export default EmergencyPatient;
 
 ================
 File: models/User.js
@@ -311,7 +360,8 @@ File: package.json
     "mongoose": "^8.10.1",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.0",
-    "otp-generator": "^4.0.1"
+    "otp-generator": "^4.0.1",
+    "twilio": "^5.4.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
@@ -373,7 +423,7 @@ router.post("/login", async (req, res) => {
 
     // Generate JWT Token
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
+    console.log("Generated Token:", token);
     // Store token in an HTTP-only cookie
     res.cookie("token", token, {
       httpOnly: false,
@@ -381,8 +431,9 @@ router.post("/login", async (req, res) => {
       sameSite: "strict", // Protect against CSRF attacks
       maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expires in 7 days
     });
+    
 
-    res.status(200).json({ message: "Connexion réussie", user });
+    res.status(200).json({ message: "Connexion réussie", user },);
   } catch (error) {
     console.error("Erreur serveur:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
@@ -877,6 +928,72 @@ router.post('/send-sms', async (req, res) => {
 export default router;
 
 ================
+File: routes/emergencyPatients.js
+================
+// backend/routes/emergency-patients.js
+import express from 'express';
+import EmergencyPatient from '../models/EmergencyPatient.js';
+
+const router = express.Router();
+
+// Route POST pour enregistrer une nouvelle demande d'urgence
+router.post('/', async (req, res) => {
+    try {
+        const patient = new EmergencyPatient(req.body);
+        const savedPatient = await patient.save();
+        res.status(201).json(savedPatient);
+    } catch (error) {
+        console.error(error);
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+            res.status(400).json({ message: messages });
+        } else {
+            res.status(500).json({ message: 'Server error' });
+        }
+    }
+});
+
+// Route GET pour récupérer TOUTES LES demandes d'urgence
+router.get('/', async (req, res) => {
+    try {
+        const emergencyPatients = await EmergencyPatient.find();
+        res.status(200).json(emergencyPatients);
+    } catch (error) {
+        console.error("Erreur lors de la récupération des demandes d'urgence:", error);
+        res.status(500).json({ message: "Erreur serveur lors de la récupération des demandes d'urgence" });
+    }
+});
+
+// Route PUT pour mettre à jour le statut d'une demande d'urgence par ID
+router.put('/:id/status', async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    try {
+        const updatedPatient = await EmergencyPatient.findByIdAndUpdate(
+            id,
+            { status: status },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedPatient) {
+            return res.status(404).json({ message: "Demande d'urgence non trouvée" });
+        }
+
+        res.status(200).json(updatedPatient);
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour du statut de la demande d'urgence:", error);
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({ message: messages });
+        }
+        res.status(500).json({ message: "Erreur serveur lors de la mise à jour du statut" });
+    }
+});
+
+export default router;
+
+================
 File: routes/profile.js
 ================
 // In your routes/profile.js
@@ -1058,17 +1175,21 @@ router.get("/", authenticateToken, async (req, res) => {
 });
 
 // Obtenir un utilisateur par ID
-router.get("/:id", authenticateToken, async (req, res) => {
+router.get("/users/:id", authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+    const userId = mongoose.Types.ObjectId(req.params.id); // Ensure the id is cast to ObjectId
+    const user = await User.findById(userId).exec();
+
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
 
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error });
+    console.error("Erreur lors de la récupération de l'utilisateur:", error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 });
-
 // Mettre à jour un utilisateur
 router.put("/:id", authenticateToken, async (req, res) => {
   try {
@@ -1118,7 +1239,80 @@ router.post("/validate-user", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error });
   }
 });
+router.get("/patients/count", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
 
+    const patientCount = await User.countDocuments({ role: "Patient" });
+    res.status(200).json({ count: patientCount });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+router.get("/patients", authenticateToken, async (req, res) => {
+  try {
+    // Ensure the user is an Administrator, Doctor, or Nurse
+    if (!["Administrator", "Doctor", "Nurse"].includes(req.user.role)) {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    // Fetch patients from the database
+    const patients = await User.find({ role: "Patient" }).exec();
+
+    // Check if patients were found
+    if (!patients || patients.length === 0) {
+      return res.status(404).json({ message: "Aucun patient trouvé" });
+    }
+
+    // Return the list of patients
+    res.status(200).json(patients);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des patients:", error); // Log the error
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+
+// Delete a patient (admin only)
+router.delete("/patients/:id", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const patient = await User.findById(req.params.id);
+    if (!patient || patient.role !== "Patient") {
+      return res.status(404).json({ message: "Patient non trouvé" });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Patient supprimé avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de la suppression du patient:", error); // Log the error
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+
+// Update a patient (admin only)
+router.put("/patients/:id", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const patient = await User.findById(req.params.id);
+    if (!patient || patient.role !== "Patient") {
+      return res.status(404).json({ message: "Patient non trouvé" });
+    }
+
+    const updatedPatient = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).json(updatedPatient);
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du patient:", error); // Log the error
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
 export default router;
 
 ================
@@ -1179,6 +1373,7 @@ export default sendSMS;
 ================
 File: server.js
 ================
+// backend/server.js
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -1188,32 +1383,34 @@ import userRoutes from "./routes/users.js";
 import connectDB from "./db.js";
 import cookieParser from "cookie-parser";
 import profileRoutes from "./routes/profile.js";
+import emergencyPatientRoutes from './routes/emergencyPatients.js';
 
 dotenv.config();
 
 const app = express();
 
-// ✅ Connexion à MongoDB
 connectDB();
 
-
-
-
-// ✅ Middlewares
-app.use(express.json());
+// *** CORS MUST BE FIRST ***
 app.use(cors({
-  origin: "http://localhost:3000", // Autoriser uniquement cette origine
-  credentials: true, // Permettre l'envoi des cookies
-  methods: ["GET", "POST", "PUT", "DELETE"], // Autoriser ces méthodes
-  allowedHeaders: ["Content-Type", "Authorization"], // Headers autorisés
+  origin: "http://localhost:3000",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
+
+// THEN other middleware
+app.use(express.json());
 app.use(cookieParser());
-// ✅ Routes
+
+
+// THEN your routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/", profileRoutes);
-// ✅ Lancement du serveur
-const PORT = process.env.PORT || 8080;
+app.use('/api/emergency-patients', emergencyPatientRoutes);
+
+const PORT = process.env.PORT || 8089; // Change 8080 to 8089 to match frontend request
 app.listen(PORT, () => console.log(`✅ Serveur démarré sur le port ${PORT}`));
 
 ================

@@ -35,5 +35,5 @@ app.use("/api/users", userRoutes);
 app.use("/api/", profileRoutes);
 app.use('/api/emergency-patients', emergencyPatientRoutes);
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8089; // Change 8080 to 8089 to match frontend request
 app.listen(PORT, () => console.log(`✅ Serveur démarré sur le port ${PORT}`));
