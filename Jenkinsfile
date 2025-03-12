@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         registryCredentials = "nexus"
-        registry = "192.168.33.10:8083"
+        registry = "192.168.252.114:8083"
     }
 
     stages {
@@ -17,7 +17,7 @@ pipeline {
 
                     // Install frontend dependencies
                     dir('frontend') {
-                        sh 'npm install --legacy-peer-deps'
+                        sh 'npm install'
                     }
                 }
             }
@@ -55,6 +55,24 @@ pipeline {
             }
         }
 
+        stage('Building images (node and mongo)') {
+            steps {
+                script {
+                    sh('docker-compose build')
+                }
+            }
+        }
+
+        stage('Deploy to Nexus') { 
+            steps {   
+                script { 
+                    docker.withRegistry("http://"+registry, registryCredentials) { 
+                        sh('docker push $registry/nodemongoapp:5.0') 
+                    } 
+                } 
+            } 
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 script { 
@@ -67,22 +85,15 @@ pipeline {
             } 
         }
 
-        stage('Building images (node and mongo)') {
-            steps {
-                script {
-                    sh('docker-compose build')
-                }
-            }
-        }
-
-        stage('Deploy to Nexus') {
-            steps {
-                script {
-                    docker.withRegistry("http://${registry}", registryCredentials) {
-                        sh('docker push ${registry}/nodemongoapp:5.0')
-                    }
-                }
-            }
+        stage('Run application') { 
+            steps {   
+                script { 
+                    docker.withRegistry("http://"+registry, registryCredentials) { 
+                        sh('docker pull ${registry}/nodemongoapp:5.0') 
+                        sh('docker-compose up -d') 
+                    } 
+                } 
+            } 
         }
     }
 }
