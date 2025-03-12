@@ -2,11 +2,11 @@
 module.exports = {
 	darkMode: ["class"],
 	content: [
-		"./pages/**/*.{ts,tsx,js,jsx}",
-		"./components/**/*.{ts,tsx,js,jsx}",
-		"./app/**/*.{ts,tsx,js,jsx}",
-		"./src/**/*.{ts,tsx,js,jsx}",
-	  ],
+	  "./pages/**/*.{ts,tsx,js,jsx}",
+	  "./components/**/*.{ts,tsx,js,jsx}",
+	  "./app/**/*.{ts,tsx,js,jsx}",
+	  "./src/**/*.{ts,tsx,js,jsx}",
+	],
 	prefix: "",
 	theme: {
 	  container: {
@@ -25,8 +25,9 @@ module.exports = {
 		  foreground: "hsl(var(--foreground))",
 		  customindigo: '#C4DBFF',
 		  primary: {
-			DEFAULT: "hsl(var(--primary))",
-			foreground: "hsl(var(--primary-foreground))",
+			DEFAULT: '#42A5FF',
+			500: '#42A5FF',
+			600: '#1E88E5',
 		  },
 		  secondary: {
 			DEFAULT: "hsl(var(--secondary))",

@@ -18,6 +18,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Profil non trouvé" });
     }
+    const profileImageUrl = user.profileImage ? `http://localhost:8089/${user.profileImage}` : null;
 
     // Format data based on user role
     let profileData = {
@@ -25,7 +26,8 @@ router.get('/profile', authenticateToken, async (req, res) => {
         username: user.username,
         email: user.email,
         phoneNumber: user.phoneNumber,
-        role: user.role
+        role: user.role,
+        profileImage: user.profileImage
       }
     };
 
