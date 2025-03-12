@@ -33,7 +33,7 @@ pipeline {
 
                     // Run frontend unit tests
                     dir('frontend') {
-                        // sh 'npm test'
+                        sh 'npm run test'
                     }
                 }
             }
