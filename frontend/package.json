@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest run src/__tests__",
+    "test:ci": "vitest run src/__tests__ --coverage"
   },
   "dependencies": {
     "@babel/core": "^7.26.9",
@@ -85,6 +86,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
+    "@vitest/coverage-v8": "^3.0.8",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
