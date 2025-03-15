@@ -893,12 +893,13 @@ import Login from "./pages/Login";
 import Register from "./components/Register";
 import ForgotPassword from "./components/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
-import Doctors from "./pages/Doctors";
 import Patients from "./pages/Patients";
+import Doctors from "./pages/Doctors";
 import Calendar from "./pages/Calendar";
 import Staff from "./pages/Staff";
 import Alerts from "./pages/Alerts";
 import Settings from "./pages/Settings";
+import Emergency from"./pages/Emergency";
 import Forum from "./pages/Forum";
 import EmergencyRegister from "./pages/EmergencyRegister";
 import ConfirmationEmergencyRegister from "./pages/ConfirmationEmergencyRegister";
@@ -911,15 +912,17 @@ function App() {
 
         {/* Routes publiques sans header/footer/sidebar */}
         <Route path="/login" element={<PublicLayout><Login /></PublicLayout>} />
-        <Route path="/emergency-register" element={<PublicLayout><EmergencyRegister /></PublicLayout>} />
+      
         <Route path="/emergency-confirmation" element={<PublicLayout><ConfirmationEmergencyRegister /></PublicLayout>} />
-        <Route path="/emergency-status" element={<PublicLayout><EmergencyStatus /></PublicLayout>} /> {/* Nouvelle route pour le statut */}
+        <Route path="/emergency-status" element={<EmergencyStatus />} />
         <Route path="/register" element={<PublicLayout><Register /></PublicLayout>} />
         <Route path="/forgotpassword" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
 
         {/* Routes Main avec header/footer */}
         <Route path="/home" element={<MainLayout><Home /></MainLayout>} />
         <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
+        <Route path="/emergency-register" element={<MainLayout><EmergencyRegister /></MainLayout>} />
+        <Route path="/emergency-confirmation" element={<MainLayout><ConfirmationEmergencyRegister /></MainLayout>} />
 
         {/* Routes Dashboard avec sidebar */}
         <Route path="/dashboard" element={
@@ -931,6 +934,7 @@ function App() {
         <Route path="/calendar" element={<DashboardLayout><Calendar /></DashboardLayout>} />
         <Route path="/staff" element={<DashboardLayout><Staff /></DashboardLayout>} />
         <Route path="/alerts" element={<DashboardLayout><Alerts /></DashboardLayout>} />
+        <Route path="/emergency" element={<DashboardLayout><Emergency /></DashboardLayout>} />
         <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
         <Route path="/forum" element={<DashboardLayout><Forum /></DashboardLayout>} />
       </Routes>
@@ -1434,7 +1438,7 @@ const Footer = () => {
           <h4>Contact Us</h4>
           <div><FaPhone /><span>+21656800822</span></div>
           <div><MdEmail /><span>Edepartement@gmail.com</span></div>
-          <div><FaLocationArrow /><span>Karachi, Pakistan</span></div>
+          <div><FaLocationArrow /><span>Ariana, Tunisia</span></div>
         </div>
       </div>
     </footer>
@@ -2267,9 +2271,9 @@ File: src/components/profile.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import ProfileHeader from './ProfileHeader';  // Assuming this is a separate file
-import ProfileContent from './ProfileContent'; // Assuming this is a separate file
-import LoadingState from './LoadingState'; // Assuming this is a separate file
+import ProfileHeader from './ProfileHeader';
+import ProfileContent from './ProfileContent';
+import LoadingState from './LoadingState';
 import { toast } from 'sonner';
 
 const Profile = () => {
@@ -2351,7 +2355,7 @@ const Profile = () => {
             <p className="text-gray-600 mb-4">{error}</p>
             <button 
               onClick={() => window.location.reload()}
-              className="bg-profileBlue-500 hover:bg-profileBlue-600 text-white font-medium py-2 px-4 rounded transition-colors"
+              className="bg-[#42A5FF] hover:bg-[#1E88E5] text-white font-medium py-2 px-4 rounded transition-colors"
             >
               Try Again
             </button>
@@ -2366,6 +2370,7 @@ const Profile = () => {
       <ProfileHeader 
         username={profileData.personal.username} 
         role={profileData.personal.role} 
+        profileImage={profileData.personal.profileImage} // Passer l'image de profil
       />
       
       <div className="container -mt-16 relative z-30 pb-16">
@@ -2400,7 +2405,7 @@ const sizes = {
 
 const ProfileAvatar = ({ imageUrl, altText, size = 'lg' }) => {
     return (
-        <div className={`profile-avatar ${sizes[size]} animate-fade-in`}>
+        <div className={`profile-avatar ${sizes[size]} rounded-full overflow-hidden animate-fade-in`}>
             {imageUrl ? (
                 <img
                     src={imageUrl}
@@ -2409,9 +2414,9 @@ const ProfileAvatar = ({ imageUrl, altText, size = 'lg' }) => {
                     loading="lazy"
                 />
             ) : (
-                <div className="w-full h-full flex items-center justify-center bg-profileBlue-100">
+                <div className="w-full h-full flex items-center justify-center bg-[#42A5FF]/20">
                     <UserRound
-                        className="text-profileBlue-500"
+                        className="text-[#42A5FF]"
                         size={size === 'xl' ? 64 : size === 'lg' ? 48 : size === 'md' ? 36 : 24}
                     />
                 </div>
@@ -2513,8 +2518,8 @@ const ProfileContent = ({
 
                 <motion.button
                     className={`profile-edit-button p-2 ${isEditing
-                            ? 'bg-gradient-to-r from-profileBlue-500 to-profileBlue-600 text-white'
-                            : 'bg-profileBlue-50 text-profileBlue-500 hover:bg-profileBlue-100'
+                            ? 'bg-gradient-to-r from-[#42A5FF] to-[#1E88E5] text-white'
+                            : 'bg-[#42A5FF]/10 text-[#42A5FF] hover:bg-[#42A5FF]/20'
                         }`}
                     onClick={() => isEditing ? handleSave() : setIsEditing(true)}
                     whileHover={{ scale: 1.05 }}
@@ -2564,19 +2569,19 @@ import React from 'react';
 import ProfileAvatar from './ProfileAvatar';
 import { motion } from 'framer-motion';
 
-const ProfileHeader = ({ username = 'User', role }) => {
+const ProfileHeader = ({ username = 'User', role, profileImage }) => {
   return (
-    <div className="relative h-64 overflow-hidden">
+    <div className="relative h-72 overflow-hidden">
       {/* Gradient background */}
-      <div className="absolute inset-0 bg-profile-gradient"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-[#42A5FF] to-[#1E88E5]"></div>
       
       {/* Decorative elements */}
       <div className="absolute inset-0">
         <motion.div 
-          className="absolute top-[20%] left-[5%] h-32 w-32 rounded-full bg-white opacity-5"
+          className="absolute top-[20%] left-[5%] h-32 w-32 rounded-full bg-white opacity-10"
           animate={{ 
             scale: [1, 1.2, 1],
-            opacity: [0.05, 0.1, 0.05]
+            opacity: [0.1, 0.2, 0.1]
           }}
           transition={{ 
             duration: 8,
@@ -2585,10 +2590,10 @@ const ProfileHeader = ({ username = 'User', role }) => {
           }}
         />
         <motion.div 
-          className="absolute bottom-[10%] right-[15%] h-24 w-24 rounded-full bg-white opacity-10"
+          className="absolute bottom-[10%] right-[15%] h-24 w-24 rounded-full bg-white opacity-15"
           animate={{ 
             scale: [1, 1.3, 1],
-            opacity: [0.1, 0.15, 0.1]
+            opacity: [0.15, 0.25, 0.15]
           }}
           transition={{ 
             duration: 6,
@@ -2602,14 +2607,18 @@ const ProfileHeader = ({ username = 'User', role }) => {
       {/* Content */}
       <div className="profile-glass absolute inset-0 z-10"></div>
       <div className="container h-full relative z-20">
-        <div className="h-full flex items-center">
+        <div className="h-full flex items-center pt-16"> {/* Ajout de `pt-16` pour déplacer vers le bas */}
           <div className="flex items-center space-x-6">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <ProfileAvatar size="xl" altText={username} />
+                <ProfileAvatar 
+                imageUrl={profileImage} 
+                altText={username} 
+                size="xl" 
+              />
             </motion.div>
             
             <motion.div
@@ -2618,12 +2627,12 @@ const ProfileHeader = ({ username = 'User', role }) => {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="text-white"
             >
-              <div className="text-sm font-medium text-profileBlue-100 mb-1">Welcome,</div>
-              <h1 className="text-3xl font-bold">
+              <div className="text-sm font-medium text-blue-100 mb-1">Welcome,</div>
+              <h1 className="text-4xl font-bold text-white">
                 {username}
               </h1>
               {role && (
-                <div className="mt-1 inline-block px-3 py-1 rounded-full bg-white bg-opacity-20 backdrop-blur-xs text-sm font-medium">
+                <div className="mt-2 inline-block px-4 py-1 rounded-full bg-[#6DDDCF]  backdrop-blur-sm text-sm font-medium text-white">
                   {role}
                 </div>
               )}
@@ -8177,7 +8186,7 @@ import { SidebarProvider } from '../components/ui/sidebar';
 export default function DashboardLayout({ children }) {
     return (
         <SidebarProvider>
-            <div className="dashboard-container" style={{ display: 'flex' }}>
+            <div className="dashboard-container" style={{ display: 'flex',width:'1500px'}}>
                 <DashboardSidebar />
                 <div className="dashboard-content" style={{ flex: 1, padding: '20px' }}>
                     {children} {/* C’est ici que la page (Dashboard, Doctors, etc.) va s'afficher */}
@@ -8262,8 +8271,8 @@ import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Clock, User } from "lucide-react";
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
 import axios from "axios";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
@@ -8280,19 +8289,32 @@ const CalendarComponent = () => {
                 const response = await axios.get("http://localhost:8089/api/emergency-patients", {
                     withCredentials: true,
                 });
-                console.log("Raw Response Data:", response.data); // Log raw response
-                const formattedRegistrations = response.data.map(reg => ({
-                    id: reg._id,
-                    patientName: `${reg.firstName} ${reg.lastName} (Urgence - Statut: ${reg.status})`,
-                    doctorName: "Urgence",
-                    date: new Date(reg.dateOfBirth),
-                    time: new Date(reg.createdAt).toLocaleTimeString(),
-                    type: `Demande d'Urgence - Statut: ${reg.status}`,
-                    isEmergency: true,
-                    originalData: reg,
-                    status: reg.status // Include status directly
-                }));
-                console.log("Formatted Registrations:", formattedRegistrations); // Log formatted data
+
+                console.log("Raw Response Data:", response.data);
+
+                const formattedRegistrations = response.data.map(reg => {
+                    let appointmentDate = reg.createdAt ? new Date(reg.createdAt) : null;
+
+                    // Vérifier que la date est valide
+                    if (isNaN(appointmentDate.getTime())) {
+                        console.warn("Date invalide détectée pour:", reg);
+                        appointmentDate = new Date(); // Fallback à aujourd'hui
+                    }
+
+                    return {
+                        id: reg._id,
+                        patientName: `${reg.firstName} ${reg.lastName} (Urgence - Statut: ${reg.status})`,
+                        doctorName: "Urgence",
+                        date: appointmentDate, // Utiliser createdAt comme date de l'événement
+                        time: appointmentDate.toLocaleTimeString(),
+                        type: `Demande d'Urgence - Statut: ${reg.status}`,
+                        isEmergency: true,
+                        originalData: reg,
+                        status: reg.status
+                    };
+                });
+
+                console.log("Formatted Registrations:", formattedRegistrations);
                 setEmergencyRegistrations(formattedRegistrations);
             } catch (error) {
                 console.error("Erreur lors de la récupération des enregistrements d'urgence:", error);
@@ -8306,25 +8328,16 @@ const CalendarComponent = () => {
     }, []);
 
     useEffect(() => {
-        console.log("Emergency Registrations State:", emergencyRegistrations); // Log state updates
+        console.log("Emergency Registrations State:", emergencyRegistrations);
     }, [emergencyRegistrations]);
 
     const handleDateChange = (date) => {
         setSelectedDate(date);
     };
 
+    // Removed date filtering to display all registrations
     const getAppointmentsForSelectedDate = () => {
-        const appointments = emergencyRegistrations.filter(appointment => {
-            const apptDate = appointment.date;
-            const selDate = selectedDate;
-            return (
-                apptDate.getFullYear() === selDate.getFullYear() &&
-                apptDate.getMonth() === selDate.getMonth() &&
-                apptDate.getDate() === selDate.getDate()
-            );
-        });
-        console.log("Appointments for Selected Date:", appointments); // Log filtered appointments
-        return appointments;
+        return emergencyRegistrations; // Return all registrations without filtering
     };
 
     const handleStatusChange = async (appointmentId, newStatus) => {
@@ -8334,19 +8347,22 @@ const CalendarComponent = () => {
                 { status: newStatus },
                 { withCredentials: true }
             );
+
             console.log("Status updated:", response.data);
             setEmergencyRegistrations(prevRegistrations =>
                 prevRegistrations.map(reg =>
-                    reg.id === appointmentId ? { ...reg, status: newStatus, patientName: `${reg.originalData.firstName} ${reg.originalData.lastName} (Urgence - Statut: ${newStatus})`, type: `Demande d'Urgence - Statut: ${newStatus}` } : reg // Update status and patientName/type in state
+                    reg.id === appointmentId
+                        ? { ...reg, status: newStatus, type: `Demande d'Urgence - Statut: ${newStatus}` }
+                        : reg
                 )
             );
+
             toast.success("Statut mis à jour avec succès!");
         } catch (error) {
             console.error("Erreur lors de la mise à jour du statut:", error);
             toast.error("Erreur lors de la mise à jour du statut.");
         }
     };
-
 
     return (
         <div className="space-y-6">
@@ -8357,10 +8373,7 @@ const CalendarComponent = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="calendar-widget">
-                            <Calendar
-                                onChange={handleDateChange}
-                                value={selectedDate}
-                            />
+                            <Calendar onChange={handleDateChange} value={selectedDate} />
                         </div>
                     </CardContent>
                 </Card>
@@ -8374,49 +8387,48 @@ const CalendarComponent = () => {
                             <p className="text-center text-gray-500">Chargement des demandes d'urgence...</p>
                         ) : (
                             <div className="space-y-4">
-                                {getAppointmentsForSelectedDate().map((appointment) => {
-                                    console.log("Rendering appointment:", appointment); // ADDED console.log HERE - STEP 2
-                                    return (
-                                        <div
-                                            key={appointment.id}
-                                            className={`flex items-center justify-between p-4 border rounded-lg bg-white/50 hover-scale ${appointment.isEmergency ? 'border-red-500' : ''}`}
-                                        >
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <User className="h-4 w-4" />
-                                                    <span className="font-medium">{appointment.patientName}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                    <CalendarIcon className="h-4 w-4" />
-                                                    <span>{appointment.date.toLocaleDateString()}</span>
-                                                    <Clock className="h-4 w-4 ml-2" />
-                                                    <span>{appointment.time}</span>
-                                                </div>
+                                {emergencyRegistrations.map((appointment) => ( // Displaying all registrations
+                                    <div
+                                        key={appointment.id}
+                                        className={`flex items-center justify-between p-4 border rounded-lg bg-white/50 hover-scale ${appointment.isEmergency ? 'border-red-500' : ''}`}
+                                    >
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <User className="h-4 w-4" />
+                                                <span className="font-medium">{appointment.patientName}</span>
                                             </div>
-                                            <div className="flex items-center gap-4">
-                                                <span className="text-sm">{appointment.type}</span>
-
-                                                {/* Status Select Dropdown */}
-                                                <Select onValueChange={(value) => handleStatusChange(appointment.id, value)} defaultValue={appointment.status}>
-                                                    <SelectTrigger className="w-[180px]">
-                                                        <SelectValue placeholder="Statut" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="Demande Enregistrée">Demande Enregistrée</SelectItem>
-                                                        <SelectItem value="En Cours d'Examen">En Cours d'Examen</SelectItem>
-                                                        <SelectItem value="Médecin En Route">Médecin En Route</SelectItem>
-                                                        <SelectItem value="Traité">Traité</SelectItem>
-                                                        <SelectItem value="Annulé">Annulé</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-
-                                                <Button size="sm" variant="outline">
-                                                    Détails
-                                                </Button>
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                <CalendarIcon className="h-4 w-4" />
+                                                <span>{appointment.date.toLocaleDateString()}</span>
+                                                <Clock className="h-4 w-4 ml-2" />
+                                                <span>{appointment.time}</span>
                                             </div>
                                         </div>
-                                    )
-                                })}
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-sm">{appointment.type}</span>
+
+                                            <Select
+                                                onValueChange={(value) => handleStatusChange(appointment.id, value)}
+                                                defaultValue={appointment.status}
+                                            >
+                                                <SelectTrigger className="w-[180px]">
+                                                    <SelectValue placeholder="Statut" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Demande Enregistrée">Demande Enregistrée</SelectItem>
+                                                    <SelectItem value="En Cours d'Examen">En Cours d'Examen</SelectItem>
+                                                    <SelectItem value="Médecin En Route">Médecin En Route</SelectItem>
+                                                    <SelectItem value="Traité">Traité</SelectItem>
+                                                    <SelectItem value="Annulé">Annulé</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+
+                                            <Button size="sm" variant="outline">
+                                                Détails
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </CardContent>
@@ -8431,17 +8443,20 @@ export default CalendarComponent;
 ================
 File: src/pages/ConfirmationEmergencyRegister.jsx
 ================
+// src/pages/ConfirmationEmergencyRegister.jsx
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom'; // Importez useLocation et Link
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle, Clock } from "lucide-react"; // Importez des icônes
+import { AlertCircle, CheckCircle, Clock } from "lucide-react";
 
 const ConfirmationEmergencyRegister = () => {
-    const location = useLocation(); // Hook pour accéder à l'état de la navigation
-    const formData = location.state?.formData; // Récupérez les données du formulaire passées lors de la redirection
+    const location = useLocation();
+    const formData = location.state?.formData;
+    const patientId = location.state?.patientId;
+    const navigate = useNavigate();
 
-    if (!formData) {
+    if (!formData || !patientId) {
         return (
             <div className="container mx-auto py-12 px-4 md:px-6 text-center">
                 <Card className="max-w-md mx-auto">
@@ -8458,6 +8473,10 @@ const ConfirmationEmergencyRegister = () => {
             </div>
         );
     }
+
+    const handleTrackStatusClick = () => {
+        navigate('/emergency-status', { state: { patientId: patientId } });
+    };
 
     return (
         <div className="container mx-auto py-12 px-4 md:px-6">
@@ -8511,8 +8530,8 @@ const ConfirmationEmergencyRegister = () => {
                         <Button asChild variant="secondary">
                             <Link to="/home">Retour à l'Accueil</Link>
                         </Button>
-                        <Button asChild>
-                            <Link to="/emergency-status">Suivre le Statut de ma Demande</Link>
+                        <Button variant="outline" onClick={handleTrackStatusClick}>
+                            Suivre le Statut de ma Demande
                         </Button>
                     </div>
                 </CardContent>
@@ -9132,31 +9151,58 @@ export default Doctors;
 ================
 File: src/pages/Emergency.jsx
 ================
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertCircle, Ambulance, Phone, UserCog } from "lucide-react";
 
-const emergencyCases = [
-    {
-        id: "1",
-        patientName: "John Doe",
-        status: "critical",
-        location: "Emergency Room 1",
-        timestamp: new Date(),
-    },
-    {
-        id: "2",
-        patientName: "Jane Smith",
-        status: "stable",
-        location: "Emergency Room 2",
-        timestamp: new Date(),
-    },
-];
+const fetchEmergencyPatients = async () => {
+    const response = await fetch('/api/emergency-patients'); // API endpoint URL - adjust if needed
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+};
 
 const Emergency = () => {
     const [searchQuery, setSearchQuery] = useState("");
+    const [emergencyCases, setEmergencyCases] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const loadEmergencyCases = async () => {
+            setLoading(true); // Set loading to true before fetching
+            setError(null);     // Clear any previous errors
+            try {
+                const data = await fetchEmergencyPatients(); // Fetch data from API endpoint
+                setEmergencyCases(data); // Update emergencyCases state with fetched data
+            } catch (err) {
+                console.error("Error fetching emergency cases:", err);
+                setError("Failed to load emergency cases."); // Set error state if fetch fails
+            } finally {
+                setLoading(false); // Set loading to false after fetch completes (success or error)
+            }
+        };
+
+        loadEmergencyCases(); // Call the data loading function when component mounts
+    }, []); // Empty dependency array means this effect runs only once on mount
+
+    const getStatusFromEmergencyLevel = (emergencyLevel) => {
+        switch (emergencyLevel) {
+            case "critical":
+                return "critical";
+            case "high":
+                return "moderate";
+            case "medium":
+                return "stable";
+            case "low":
+                return "minor";
+            default:
+                return "unknown";
+        }
+    };
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -9166,10 +9212,27 @@ const Emergency = () => {
                 return "text-yellow-500";
             case "stable":
                 return "text-green-500";
+            case "minor":
+                return "text-gray-500";
             default:
                 return "text-gray-500";
         }
     };
+
+    const triageOrder = { critical: 1, high: 2, medium: 3, low: 4 };
+    const triagedEmergencyCases = useMemo(() => {
+        if (!emergencyCases) return []; // Handle case when emergencyCases is initially null or undefined
+        const sortedCases = [...emergencyCases].sort((a, b) => {
+            return triageOrder[a.emergencyLevel] - triageOrder[b.emergencyLevel];
+        });
+        return sortedCases;
+    }, [emergencyCases]);
+
+    const filteredEmergencyCases = useMemo(() => {
+        return triagedEmergencyCases.filter(emergency =>
+            `${emergency.firstName} ${emergency.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [searchQuery, triagedEmergencyCases]);
 
     return (
         <div className="space-y-6">
@@ -9241,27 +9304,35 @@ const Emergency = () => {
                     />
                 </CardHeader>
                 <CardContent>
-                    <div className="space-y-4">
-                        {emergencyCases.map((emergency) => (
-                            <div
-                                key={emergency.id}
-                                className="flex items-center justify-between p-4 border rounded-lg bg-white/50"
-                            >
-                                <div>
-                                    <h3 className="font-semibold">{emergency.patientName}</h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        {emergency.location}
-                                    </p>
+                    {loading ? (
+                        <div className="text-center">Loading emergency cases...</div>
+                    ) : error ? (
+                        <div className="text-red-500 text-center">{error}</div>
+                    ) : filteredEmergencyCases.length === 0 ? (
+                        <div className="text-center">No active emergency cases found.</div>
+                    ) : (
+                        <div className="space-y-4">
+                            {filteredEmergencyCases.map((emergency) => (
+                                <div
+                                    key={emergency.id}
+                                    className="flex items-center justify-between p-4 border rounded-lg bg-white/50"
+                                >
+                                    <div>
+                                        <h3 className="font-semibold">{emergency.firstName} {emergency.lastName}</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            {emergency.location} {/* Consider displaying address or other relevant info */}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <span className={`font-medium ${getStatusColor(getStatusFromEmergencyLevel(emergency.emergencyLevel))}`}>
+                                            {getStatusFromEmergencyLevel(emergency.emergencyLevel).toUpperCase()}
+                                        </span>
+                                        <Button size="sm">View Details</Button>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <span className={`font-medium ${getStatusColor(emergency.status)}`}>
-                                        {emergency.status.toUpperCase()}
-                                    </span>
-                                    <Button size="sm">View Details</Button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>
@@ -9280,7 +9351,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { AlertTriangle, Heart } from "lucide-react";
-import { useNavigate } from 'react-router-dom'; // Importez useNavigate
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -9292,437 +9363,101 @@ import { Checkbox } from "@/components/ui/checkbox";
 import axios from 'axios';
 
 const emergencyFormSchema = z.object({
-  firstName: z.string().min(2, { message: "First name must be at least 2 characters" }),
-  lastName: z.string().min(2, { message: "Last name must be at least 2 characters" }),
-  dateOfBirth: z.string().min(1, { message: "Date of birth is required" }), // Keep as string for now, handle formatting later if needed
-  gender: z.enum(["male", "female", "other"], {
-    required_error: "Please select a gender"
-  }),
-  phoneNumber: z.string().min(8, { message: "Invalid phone number" }),
-  email: z.string().email({ message: "Invalid email address" }).optional(),
-  address: z.string().min(5, { message: "Address must be at least 5 characters" }),
-  emergencyContact: z.string().min(8, { message: "Invalid emergency contact" }),
-  insuranceInfo: z.string().optional(),
-  allergies: z.string().optional(),
-  currentMedications: z.string().optional(),
-  medicalHistory: z.string().optional(),
-  currentSymptoms: z.string().min(5, { message: "Please describe your current symptoms" }),
-  painLevel: z.enum(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], {
-    required_error: "Please select your pain level"
-  }),
-  emergencyLevel: z.enum(["low", "medium", "high", "critical"], {
-    required_error: "Please select the emergency level"
-  }),
-  acceptTerms: z.boolean().refine(val => val === true, {
-    message: "You must accept the terms and conditions",
-  }),
+    firstName: z.string().min(2, { message: "First name must be at least 2 characters" }),
+    lastName: z.string().min(2, { message: "Last name must be at least 2 characters" }),
+    dateOfBirth: z.string().min(1, { message: "Date of birth is required" }),
+    gender: z.enum(["male", "female", "other"], { required_error: "Please select a gender" }),
+    phoneNumber: z.string().min(8, { message: "Invalid phone number" }),
+    email: z.string().email({ message: "Invalid email address" }).optional(),
+    address: z.string().min(5, { message: "Address must be at least 5 characters" }),
+    emergencyContact: z.string().min(8, { message: "Invalid emergency contact" }),
+    insuranceInfo: z.string().optional(),
+    allergies: z.string().optional(),
+    currentMedications: z.string().optional(),
+    medicalHistory: z.string().optional(),
+    currentSymptoms: z.string().min(5, { message: "Please describe your current symptoms" }),
+    painLevel: z.enum(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], { required_error: "Please select your pain level" }),
+    emergencyLevel: z.enum(["low", "medium", "high", "critical"], { required_error: "Please select the emergency level" }),
+    acceptTerms: z.boolean().refine(val => val === true, { message: "You must accept the terms and conditions" }),
 });
 
 const EmergencyRegister = () => {
-  const form = useForm({
-    resolver: zodResolver(emergencyFormSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      dateOfBirth: "",
-      gender: "", // Initialize gender
-      phoneNumber: "",
-      email: "",
-      address: "",
-      emergencyContact: "",
-      insuranceInfo: "",
-      allergies: "",
-      currentMedications: "",
-      medicalHistory: "",
-      currentSymptoms: "",
-      painLevel: "", // Initialize painLevel
-      emergencyLevel: "", // Initialize emergencyLevel
-      acceptTerms: false,
-    },
-  });
-  const navigate = useNavigate(); // Initialisez useNavigate
-  async function onSubmit(data) {
-    try {
-      // Correct URL for the backend endpoint
-      const response = await axios.post('http://localhost:8089/api/emergency-patients', data);
-      console.log(response.data);
-      toast.success("Your emergency request has been registered", {
-        description: "A member of our medical team will contact you shortly.",
-      });
-      form.reset(); // Reset the form after successful submission
-      navigate('/emergency-confirmation', { state: { formData: data } }); // Redirection après succès
+    const form = useForm({ resolver: zodResolver(emergencyFormSchema), defaultValues: { firstName: "", lastName: "", dateOfBirth: "", gender: "", phoneNumber: "", email: "", address: "", emergencyContact: "", insuranceInfo: "", allergies: "", currentMedications: "", medicalHistory: "", currentSymptoms: "", painLevel: "", emergencyLevel: "", acceptTerms: false } });
+    const navigate = useNavigate();
 
-    } catch (error) {
-      if (error.response) {
-        console.error("Server error:", error.response.data);
-        // Handle specific validation errors from the backend
-        if (error.response.data.message && Array.isArray(error.response.data.message)) {
-          error.response.data.message.forEach(errorMessage => {
-            toast.error("Validation Error", { description: errorMessage });
-          });
+    async function onSubmit(data) {
+        try {
+            const response = await axios.post('http://localhost:8089/api/emergency-patients', data);
+            console.log("Response data after registration (EmergencyRegister):", JSON.stringify(response.data, null, 2)); // Log JSON string
+            const patientIdToNavigate = response.data._id;
 
-        } else {
-          toast.error("Failed to register emergency request", {
-            description: error.response.data.message || "An error occurred on the server.",
-          });
+            toast.success("Your emergency request has been registered", { description: "A member of our medical team will contact you shortly." });
+            form.reset();
+            navigate('/emergency-confirmation', { state: { formData: data, patientId: patientIdToNavigate } });
+
+        } catch (error) {
+            if (error.response) {
+                console.error("Server error:", error.response.data);
+                if (error.response.data.message && Array.isArray(error.response.data.message)) {
+                    error.response.data.message.forEach(errorMessage => { toast.error("Validation Error", { description: errorMessage }); });
+                } else {
+                    toast.error("Failed to register emergency request", { description: error.response.data.message || "An error occurred on the server." });
+                }
+            } else if (error.request) {
+                console.error("No response received from server");
+                toast.error("Failed to register emergency request", { description: "No response received from the server. Please check your network connection." });
+            } else {
+                console.error("Error setting up request:", error.message);
+                toast.error("Failed to register emergency request", { description: "An unexpected error occurred. Please try again later." });
+            }
         }
-
-
-      } else if (error.request) {
-        console.error("No response received from server");
-        toast.error("Failed to register emergency request", {
-          description: "No response received from the server. Please check your network connection.",
-        });
-      } else {
-        console.error("Error setting up request:", error.message);
-        toast.error("Failed to register emergency request", {
-          description: "An unexpected error occurred. Please try again later.",
-        });
-      }
     }
-  }
 
-
-  return (
-    <div className="container mx-auto py-6 px-4 md:px-6">
-      <Card className="w-full max-w-4xl mx-auto shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-400 text-white">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-6 w-6" />
-            <Heart className="h-6 w-6" />
-          </div>
-          <CardTitle className="text-2xl md:text-3xl font-bold">
-            Patient Emergency Registration
-          </CardTitle>
-          <CardDescription className="text-base">
-            Please fill out this form with your information and the issues you are currently experiencing.
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="pt-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Personal Information Section */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-medium text-blue-600">Personal Information</h3>
-                  <FormField
-                    control={form.control}
-                    name="firstName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">First Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="First Name" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="lastName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Last Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Last Name" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="dateOfBirth"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Date of Birth</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="gender"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Gender</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex flex-col space-y-1"
-                          >
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="male" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" />
-                              </FormControl>
-                              <FormLabel className="font-normal text-blue-700">
-                                Male
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="female" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" />
-                              </FormControl>
-                              <FormLabel className="font-normal text-blue-700">
-                                Female
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="other" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" />
-                              </FormControl>
-                              <FormLabel className="font-normal text-blue-700">
-                                Other
-                              </FormLabel>
-                            </FormItem>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="phoneNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Phone Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+1 555-555-5555" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Email (optional)</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="email@example.com" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Address</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Your full address" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="emergencyContact"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Emergency Contact</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Name and phone number" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
-                        </FormControl>
-                        <FormDescription className="text-blue-600">
-                          Person to contact in case of emergency
-                        </FormDescription>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Medical Information Section */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-medium text-blue-600">Medical Information</h3>
-
-                  <FormField
-                    control={form.control}
-                    name="insuranceInfo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Insurance Information (optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Insurance policy number" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="allergies"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Allergies (optional)</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="List any known allergies" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="currentMedications"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Current Medications (optional)</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Medications you are currently taking" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="medicalHistory"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Medical History (optional)</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Pre-existing medical conditions" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="currentSymptoms"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Current Symptoms</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Describe in detail the symptoms you are experiencing"
-                            className="min-h-[120px] border-blue-300 focus:ring-blue-500 focus:border-blue-500"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="painLevel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Pain Level (1-10)</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="border-blue-300 focus:ring-blue-500 focus:border-blue-500">
-                              <SelectValue placeholder="Select pain level" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="1">1 - Very mild</SelectItem>
-                            <SelectItem value="2">2</SelectItem>
-                            <SelectItem value="3">3</SelectItem>
-                            <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5 - Moderate</SelectItem>
-                            <SelectItem value="6">6</SelectItem>
-                            <SelectItem value="7">7</SelectItem>
-                            <SelectItem value="8">8</SelectItem>
-                            <SelectItem value="9">9</SelectItem>
-                            <SelectItem value="10">10 - Unbearable</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="emergencyLevel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-800">Emergency Level</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="border-blue-300 focus:ring-blue-500 focus:border-blue-500">
-                              <SelectValue placeholder="Select emergency level" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="low">Low - I can wait</SelectItem>
-                            <SelectItem value="medium">Medium - I need to see a doctor today</SelectItem>
-                            <SelectItem value="high">High - I need care quickly</SelectItem>
-                            <SelectItem value="critical">Critical - Life-threatening emergency</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              {/* Terms and Conditions Section */}
-              <FormField
-                control={form.control}
-                name="acceptTerms"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-blue-300 p-4 bg-blue-50">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        className="data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="text-blue-800">
-                        I accept the terms and conditions and authorize the facility to process my medical data
-                      </FormLabel>
-                      <FormDescription className="text-blue-600">
-                        By checking this box, you agree to your information being used for your medical care.
-                      </FormDescription>
+    return (
+        <div className="container mx-auto py-6 px-4 md:px-6">
+            <Card className="w-full max-w-4xl mx-auto shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-400 text-white">
+                    <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-6 w-6" />
+                        <Heart className="h-6 w-6" />
                     </div>
-                    <FormMessage className="text-red-500" />
-                  </FormItem>
-                )}
-              />
-
-              <Button
-                type="submit"
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-                size="lg"
-              >
-                Submit Emergency Request
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
-  );
+                    <CardTitle className="text-2xl md:text-3xl font-bold">Patient Emergency Registration</CardTitle>
+                    <CardDescription className="text-base">Please fill out this form with your information and the issues you are currently experiencing.</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-6">
+                                    <h3 className="text-lg font-medium text-blue-600">Personal Information</h3>
+                                    <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">First Name</FormLabel><FormControl><Input placeholder="First Name" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" /></FormControl><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Last Name</FormLabel><FormControl><Input placeholder="Last Name" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" /></FormControl><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="dateOfBirth" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Date of Birth</FormLabel><FormControl><Input type="date" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" /></FormControl><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="gender" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Gender</FormLabel><FormControl><RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1"><FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="male" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" /></FormControl><FormLabel className="font-normal text-blue-700">Male</FormLabel></FormItem><FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="female" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" /></FormControl><FormLabel className="font-normal text-blue-700">Female</FormLabel></FormItem><FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="other" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" /></FormControl><FormLabel className="font-normal text-blue-700">Other</FormLabel></FormItem></RadioGroup></FormControl><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="phoneNumber" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Phone Number</FormLabel><FormControl><Input placeholder="+1 555-555-5555" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" /></FormControl><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Email (optional)</FormLabel><FormControl><Input type="email" placeholder="email@example.com" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" /></FormControl><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="address" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Address</FormLabel><FormControl><Textarea placeholder="Your full address" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" /></FormControl><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="emergencyContact" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Emergency Contact</FormLabel><FormControl><Input placeholder="Name and phone number" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" /></FormControl><FormDescription className="text-blue-600">Person to contact in case of emergency</FormDescription><FormMessage className="text-red-500" /></FormItem>)} />
+                                </div>
+                                <div className="space-y-6">
+                                    <h3 className="text-lg font-medium text-blue-600">Medical Information</h3>
+                                    <FormField control={form.control} name="insuranceInfo" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Insurance Information (optional)</FormLabel><FormControl><Input placeholder="Insurance policy number" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" /></FormControl><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="allergies" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Allergies (optional)</FormLabel><FormControl><Textarea placeholder="List any known allergies" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" /></FormControl><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="currentMedications" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Current Medications (optional)</FormLabel><FormControl><Textarea placeholder="Medications you are currently taking" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" /></FormControl><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="medicalHistory" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Medical History (optional)</FormLabel><FormControl><Textarea placeholder="Pre-existing medical conditions" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" /></FormControl><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="currentSymptoms" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Current Symptoms</FormLabel><FormControl><Textarea placeholder="Describe in detail the symptoms you are experiencing" className="min-h-[120px] border-blue-300 focus:ring-blue-500 focus:border-blue-500" {...field} /></FormControl><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="painLevel" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Pain Level (1-10)</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="border-blue-300 focus:ring-blue-500 focus:border-blue-500"><SelectValue placeholder="Select pain level" /></SelectTrigger></FormControl><SelectContent><SelectItem value="1">1 - Very mild</SelectItem><SelectItem value="2">2</SelectItem><SelectItem value="3">3</SelectItem><SelectItem value="4">4</SelectItem><SelectItem value="5">5 - Moderate</SelectItem><SelectItem value="6">6</SelectItem><SelectItem value="7">7</SelectItem><SelectItem value="8">8</SelectItem><SelectItem value="9">9</SelectItem><SelectItem value="10">10 - Unbearable</SelectItem></SelectContent></Select><FormMessage className="text-red-500" /></FormItem>)} />
+                                    <FormField control={form.control} name="emergencyLevel" render={({ field }) => (<FormItem><FormLabel className="text-blue-800">Emergency Level</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="border-blue-300 focus:ring-blue-500 focus:border-blue-500"><SelectValue placeholder="Select emergency level" /></SelectTrigger></FormControl><SelectContent><SelectItem value="low">Low - I can wait</SelectItem><SelectItem value="medium">Medium - I need to see a doctor today</SelectItem><SelectItem value="high">High - I need care quickly</SelectItem><SelectItem value="critical">Critical - Life-threatening emergency</SelectItem></SelectContent></Select><FormMessage className="text-red-500" /></FormItem>)} />
+                                </div>
+                            </div>
+                            <FormField control={form.control} name="acceptTerms" render={({ field }) => (<FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-blue-300 p-4 bg-blue-50"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500" /></FormControl><div className="space-y-1 leading-none"><FormLabel className="text-blue-800">I accept the terms and conditions and authorize the facility to process my medical data</FormLabel><FormDescription className="text-blue-600">By checking this box, you agree to your information being used for your medical care.</FormDescription></div><FormMessage className="text-red-500" /></FormItem>)} />
+                            <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white" size="lg">Submit Emergency Request</Button>
+                        </form>
+                    </Form>
+                </CardContent>
+            </Card>
+        </div>
+    );
 };
 
 export default EmergencyRegister;
@@ -9731,31 +9466,73 @@ export default EmergencyRegister;
 File: src/pages/EmergencyStatus.jsx
 ================
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // Importez Link pour la navigation
+import { Link, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, MessageSquare, Calendar } from "lucide-react"; // Importez des icônes
+import { Clock, Calendar } from "lucide-react";
 
 const EmergencyStatus = () => {
-    const [status, setStatus] = useState('Demande Enregistrée'); // État initial du statut
-    const [estimatedWaitTime, setEstimatedWaitTime] = useState('10-15 minutes'); // Exemple de temps d'attente
+    const location = useLocation();
+    const patientId = location.state?.patientId; // **Correctly get patientId from location.state - NO HARDCODING**
+    console.log("PatientId from location.state:", patientId); // Log patientId from state
+
+    const [status, setStatus] = useState('Chargement du statut...');
+    const [estimatedWaitTime, setEstimatedWaitTime] = useState('Calcul en cours...');
+
+    const fetchStatus = async () => {
+        if (!patientId) {
+            console.error("patientId est manquant dans l'état de navigation");
+            setStatus("ID patient manquant");
+            setEstimatedWaitTime("Indisponible");
+            return;
+        }
+        try {
+            const apiUrl = `http://localhost:8089/api/emergency-patients/${patientId}/status`;
+            console.log("URL being requested:", apiUrl);
+            const response = await axios.get(apiUrl, {
+                withCredentials: true,
+            });
+
+            const newStatus = response.data.status; // Extract status from response
+            setStatus(newStatus); // Set the status state
+
+            switch (newStatus) {
+                case "Demande Enregistrée":
+                    setEstimatedWaitTime("10-15 minutes");
+                    break;
+                case "En Cours d'Examen":
+                    setEstimatedWaitTime("5-10 minutes");
+                    break;
+                case "Médecin En Route":
+                    setEstimatedWaitTime("2-5 minutes");
+                    break;
+                case "Traité":
+                    setEstimatedWaitTime("Traitement terminé");
+                    break;
+                case "Annulé":
+                    setEstimatedWaitTime("Demande annulée");
+                    break;
+                default:
+                    setEstimatedWaitTime("Indisponible");
+            }
+        } catch (error) {
+            console.error("Erreur lors de la récupération du statut:", error);
+            setStatus("Impossible de récupérer le statut");
+            setEstimatedWaitTime("Indisponible");
+        }
+    };
 
     useEffect(() => {
-        // Ici, dans une application réelle, vous feriez un appel API
-        // pour récupérer le statut en temps réel depuis le backend.
-        // Pour cet exemple, nous simulons une mise à jour de statut après quelques secondes.
-
-        const timer = setTimeout(() => {
-            setStatus('En Cours d\'Examen par l\'Équipe Médicale');
-            setEstimatedWaitTime('5-10 minutes');
-            setTimeout(() => {
-                setStatus('Médecin En Route');
-                setEstimatedWaitTime('2-5 minutes');
-            }, 5000); // Mise à jour après 5 secondes
-        }, 3000); // Statut initial après 3 secondes
-
-        return () => clearTimeout(timer); // Nettoyage du timer au démontage du composant
-    }, []); // [] pour que l'effet ne s'exécute qu'une seule fois au montage
+        console.log("PatientId inside useEffect:", patientId);
+        if (patientId) {
+            fetchStatus();
+            const interval = setInterval(fetchStatus, 5000);
+            return () => clearInterval(interval);
+        } else {
+            console.warn("patientId est manquant, requête de statut annulée.");
+        }
+    }, [patientId]);
 
     return (
         <div className="container mx-auto py-12 px-4 md:px-6">
@@ -9777,7 +9554,9 @@ const EmergencyStatus = () => {
                     </div>
 
                     <div className="border rounded-md p-6 bg-blue-50">
-                        <h4 className="font-semibold mb-4 flex items-center"><Clock className="mr-2 h-4 w-4 text-blue-600 align-baseline" /> Temps d'Attente Estimé</h4>
+                        <h4 className="font-semibold mb-4 flex items-center">
+                            <Clock className="mr-2 h-4 w-4 text-blue-600 align-baseline" /> Temps d'Attente Estimé
+                        </h4>
                         <p>
                             Le temps d'attente estimé est actuellement de : <span className="font-semibold">{estimatedWaitTime}</span>. Ce temps peut varier en fonction de l'activité du service d'urgence.
                         </p>
@@ -9787,10 +9566,6 @@ const EmergencyStatus = () => {
                         <Button asChild variant="secondary">
                             <Link to="/home">Retour à l'Accueil</Link>
                         </Button>
-                        {/* Optionnel : Lien vers le chat (à implémenter plus tard) */}
-                        {/* <Button asChild variant="outline">
-                            <Link to="/emergency-chat"> <MessageSquare className="mr-2 h-4 w-4 inline-block align-baseline" /> Chat avec l'Équipe Médicale</Link>
-                        </Button> */}
                         <Button asChild variant="outline">
                             <Link to="/calendar"> <Calendar className="mr-2 h-4 w-4 inline-block align-baseline" /> Prendre un Rendez-vous de Suivi</Link>
                         </Button>
@@ -10273,98 +10048,105 @@ const Patients = () => {
   const filteredPatients = patients.filter(patient => patient.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    
-<div className="p-6 space-y-6 bg-gradient-to-br from-blue-100 to-blue-300 h-screen rounded-lg shadow-lg">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* En-tête */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Gestion des Patients</h1>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button className="bg-blue-600 text-white gap-2 hover:bg-blue-500">
+                <UserPlus className="h-4 w-4" /> Ajouter Patient
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Ajouter un Nouveau Patient</SheetTitle>
+              </SheetHeader>
+              <div className="space-y-4 mt-6">
+                <Input placeholder="Nom Complet" />
+                <Input placeholder="Âge" type="number" />
+                <Input placeholder="Condition Médicale" />
+                <Button className="w-full bg-blue-600 text-white hover:bg-blue-500">Enregistrer</Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
 
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-800">Gestion des Patients</h1>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button className="bg-blue-600 text-white gap-2 hover:bg-blue-500">
-              <UserPlus className="h-4 w-4" /> Ajouter Patient
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Ajouter un Nouveau Patient</SheetTitle>
-            </SheetHeader>
-            <div className="space-y-4 mt-6">
-              <Input placeholder="Nom Complet" />
-              <Input placeholder="Âge" type="number" />
-              <Input placeholder="Condition Médicale" />
-              <Button className="w-full bg-blue-600 text-white hover:bg-blue-500">Enregistrer</Button>
+        {/* Carte de la liste des patients */}
+        <Card className="shadow-lg bg-white rounded-lg">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-xl font-semibold">Liste des Patients</CardTitle>
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                <Input
+                  placeholder="Rechercher..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8 w-72 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
             </div>
-          </SheetContent>
-        </Sheet>
-      </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <p className="text-center text-gray-600">Chargement...</p>
+            ) : error ? (
+              <p className="text-center text-red-500">{error}</p>
+            ) : (
+              <div className="space-y-4">
+                {filteredPatients.map((patient) => (
+                  <motion.div
+                    key={patient._id}
+                    className="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-all duration-200"
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => { setSelectedPatient(patient); setIsDetailsOpen(true); }}
+                  >
+                    <div>
+                      <h3 className="font-semibold text-gray-800">{patient.name}</h3>
+                      <p className="text-sm text-gray-600">Âge: {patient.age} | {patient.condition}</p>
+                    </div>
+                    <Button className="bg-blue-600 text-white hover:bg-blue-500">Voir</Button>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      <Card className="shadow-xl bg-white rounded-lg">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Liste des Patients</CardTitle>
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-              <Input
-                placeholder="Rechercher..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 w-72 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="text-center text-gray-600">Chargement...</p>
-          ) : error ? (
-            <p className="text-center text-red-500">{error}</p>
-          ) : (
-            <div className="space-y-4">
-              {filteredPatients.map((patient) => (
+        {/* Détails du patient (dialogue) */}
+        <AnimatePresence>
+          {isDetailsOpen && selectedPatient && (
+            <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+              <DialogContent className="sm:max-w-[425px]">
                 <motion.div
-                  key={patient._id}
-                  className="flex justify-between items-center p-4 bg-gray-100 rounded-lg hover:bg-gray-200 cursor-pointer transition"
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => { setSelectedPatient(patient); setIsDetailsOpen(true); }}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
                 >
-                  <div>
-                    <h3 className="font-semibold">{patient.name}</h3>
-                    <p className="text-sm text-gray-600">Âge: {patient.age} | {patient.condition}</p>
+                  <DialogHeader>
+                    <DialogTitle>Détails du Patient</DialogTitle>
+                    <DialogDescription>Informations sur {selectedPatient.name}</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 p-4">
+                    <p><strong><User className="inline w-4 h-4" /> Nom:</strong> {selectedPatient.name}</p>
+                    <p><strong><Mail className="inline w-4 h-4" /> Email:</strong> {selectedPatient.email}</p>
+                    <p><strong><Phone className="inline w-4 h-4" /> Téléphone:</strong> {selectedPatient.phoneNumber}</p>
+                    <p><strong><Calendar className="inline w-4 h-4" /> Date de Naissance:</strong> {new Date(selectedPatient.dateOfBirth).toLocaleDateString()}</p>
+                    <p><strong><Heart className="inline w-4 h-4" /> Groupe Sanguin:</strong> {selectedPatient.bloodType}</p>
                   </div>
-                  <Button className="bg-blue-600 text-white hover:bg-blue-500">Voir</Button>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button className="bg-blue-600 text-white hover:bg-blue-500">Fermer</Button>
+                    </DialogClose>
+                  </DialogFooter>
                 </motion.div>
-              ))}
-            </div>
+              </DialogContent>
+            </Dialog>
           )}
-        </CardContent>
-      </Card>
-
-      <AnimatePresence>
-        {isDetailsOpen && selectedPatient && (
-          <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-            <DialogContent>
-              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                <DialogHeader>
-                  <DialogTitle>Détails du Patient</DialogTitle>
-                  <DialogDescription>Informations sur {selectedPatient.name}</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 p-4">
-                  <p><strong><User className="inline w-4 h-4" /> Nom:</strong> {selectedPatient.name}</p>
-                  <p><strong><Mail className="inline w-4 h-4" /> Email:</strong> {selectedPatient.email}</p>
-                  <p><strong><Phone className="inline w-4 h-4" /> Téléphone:</strong> {selectedPatient.phoneNumber}</p>
-                  <p><strong><Calendar className="inline w-4 h-4" /> Date de Naissance:</strong> {new Date(selectedPatient.dateOfBirth).toLocaleDateString()}</p>
-                  <p><strong><Heart className="inline w-4 h-4" /> Groupe Sanguin:</strong> {selectedPatient.bloodType}</p>
-                </div>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button className="bg-blue-600 text-white hover:bg-blue-500">Fermer</Button>
-                  </DialogClose>
-                </DialogFooter>
-              </motion.div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
@@ -10733,11 +10515,11 @@ File: tailwind.config.js
 module.exports = {
 	darkMode: ["class"],
 	content: [
-		"./pages/**/*.{ts,tsx,js,jsx}",
-		"./components/**/*.{ts,tsx,js,jsx}",
-		"./app/**/*.{ts,tsx,js,jsx}",
-		"./src/**/*.{ts,tsx,js,jsx}",
-	  ],
+	  "./pages/**/*.{ts,tsx,js,jsx}",
+	  "./components/**/*.{ts,tsx,js,jsx}",
+	  "./app/**/*.{ts,tsx,js,jsx}",
+	  "./src/**/*.{ts,tsx,js,jsx}",
+	],
 	prefix: "",
 	theme: {
 	  container: {
@@ -10756,8 +10538,9 @@ module.exports = {
 		  foreground: "hsl(var(--foreground))",
 		  customindigo: '#C4DBFF',
 		  primary: {
-			DEFAULT: "hsl(var(--primary))",
-			foreground: "hsl(var(--primary-foreground))",
+			DEFAULT: '#42A5FF',
+			500: '#42A5FF',
+			600: '#1E88E5',
 		  },
 		  secondary: {
 			DEFAULT: "hsl(var(--secondary))",

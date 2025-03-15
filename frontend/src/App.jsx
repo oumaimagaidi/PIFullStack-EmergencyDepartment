@@ -17,6 +17,7 @@ import Calendar from "./pages/Calendar";
 import Staff from "./pages/Staff";
 import Alerts from "./pages/Alerts";
 import Settings from "./pages/Settings";
+import Emergency from"./pages/Emergency";
 import Forum from "./pages/Forum";
 import EmergencyRegister from "./pages/EmergencyRegister";
 import ConfirmationEmergencyRegister from "./pages/ConfirmationEmergencyRegister";
@@ -51,6 +52,7 @@ function App() {
         <Route path="/calendar" element={<DashboardLayout><Calendar /></DashboardLayout>} />
         <Route path="/staff" element={<DashboardLayout><Staff /></DashboardLayout>} />
         <Route path="/alerts" element={<DashboardLayout><Alerts /></DashboardLayout>} />
+        <Route path="/emergency" element={<DashboardLayout><Emergency /></DashboardLayout>} />
         <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
         <Route path="/forum" element={<DashboardLayout><Forum /></DashboardLayout>} />
       </Routes>
