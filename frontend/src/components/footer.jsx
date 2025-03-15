@@ -45,7 +45,7 @@ const Footer = () => {
           <h4>Contact Us</h4>
           <div><FaPhone /><span>+21656800822</span></div>
           <div><MdEmail /><span>Edepartement@gmail.com</span></div>
-          <div><FaLocationArrow /><span>Karachi, Pakistan</span></div>
+          <div><FaLocationArrow /><span>Ariana, Tunisia</span></div>
         </div>
       </div>
     </footer>

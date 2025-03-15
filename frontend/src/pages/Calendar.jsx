@@ -66,16 +66,9 @@ const CalendarComponent = () => {
         setSelectedDate(date);
     };
 
+    // Removed date filtering to display all registrations
     const getAppointmentsForSelectedDate = () => {
-        return emergencyRegistrations.filter(appointment => {
-            if (!appointment.date) return false;
-
-            return (
-                appointment.date.getFullYear() === selectedDate.getFullYear() &&
-                appointment.date.getMonth() === selectedDate.getMonth() &&
-                appointment.date.getDate() === selectedDate.getDate()
-            );
-        });
+        return emergencyRegistrations; // Return all registrations without filtering
     };
 
     const handleStatusChange = async (appointmentId, newStatus) => {
@@ -125,7 +118,7 @@ const CalendarComponent = () => {
                             <p className="text-center text-gray-500">Chargement des demandes d'urgence...</p>
                         ) : (
                             <div className="space-y-4">
-                                {getAppointmentsForSelectedDate().map((appointment) => (
+                                {emergencyRegistrations.map((appointment) => ( // Displaying all registrations
                                     <div
                                         key={appointment.id}
                                         className={`flex items-center justify-between p-4 border rounded-lg bg-white/50 hover-scale ${appointment.isEmergency ? 'border-red-500' : ''}`}

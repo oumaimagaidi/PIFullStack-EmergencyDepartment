@@ -31,7 +31,7 @@ function App() {
         <Route path="/login" element={<PublicLayout><Login /></PublicLayout>} />
       
         <Route path="/emergency-confirmation" element={<PublicLayout><ConfirmationEmergencyRegister /></PublicLayout>} />
-        <Route path="/emergency-status/:patientId" element={<EmergencyStatus />} /> {/* Nouvelle route pour le statut */}
+        <Route path="/emergency-status" element={<EmergencyStatus />} />
         <Route path="/register" element={<PublicLayout><Register /></PublicLayout>} />
         <Route path="/forgotpassword" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
 

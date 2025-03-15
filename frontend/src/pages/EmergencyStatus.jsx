@@ -1,33 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom'; // Import useParams
+import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, Calendar } from "lucide-react";
 
 const EmergencyStatus = () => {
-    const { patientId } = useParams(); // Use useParams to get patientId from URL
-    console.log("PatientId from useParams:", patientId); // ADDED: Log patientId at component start
+    const location = useLocation();
+    const patientId = location.state?.patientId; // **Correctly get patientId from location.state - NO HARDCODING**
+    console.log("PatientId from location.state:", patientId); // Log patientId from state
+
     const [status, setStatus] = useState('Chargement du statut...');
     const [estimatedWaitTime, setEstimatedWaitTime] = useState('Calcul en cours...');
-    // const patientId = "12345"; // REMOVED: Static patientId
 
     const fetchStatus = async () => {
         if (!patientId) {
-            console.error("patientId est manquant dans l'URL");
+            console.error("patientId est manquant dans l'état de navigation");
             setStatus("ID patient manquant");
             setEstimatedWaitTime("Indisponible");
             return;
         }
         try {
-            const apiUrl = `http://localhost:8089/api/emergency-patients/${patientId}/status`; // Construct URL explicitly
-            console.log("URL being requested:", apiUrl); // ADDED: Log the constructed URL
-            const response = await axios.get(apiUrl, { // Use apiUrl in axios.get()
+            const apiUrl = `http://localhost:8089/api/emergency-patients/${patientId}/status`;
+            console.log("URL being requested:", apiUrl);
+            const response = await axios.get(apiUrl, {
                 withCredentials: true,
             });
 
-            const newStatus = response.data.status;
-            setStatus(newStatus);
+            const newStatus = response.data.status; // Extract status from response
+            setStatus(newStatus); // Set the status state
 
             switch (newStatus) {
                 case "Demande Enregistrée":
@@ -56,7 +57,7 @@ const EmergencyStatus = () => {
     };
 
     useEffect(() => {
-        console.log("PatientId inside useEffect:", patientId); // ADDED: Log patientId inside useEffect
+        console.log("PatientId inside useEffect:", patientId);
         if (patientId) {
             fetchStatus();
             const interval = setInterval(fetchStatus, 5000);

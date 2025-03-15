@@ -1,14 +1,17 @@
+// src/pages/ConfirmationEmergencyRegister.jsx
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom'; // Importez useLocation et Link
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle, Clock } from "lucide-react"; // Importez des icônes
+import { AlertCircle, CheckCircle, Clock } from "lucide-react";
 
 const ConfirmationEmergencyRegister = () => {
-    const location = useLocation(); // Hook pour accéder à l'état de la navigation
-    const formData = location.state?.formData; // Récupérez les données du formulaire passées lors de la redirection
+    const location = useLocation();
+    const formData = location.state?.formData;
+    const patientId = location.state?.patientId;
+    const navigate = useNavigate();
 
-    if (!formData) {
+    if (!formData || !patientId) {
         return (
             <div className="container mx-auto py-12 px-4 md:px-6 text-center">
                 <Card className="max-w-md mx-auto">
@@ -25,6 +28,10 @@ const ConfirmationEmergencyRegister = () => {
             </div>
         );
     }
+
+    const handleTrackStatusClick = () => {
+        navigate('/emergency-status', { state: { patientId: patientId } });
+    };
 
     return (
         <div className="container mx-auto py-12 px-4 md:px-6">
@@ -78,8 +85,8 @@ const ConfirmationEmergencyRegister = () => {
                         <Button asChild variant="secondary">
                             <Link to="/home">Retour à l'Accueil</Link>
                         </Button>
-                        <Button asChild>
-                            <Link to="/emergency-status/:patientId">Suivre le Statut de ma Demande</Link>
+                        <Button variant="outline" onClick={handleTrackStatusClick}>
+                            Suivre le Statut de ma Demande
                         </Button>
                     </div>
                 </CardContent>

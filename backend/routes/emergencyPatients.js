@@ -1,7 +1,7 @@
 // backend/routes/emergency-patients.js
 import express from 'express';
 import EmergencyPatient from '../models/EmergencyPatient.js';
-
+import mongoose from 'mongoose';
 const router = express.Router();
 
 // Route POST pour enregistrer une nouvelle demande d'urgence
@@ -59,21 +59,25 @@ router.put('/:id/status', async (req, res) => {
   }
 });
 
-// Route GET pour récupérer le statut d'un patient d'urgence spécifique par ID
-router.get('/:patientId/status', async (req, res) => {
+router.get('/:patientId/status', async (req, res) => { // Route with patientId as URL param
   try {
-    const patientId = req.params.patientId; // Récupérer patientId depuis les paramètres de l'URL
-    const emergencyPatient = await EmergencyPatient.findById(patientId); // Chercher le patient par ID
+      const patientId = req.params.patientId; // **Correctly extract patientId from req.params**
 
-    if (!emergencyPatient) {
-      return res.status(404).json({ message: "Patient d'urgence non trouvé" }); // Patient non trouvé
-    }
+      // Check if patientId is a valid ObjectId (important for Mongoose)
+      if (!mongoose.Types.ObjectId.isValid(patientId)) {
+          return res.status(400).json({ message: 'Invalid patient ID format' }); // Return error if ID is invalid
+      }
 
-    res.status(200).json({ status: emergencyPatient.status }); // Renvoyer uniquement le statut en JSON
+      const emergencyPatient = await EmergencyPatient.findById(patientId); // **Use the extracted patientId in findById**
+
+      if (!emergencyPatient) {
+          return res.status(404).json({ message: 'Emergency patient not found' });
+      }
+
+      res.status(200).json({ status: emergencyPatient.status }); // Send back the status
   } catch (error) {
-    console.error("Erreur lors de la récupération du statut du patient:", error);
-    res.status(500).json({ message: "Erreur serveur lors de la récupération du statut du patient" });
+      console.error("Error fetching emergency patient status:", error);
+      res.status(500).json({ message: 'Server error', error: error });
   }
 });
-
 export default router;
