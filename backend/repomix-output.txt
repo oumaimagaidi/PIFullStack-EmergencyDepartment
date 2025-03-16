@@ -1,0 +1,1545 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+================================================================
+File Summary
+================================================================
+
+Purpose:
+--------
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+File Format:
+------------
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Multiple file entries, each consisting of:
+  a. A separator line (================)
+  b. The file path (File: path/to/file)
+  c. Another separator line
+  d. The full contents of the file
+  e. A blank line
+
+Usage Guidelines:
+-----------------
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+Notes:
+------
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+
+Additional Info:
+----------------
+
+================================================================
+Directory Structure
+================================================================
+.babelrc
+db.js
+middleware/authMiddleware.js
+middleware/uploadMiddleware.js
+models/EmergencyPatient.js
+models/User.js
+package.json
+routes/auth.js
+routes/emergencyPatients.js
+routes/profile.js
+routes/users.js
+sendSMS.js
+server.js
+services/emailService.js
+services/otpService.js
+
+================================================================
+Files
+================================================================
+
+================
+File: .babelrc
+================
+{
+    "presets": ["@babel/preset-env"]
+  }
+
+================
+File: db.js
+================
+import mongoose from "mongoose";
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("Connected to database successfully");
+  } catch (error) {
+    console.error("Could not connect to database!", error);
+    process.exit(1);
+  }
+};
+
+export default connectDB;
+
+================
+File: middleware/authMiddleware.js
+================
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+export const authenticateToken = (req, res, next) => {
+  // Try to get the token from cookies first, then check Authorization header
+  const token = req.cookies?.token || req.header("Authorization")?.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "Accès refusé, aucun token fourni" });
+  }
+
+  try {
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = verified; // Attach user data to request object
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: "Token invalide", error });
+  }
+};
+
+================
+File: middleware/uploadMiddleware.js
+================
+import multer from "multer";
+import path from "path";
+
+// Configuration de Multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Dossier où enregistrer les images
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Nom unique
+  },
+});
+
+const upload = multer({ storage: storage });
+
+export default upload;
+
+================
+File: models/EmergencyPatient.js
+================
+// backend/models/EmergencyPatient.js
+import mongoose from 'mongoose'; // Use import
+
+const emergencyPatientSchema = new mongoose.Schema({
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    dateOfBirth: { type: String, required: true }, // Consider using Date type for easier date manipulation if needed later
+    gender: { type: String, required: true, enum: ['male', 'female', 'other'] },
+    phoneNumber: { type: String, required: true },
+    email: {
+        type: String,
+        validate: {
+            validator: function (v) {
+                // Basic email validation (you might want a more robust library)
+                return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
+            },
+            message: props => `${props.value} is not a valid email address!`
+        }
+    },
+    address: { type: String, required: true },
+    emergencyContact: { type: String, required: true },
+    insuranceInfo: { type: String },
+    allergies: { type: String },
+    currentMedications: { type: String },
+    medicalHistory: { type: String },
+    currentSymptoms: { type: String, required: true },
+    painLevel: { type: String, required: true, enum: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] },
+    emergencyLevel: { type: String, required: true, enum: ['low', 'medium', 'high', 'critical'] },
+    status: { type: String, default: 'Demande Enregistrée' }, // Added status field with default value
+    createdAt: { type: Date, default: Date.now }
+}, { timestamps: true });
+
+const EmergencyPatient = mongoose.model('EmergencyPatient', emergencyPatientSchema);
+
+export default EmergencyPatient;
+
+================
+File: models/User.js
+================
+import mongoose from "mongoose";
+
+const options = { discriminatorKey: "role", timestamps: true };
+
+// Définition du schéma de base User
+const UserSchema = new mongoose.Schema(
+	{
+	  username: { type: String, required: true, unique: true },
+	  email: { type: String, required: true, unique: true },
+	  password: { type: String, required: true },
+	  phoneNumber: { type: String, required: true },
+	  role: { type: String, required: true, enum: ["Patient", "Doctor", "Nurse", "Administrator"] },
+	  isValidated: { type: Boolean, default: false } , // Nouveau champ
+    profileImage: { type: String },
+	  resetPasswordToken: String, // Nouveau champ
+    resetPasswordExpires: Date, // Nouveau champ
+    otp : { type: String, required: false,default: 0},
+    otpExpires: Date,
+	},
+	options
+  );
+  
+
+// Méthodes communes
+UserSchema.methods.login = function () {
+  console.log(`${this.username} logged in.`);
+};
+
+UserSchema.methods.logout = function () {
+  console.log(`${this.username} logged out.`);
+};
+
+UserSchema.methods.updateProfile = function () {
+  console.log(`${this.username} updated profile.`);
+};
+
+UserSchema.methods.resetPassword = function () {
+  console.log(`${this.username} reset password.`);
+};
+
+const User = mongoose.model("User", UserSchema);
+
+// ------------------- Patient -------------------
+const PatientSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  dateOfBirth: { type: Date, required: true },
+  gender: { type: String, required: true, enum: ["Male", "Female", "Other"] },
+  address: { type: String, required: true },
+  emergencyContact: { type: String, required: true },
+  bloodType: { type: String, required: true },
+  allergies: [{ type: String }],
+});
+
+PatientSchema.methods.registerPatient = function () {
+  console.log(`Patient ${this.name} registered.`);
+};
+
+PatientSchema.methods.updatePatientInfo = function () {
+  console.log(`Patient ${this.name} info updated.`);
+};
+
+PatientSchema.methods.viewMedicalHistory = function () {
+  console.log(`Viewing medical history of ${this.name}.`);
+};
+
+const Patient = User.discriminator("Patient", PatientSchema);
+
+// ------------------- Doctor -------------------
+const DoctorSchema = new mongoose.Schema({
+  badgeNumber: { type: String, required: true },
+  specialization: { type: String, required: true },
+  licenseNumber: { type: String, required: true },
+});
+
+DoctorSchema.methods.assignTreatment = function () {
+  console.log(`Doctor ${this.username} assigned treatment.`);
+};
+
+DoctorSchema.methods.changePatientStatus = function () {
+  console.log(`Doctor ${this.username} changed patient status.`);
+};
+
+DoctorSchema.methods.assignResources = function () {
+  console.log(`Doctor ${this.username} assigned resources.`);
+};
+
+DoctorSchema.methods.prescribeMedication = function () {
+  console.log(`Doctor ${this.username} prescribed medication.`);
+};
+
+DoctorSchema.methods.viewSchedule = function () {
+  console.log(`Doctor ${this.username} viewing schedule.`);
+};
+
+const Doctor = User.discriminator("Doctor", DoctorSchema);
+
+// ------------------- Nurse -------------------
+const NurseSchema = new mongoose.Schema({
+  badgeNumber: { type: String, required: true },
+  shift: { type: String, required: true },
+  licenseNumber: { type: String, required: true },
+});
+
+NurseSchema.methods.addMedicalNotes = function () {
+  console.log(`Nurse ${this.username} added medical notes.`);
+};
+
+NurseSchema.methods.assignPatientPriority = function () {
+  console.log(`Nurse ${this.username} assigned patient priority.`);
+};
+
+NurseSchema.methods.updatePatientAllocation = function () {
+  console.log(`Nurse ${this.username} updated patient allocation.`);
+};
+
+NurseSchema.methods.administerMedication = function () {
+  console.log(`Nurse ${this.username} administered medication.`);
+};
+
+NurseSchema.methods.viewSchedule = function () {
+  console.log(`Nurse ${this.username} viewing schedule.`);
+};
+
+const Nurse = User.discriminator("Nurse", NurseSchema);
+
+// ------------------- Administrator -------------------
+const AdminSchema = new mongoose.Schema({
+  badgeNumber: { type: String, required: true },
+});
+
+AdminSchema.methods.manageResources = function () {
+  console.log(`Administrator ${this.username} managing resources.`);
+};
+
+AdminSchema.methods.allocateNurses = function () {
+  console.log(`Administrator ${this.username} allocating nurses.`);
+};
+
+AdminSchema.methods.allocateDoctors = function () {
+  console.log(`Administrator ${this.username} allocating doctors.`);
+};
+
+AdminSchema.methods.calculateResourceUtilization = function () {
+  console.log(`Administrator ${this.username} calculating resource utilization.`);
+};
+
+const Administrator = User.discriminator("Administrator", AdminSchema);
+
+export { User, Patient, Doctor, Nurse, Administrator };
+
+================
+File: package.json
+================
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "description": "",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "google-auth-library": "^9.15.1",
+    "joi": "^17.13.3",
+    "joi-password-complexity": "^5.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "libphonenumber-js": "^1.12.4",
+    "mongoose": "^8.10.1",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.10.0",
+    "otp-generator": "^4.0.1",
+    "twilio": "^5.4.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
+
+================
+File: routes/auth.js
+================
+import express from "express";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { User } from "../models/User.js";
+import dotenv from "dotenv";
+import crypto from "crypto"; // Utilisez cette syntaxe pour les modules ES
+import nodemailer from "nodemailer";
+import { generateOTP, saveOTPToUser, verifyOTP } from "../services/otpService.js";
+import { sendOTP } from "../services/emailService.js";
+import { OAuth2Client } from "google-auth-library";
+import multer from "multer";
+import upload from "../middleware/uploadMiddleware.js"
+import { authenticateToken } from "../middleware/authMiddleware.js";
+import sendSMS from "../sendSMS.js";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Middleware CORS pour assurer que toutes les routes acceptent les requêtes frontend
+import cors from "cors";
+
+const router = express.Router();
+// 📂 Définir le stockage des fichiers
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Dossier où enregistrer les images
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Nom unique
+  }
+});
+
+
+
+router.use(cors({ origin: "http://localhost:3000", credentials: true }));
+dotenv.config();
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "Utilisateur non trouvé" });
+
+    if (!user.isValidated) {
+      if (user.role === "Patient") return res.status(400).json({ message: "Votre compte est en attente de validation de mail via otp" });
+      return res.status(400).json({ message: "Votre compte est en attente de validation par un administrateur" });
+    }
+
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) return res.status(400).json({ message: "Mot de passe incorrect" });
+
+    // Generate JWT Token
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    console.log("Generated Token:", token);
+    // Store token in an HTTP-only cookie
+    res.cookie("token", token, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production", // Set secure in production (HTTPS only)
+      sameSite: "strict", // Protect against CSRF attacks
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expires in 7 days
+    });
+    
+
+    res.status(200).json({ message: "Connexion réussie", user },);
+  } catch (error) {
+    console.error("Erreur serveur:", error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+router.post("/logout", (req, res) => {
+  console.log("Logout route hit");
+  res.clearCookie("token", { httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production" });
+  res.status(200).json({ message: "Déconnexion réussie" });
+});
+router.get("/me", authenticateToken, (req, res) => {
+  try {
+    // If the token is valid, `req.user` will have the decoded data
+    const user = req.user;
+
+    // Optionally, you can fetch the full user from the database if necessary
+    res.status(200).json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      profilePicture: user.profilePicture, // Add additional info as needed
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+// Route de login avec Google
+router.post("/google-login", async (req, res) => {
+  try {
+    const { token } = req.body;
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const { email, name, picture } = ticket.getPayload();
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = new User({ email, username: name, profilePicture: picture, isValidated: true });
+      await user.save();
+    }
+
+    const jwtToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    res.status(200).json({ message: "Connexion réussie avec Google", token: jwtToken, user });
+  } catch (error) {
+    console.error("Erreur Google Login:", error);
+    res.status(500).json({ message: "Erreur lors de l'authentification Google", error: error.message });
+  }
+});
+
+
+
+
+
+router.post("/register", upload.single("profileImage"), async (req, res) => {
+  try {
+    const { username, email, password, phoneNumber, role, ...roleSpecificData } = req.body;
+
+    console.log("Données reçues :", req.body); // Log pour vérifier les données reçues
+
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      console.log("Email déjà utilisé :", email);
+      return res.status(400).json({ message: "Email déjà utilisé" });
+    }
+
+    // Hacher le mot de passe
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Si le rôle est un rôle restreint (Doctor, Nurse, Admin), l'utilisateur doit être en attente
+    const isValidated = false; // Si rôle Patient, utilisateur est validé
+
+    // Créer un nouvel utilisateur
+    const newUserData = {
+      username,
+      email,
+      password: hashedPassword,
+      phoneNumber,
+      role,
+      isValidated,
+      profileImage: req.file ? `/uploads/${req.file.filename}` : null
+    };
+
+    // Ajouter les champs spécifiques au rôle
+    switch (role) {
+      case "Patient":
+        const { name, dateOfBirth, gender, address, emergencyContact, bloodType, allergies } = roleSpecificData;
+
+        // Vérifier que tous les champs obligatoires sont fournis
+        if (!name || !dateOfBirth || !gender || !address || !emergencyContact || !bloodType) {
+          console.log("Champs obligatoires manquants pour un patient");
+          return res.status(400).json({ message: "Tous les champs obligatoires pour un patient doivent être remplis" });
+        }
+
+        // Ajouter les champs spécifiques au patient
+        newUserData.name = name;
+        newUserData.dateOfBirth = dateOfBirth;
+        newUserData.gender = gender;
+        newUserData.address = address;
+        newUserData.emergencyContact = emergencyContact;
+        newUserData.bloodType = bloodType;
+        newUserData.allergies = allergies || []; // Les allergies sont optionnelles
+        break;
+
+      case "Doctor":
+        const { badgeNumber: docBadgeNumber, specialization, licenseNumber: docLicenseNumber } = roleSpecificData;
+
+        // Vérifier que tous les champs obligatoires sont fournis
+        if (!docBadgeNumber || !specialization || !docLicenseNumber) {
+          console.log("Champs obligatoires manquants pour un médecin");
+          return res.status(400).json({ message: "Tous les champs obligatoires pour un médecin doivent être remplis" });
+        }
+
+        // Ajouter les champs spécifiques au médecin
+        newUserData.badgeNumber = docBadgeNumber;
+        newUserData.specialization = specialization;
+        newUserData.licenseNumber = docLicenseNumber;
+        break;
+
+      case "Nurse":
+        const { badgeNumber: nurseBadgeNumber, shift, licenseNumber: nurseLicenseNumber } = roleSpecificData;
+
+        // Vérifier que tous les champs obligatoires sont fournis
+        if (!nurseBadgeNumber || !shift || !nurseLicenseNumber) {
+          console.log("Champs obligatoires manquants pour une infirmière");
+          return res.status(400).json({ message: "Tous les champs obligatoires pour une infirmière doivent être remplis" });
+        }
+
+        // Ajouter les champs spécifiques à l'infirmière
+        newUserData.badgeNumber = nurseBadgeNumber;
+        newUserData.shift = shift;
+        newUserData.licenseNumber = nurseLicenseNumber;
+        break;
+
+      case "Administrator":
+        const { badgeNumber: adminBadgeNumber } = roleSpecificData;
+
+        // Vérifier que tous les champs obligatoires sont fournis
+        if (!adminBadgeNumber) {
+          console.log("Champs obligatoires manquants pour un administrateur");
+          return res.status(400).json({ message: "Le numéro de badge est obligatoire pour un administrateur" });
+        }
+
+        // Ajouter les champs spécifiques à l'administrateur
+        newUserData.badgeNumber = adminBadgeNumber;
+        break;
+
+      default:
+        console.log("Rôle invalide :", role);
+        return res.status(400).json({ message: "Rôle invalide" });
+    }
+
+    // Créer un nouvel utilisateur
+    const newUser = new User(newUserData);
+    await newUser.save();
+    console.log("Utilisateur créé avec succès :", newUser);
+
+    // Générer et envoyer l'OTP
+    const { otp, hashedOTP } = await generateOTP();
+    console.log("OTP généré :", otp);
+    await saveOTPToUser(email, hashedOTP);
+    console.log("OTP enregistré pour l'utilisateur :", email);
+    await sendOTP(email, otp);
+    console.log("OTP envoyé à :", email);
+
+    // Envoyer un SMS de confirmation avec le numéro de téléphone
+    const smsMessage = `Bienvenue ${username}, votre inscription a été réussie !  Veuillez vérifier votre email pour l'OTP.`;
+    await sendSMS(smsMessage, phoneNumber); // <--- CORRECT
+    console.log("SMS envoyé à :", phoneNumber);
+
+    res.status(201).json({ message: "Utilisateur créé avec succès. Veuillez vérifier votre email pour l'OTP.", user: newUser });
+  } catch (error) {
+    console.error("Erreur lors de l'inscription :", error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+
+// Route pour réinitialiser le mot de passe
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com", // Serveur SMTP d'Outlook
+  port: 587, // Port SMTP
+  secure: false, // true pour le port 465, false pour les autres ports
+  auth: {
+    user: process.env.EMAIL_USER, // Votre adresse email
+    pass: process.env.EMAIL_PASSWORD, // Votre mot de passe
+  },
+});
+// 📌 Route pour demander une réinitialisation de mot de passe
+router.post("/forgot-password", async (req, res) => {
+  try {
+    console.log("📩 Requête reçue :", req.body);
+    const { email } = req.body;
+
+    // Vérifier si l'utilisateur existe
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log("⚠ Utilisateur non trouvé :", email);
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
+
+    // Générer un token de réinitialisation
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetTokenExpiry = Date.now() + 3600000; // 1 heure de validité
+
+    // Enregistrer le token et sa date d'expiration dans la base de données
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetTokenExpiry;
+    await user.save();
+    console.log("✅ Token enregistré pour :", user.email);
+
+    // 🔗 Construire le lien de réinitialisation avec la syntaxe correcte
+    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+
+    // Envoyer un email avec le lien de réinitialisation
+    const mailOptions = {
+      to: user.email,
+      from: process.env.EMAIL_USER,
+      subject: "Réinitialisation de mot de passe",
+      html: `<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réinitialisation de mot de passe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #333;
+            font-size: 24px;
+        }
+        p {
+            font-size: 16px;
+            color: #555;
+        }
+        a {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        a:hover {
+            background-color: #45a049;
+        }
+        .footer {
+            font-size: 14px;
+            color: #888;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Réinitialisation de votre mot de passe</h2>
+        <p>Vous avez demandé une réinitialisation de mot de passe. Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe :</p>
+        <a href="${resetUrl}">Réinitialiser votre mot de passe</a>
+        <p class="footer">Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email.</p>
+    </div>
+</body>
+</html>`,
+    };
+
+    console.log("📨 Envoi de l'email à :", user.email);
+    await transporter.sendMail(mailOptions);
+    console.log("✅ Email envoyé avec succès");
+
+    res.status(200).json({ message: "Un email de réinitialisation a été envoyé" });
+  } catch (error) {
+    console.error("❌ Erreur dans /forgot-password :", error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message || error });
+  }
+});
+
+// Route pour réinitialiser le mot de passe
+router.post("/reset-password/:token", async (req, res) => {
+  console.log("Reset password route hit");
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+    console.log("Requête reçue :", req.body); // Log pour vérifier la requête
+    // Trouver l'utilisateur avec le token valide
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }, // Vérifier que le token n'a pas expiré
+    });
+
+    if (!user) return res.status(400).json({ message: "Token invalide ou expiré" });
+
+    // Hacher le nouveau mot de passe
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Mettre à jour le mot de passe et effacer le token
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Mot de passe réinitialisé avec succès" });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+
+
+// Route pour mettre à jour le profil d'un utilisateur
+router.put("/update-profile/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, phoneNumber, role, ...roleSpecificData } = req.body;
+
+    // Trouver l'utilisateur par son ID
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+
+    // Mettre à jour les champs communs
+    if (username) user.username = username;
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+
+    // Mettre à jour les champs spécifiques au rôle
+    switch (user.role) {
+      case "Patient":
+        const { name, dateOfBirth, gender, address, emergencyContact, bloodType, allergies } = roleSpecificData;
+
+        if (name) user.name = name;
+        if (dateOfBirth) user.dateOfBirth = dateOfBirth;
+        if (gender) user.gender = gender;
+        if (address) user.address = address;
+        if (emergencyContact) user.emergencyContact = emergencyContact;
+        if (bloodType) user.bloodType = bloodType;
+        if (allergies) user.allergies = allergies;
+        break;
+
+      case "Doctor":
+        const { badgeNumber: docBadgeNumber, specialization, licenseNumber: docLicenseNumber } = roleSpecificData;
+
+        if (docBadgeNumber) user.badgeNumber = docBadgeNumber;
+        if (specialization) user.specialization = specialization;
+        if (docLicenseNumber) user.licenseNumber = docLicenseNumber;
+        break;
+
+      case "Nurse":
+        const { badgeNumber: nurseBadgeNumber, shift, licenseNumber: nurseLicenseNumber } = roleSpecificData;
+
+        if (nurseBadgeNumber) user.badgeNumber = nurseBadgeNumber;
+        if (shift) user.shift = shift;
+        if (nurseLicenseNumber) user.licenseNumber = nurseLicenseNumber;
+        break;
+
+      case "Administrator":
+        const { badgeNumber: adminBadgeNumber } = roleSpecificData;
+
+        if (adminBadgeNumber) user.badgeNumber = adminBadgeNumber;
+        break;
+
+      default:
+        return res.status(400).json({ message: "Rôle invalide" });
+    }
+
+    // Sauvegarder les modifications
+    await user.save();
+
+    res.status(200).json({ message: "Profil mis à jour avec succès", user });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+// Route pour changer le rôle d'un utilisateur (admin uniquement)
+router.put("/change-role/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    // Trouver l'utilisateur par son ID
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+
+    // Changer le rôle de l'utilisateur
+    user.role = role;
+    await user.save();
+
+    res.status(200).json({ message: "Rôle de l'utilisateur mis à jour avec succès", user });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+
+// Send OTP Route
+router.post("/send-otp", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    // Generate OTP
+    const { otp, hashedOTP } = await generateOTP();
+
+    // Store OTP with expiration (e.g., 5 minutes)
+    saveOTPToUser(email, hashedOTP);
+
+    // Send OTP to email
+    await sendOTP(email, otp);
+
+    res.status(200).json({ message: "OTP sent successfully" });
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+router.post("/verify-otp", async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ message: "Email et OTP sont requis" });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "Utilisateur non trouvé" });
+
+    if (Date.now() > user.otpExpires) {
+      return res.status(400).json({ message: "OTP expiré" });
+    }
+
+    const isValid = await verifyOTP(otp, user.otp);
+    if (!isValid) {
+      if (user.role === "Patient") user.isValidated = true;
+      return res.status(400).json({ message: "OTP incorrect" });
+
+    }
+
+    // Mettre à jour l'utilisateur après vérification
+    user.otpValidated = true;
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    user.isValidated = true;
+    await user.save();
+
+    res.status(200).json({ message: "OTP vérifié avec succès. Vous pouvez maintenant vous connecter." });
+  } catch (error) {
+    console.error("Erreur lors de la vérification de l'OTP:", error);
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+
+
+router.post('/send-sms', async (req, res) => {
+  const { body, phoneNumber } = req.body;
+
+  // Vérifier que le corps du message et le numéro de téléphone sont fournis
+  if (!body || !phoneNumber) {
+    return res.status(400).json({ success: false, message: 'Body and phone number are required' });
+  }
+
+  try {
+    const result = await sendSMS(body, phoneNumber);
+    if (result.success) {
+      return res.status(200).json(result);
+    } else {
+      return res.status(500).json(result);
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Failed to send SMS', error: error.message });
+  }
+});
+
+///////router export 
+export default router;
+
+================
+File: routes/emergencyPatients.js
+================
+// backend/routes/emergency-patients.js
+import express from 'express';
+import EmergencyPatient from '../models/EmergencyPatient.js';
+
+const router = express.Router();
+
+// Route POST pour enregistrer une nouvelle demande d'urgence
+router.post('/', async (req, res) => {
+    try {
+        const patient = new EmergencyPatient(req.body);
+        const savedPatient = await patient.save();
+        res.status(201).json(savedPatient);
+    } catch (error) {
+        console.error(error);
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+            res.status(400).json({ message: messages });
+        } else {
+            res.status(500).json({ message: 'Server error' });
+        }
+    }
+});
+
+// Route GET pour récupérer TOUTES LES demandes d'urgence
+router.get('/', async (req, res) => {
+    try {
+        const emergencyPatients = await EmergencyPatient.find();
+        res.status(200).json(emergencyPatients);
+    } catch (error) {
+        console.error("Erreur lors de la récupération des demandes d'urgence:", error);
+        res.status(500).json({ message: "Erreur serveur lors de la récupération des demandes d'urgence" });
+    }
+});
+
+// Route PUT pour mettre à jour le statut d'une demande d'urgence par ID
+router.put('/:id/status', async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    try {
+        const updatedPatient = await EmergencyPatient.findByIdAndUpdate(
+            id,
+            { status: status },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedPatient) {
+            return res.status(404).json({ message: "Demande d'urgence non trouvée" });
+        }
+
+        res.status(200).json(updatedPatient);
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour du statut de la demande d'urgence:", error);
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({ message: messages });
+        }
+        res.status(500).json({ message: "Erreur serveur lors de la mise à jour du statut" });
+    }
+});
+
+export default router;
+
+================
+File: routes/profile.js
+================
+// In your routes/profile.js
+import express from 'express';
+import { User, Patient, Doctor, Nurse, Administrator } from '../models/User.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
+import cors from "cors";
+import dotenv from "dotenv";
+
+const router = express.Router();
+router.use(cors({ origin: "http://localhost:3000", credentials: true }));
+dotenv.config();
+
+router.get('/profile', authenticateToken, async (req, res) => {
+  console.log("📩 Requête reçue :", req.body);
+  try {
+    // Get complete user document including role-specific fields
+    const user = await User.findById(req.user.id).select('-password -resetPasswordToken -resetPasswordExpires -otp -otpExpires');
+    
+    if (!user) {
+      return res.status(404).json({ message: "Profil non trouvé" });
+    }
+
+    // Format data based on user role
+    let profileData = {
+      personal: {
+        username: user.username,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        role: user.role
+      }
+    };
+
+    // Add role-specific data
+    switch (user.role) {
+      case 'Patient':
+        profileData.medical = {
+          name: user.name,
+          dateOfBirth: user.dateOfBirth,
+          gender: user.gender,
+          address: user.address,
+          emergencyContact: user.emergencyContact,
+          bloodType: user.bloodType,
+          allergies: user.allergies || []
+        };
+        break;
+
+      case 'Doctor':
+        profileData.professional = {
+          badgeNumber: user.badgeNumber,
+          specialization: user.specialization,
+          licenseNumber: user.licenseNumber
+        };
+        break;
+
+      case 'Nurse':
+        profileData.professional = {
+          badgeNumber: user.badgeNumber,
+          shift: user.shift,
+          licenseNumber: user.licenseNumber
+        };
+        break;
+
+      case 'Administrator':
+        profileData.professional = {
+          badgeNumber: user.badgeNumber
+        };
+        break;
+    }
+
+    res.status(200).json(profileData);
+  } catch (error) {
+    console.error("Erreur serveur:", error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+
+// Update profile endpoint
+router.put('/profile', authenticateToken, async (req, res) => {
+  try {
+    const { personal, medical, professional } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Profil non trouvé" });
+    }
+
+    // Update common fields
+    if (personal) {
+      user.username = personal.username || user.username;
+      user.email = personal.email || user.email;
+      user.phoneNumber = personal.phoneNumber || user.phoneNumber;
+    }
+
+    // Update role-specific fields
+    switch (user.role) {
+      case 'Patient':
+        if (medical) {
+          user.name = medical.name || user.name;
+          user.dateOfBirth = medical.dateOfBirth || user.dateOfBirth;
+          user.gender = medical.gender || user.gender;
+          user.address = medical.address || user.address;
+          user.emergencyContact = medical.emergencyContact || user.emergencyContact;
+          user.bloodType = medical.bloodType || user.bloodType;
+          user.allergies = medical.allergies || user.allergies;
+        }
+        break;
+
+      case 'Doctor':
+      case 'Nurse':
+        if (professional) {
+          user.badgeNumber = professional.badgeNumber || user.badgeNumber;
+          user.licenseNumber = professional.licenseNumber || user.licenseNumber;
+          if (user.role === 'Doctor') {
+            user.specialization = professional.specialization || user.specialization;
+          } else {
+            user.shift = professional.shift || user.shift;
+          }
+        }
+        break;
+
+      case 'Administrator':
+        if (professional) {
+          user.badgeNumber = professional.badgeNumber || user.badgeNumber;
+        }
+        break;
+    }
+
+    await user.save();
+    
+    // Return updated profile in same format as GET
+    res.redirect(303, '/api/profile');
+  } catch (error) {
+    console.error("Erreur serveur:", error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+
+export default router;
+
+================
+File: routes/users.js
+================
+import express from "express";
+import { User } from "../models/User.js";
+import { authenticateToken } from "../middleware/authMiddleware.js";
+import cors from "cors";
+import dotenv from "dotenv";
+
+const router = express.Router();
+router.use(cors({ origin: "http://localhost:3000", credentials: true }));
+dotenv.config();
+
+
+router.get("/doctors", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const doctors = await User.find({ role: "Doctor" }); // Find users with role "Doctor"
+    res.status(200).json(doctors);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+// Obtenir tous les utilisateurs (admin uniquement)
+router.get("/", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+
+// Obtenir un utilisateur par ID
+router.get("/users/:id", authenticateToken, async (req, res) => {
+  try {
+    const userId = mongoose.Types.ObjectId(req.params.id); // Ensure the id is cast to ObjectId
+    const user = await User.findById(userId).exec();
+
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'utilisateur:", error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+// Mettre à jour un utilisateur
+router.put("/:id", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.id !== req.params.id && req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+
+// Supprimer un utilisateur (admin uniquement)
+router.delete("/:id", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Utilisateur supprimé" });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+
+// Route de validation d'utilisateur (admin uniquement)
+router.post("/validate-user", authenticateToken, async (req, res) => {
+  try {
+    // Vérifier si l'utilisateur est un administrateur
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const { userId } = req.body;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+
+    // Valider l'utilisateur
+    user.isValidated = true;
+    await user.save();
+
+    res.status(200).json({ message: "Utilisateur validé avec succès" });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+router.get("/patients/count", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const patientCount = await User.countDocuments({ role: "Patient" });
+    res.status(200).json({ count: patientCount });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error });
+  }
+});
+router.get("/patients", authenticateToken, async (req, res) => {
+  try {
+    // Ensure the user is an Administrator, Doctor, or Nurse
+    if (!["Administrator", "Doctor", "Nurse"].includes(req.user.role)) {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    // Fetch patients from the database
+    const patients = await User.find({ role: "Patient" }).exec();
+
+    // Check if patients were found
+    if (!patients || patients.length === 0) {
+      return res.status(404).json({ message: "Aucun patient trouvé" });
+    }
+
+    // Return the list of patients
+    res.status(200).json(patients);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des patients:", error); // Log the error
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+
+// Delete a patient (admin only)
+router.delete("/patients/:id", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const patient = await User.findById(req.params.id);
+    if (!patient || patient.role !== "Patient") {
+      return res.status(404).json({ message: "Patient non trouvé" });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Patient supprimé avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de la suppression du patient:", error); // Log the error
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+
+// Update a patient (admin only)
+router.put("/patients/:id", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const patient = await User.findById(req.params.id);
+    if (!patient || patient.role !== "Patient") {
+      return res.status(404).json({ message: "Patient non trouvé" });
+    }
+
+    const updatedPatient = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).json(updatedPatient);
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du patient:", error); // Log the error
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+export default router;
+
+================
+File: sendSMS.js
+================
+import { parsePhoneNumberFromString, isValidPhoneNumber } from 'libphonenumber-js';
+import dotenv from 'dotenv';
+import twilio from 'twilio';
+
+dotenv.config();
+
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = twilio(accountSid, authToken);
+
+const sendSMS = async (body, userPhoneNumber) => {
+    try {
+        // Parse le numéro
+        const phoneNumber = parsePhoneNumberFromString(userPhoneNumber, 'TN'); // 'TN' pour Tunisie.  Change si nécessaire.
+
+        // Vérifie si le numéro est valide
+        if (!phoneNumber || !isValidPhoneNumber(phoneNumber.number, phoneNumber.country)) {
+            console.error("Numéro de téléphone invalide :", userPhoneNumber);
+            return { success: false, message: 'Numéro de téléphone invalide.' };
+        }
+
+        // Formate le numéro en E.164 (le format requis par Twilio)
+        const formattedPhoneNumber = phoneNumber.format('E.164');
+
+        const msgOptions = {
+            from: process.env.TWILIO_FROM_NUMBER,
+            to: formattedPhoneNumber,
+            body: body
+        };
+
+        const message = await client.messages.create(msgOptions);
+        console.log("✅ SMS envoyé avec succès :", message.sid);
+        return { success: true, message: 'Message sent successfully' };
+
+    } catch (error) {
+        console.error("❌ Erreur d'envoi SMS ou de validation du numéro:", error);
+
+        // Gérer les erreurs spécifiques à libphonenumber et Twilio séparément
+        if (error.message === "INVALID_COUNTRY") { // Exemple d'erreur libphonenumber-js
+            return { success: false, message: 'Code pays invalide pour le numéro de téléphone.' };
+        }
+
+        if (error.code === 21211) {
+            return { success: false, message: 'Numéro de téléphone invalide pour Twilio.' };
+        }
+        //Ajoute d'autre  gestion d'erreur si nécessaire
+        return { success: false, message: 'Échec de l\'envoi du SMS', error: error.message };
+    }
+};
+
+export default sendSMS;
+
+================
+File: server.js
+================
+// backend/server.js
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
+import authRoutes from "./routes/auth.js";
+import userRoutes from "./routes/users.js";
+import connectDB from "./db.js";
+import cookieParser from "cookie-parser";
+import profileRoutes from "./routes/profile.js";
+import emergencyPatientRoutes from './routes/emergencyPatients.js';
+
+dotenv.config();
+
+const app = express();
+
+connectDB();
+
+// *** CORS MUST BE FIRST ***
+app.use(cors({
+  origin: "http://localhost:3000",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+// THEN other middleware
+app.use(express.json());
+app.use(cookieParser());
+
+
+// THEN your routes
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/", profileRoutes);
+app.use('/api/emergency-patients', emergencyPatientRoutes);
+
+const PORT = process.env.PORT || 8089; // Change 8080 to 8089 to match frontend request
+app.listen(PORT, () => console.log(`✅ Serveur démarré sur le port ${PORT}`));
+
+================
+File: services/emailService.js
+================
+// services/emailService.js
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+// Configurer le transporteur d'email
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
+
+// Envoyer l'OTP par email
+export const sendOTP = async (email, otp) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Your OTP Code",
+    html: `<!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>OTP Verification</title>
+          <style>
+              body {
+                  font-family: Arial, sans-serif;
+                  background-color: #f4f4f4;
+                  padding: 40px;
+                  margin: 0;
+                  text-align: center;
+              }
+              .container {
+                  max-width: 600px;
+                  margin: 0 auto;
+                  background-color: #ffffff;
+                  border-radius: 8px;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                  padding: 30px;
+                  text-align: center;
+              }
+              h1 {
+                  color: #333;
+                  font-size: 24px;
+                  margin-bottom: 20px;
+              }
+              .otp-code {
+                  font-size: 32px;
+                  font-weight: bold;
+                  color: #007BFF;
+                  padding: 10px;
+                  border: 2px solid #007BFF;
+                  display: inline-block;
+                  margin-bottom: 20px;
+              }
+              .expiration {
+                  color: #555;
+                  font-size: 14px;
+                  margin-top: 10px;
+              }
+              .footer {
+                  margin-top: 30px;
+                  color: #888;
+                  font-size: 12px;
+              }
+              .footer a {
+                  color: #007BFF;
+                  text-decoration: none;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <h1>OTP Verification</h1>
+              <p>Your OTP code is:</p>
+              <div class="otp-code">${otp}</div>
+              <p class="expiration">It will expire in 5 minutes.</p>
+              <div class="footer">
+                  <p>If you didn't request this, please ignore this email.</p>
+              </div>
+          </div>
+      </body>
+      </html>`,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+================
+File: services/otpService.js
+================
+// services/otpService.js
+import bcrypt from "bcrypt";
+import { User } from "../models/User.js";
+
+// Générer un OTP
+export const generateOTP = async () => {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+  const salt = await bcrypt.genSalt(10);
+  const hashedOTP = await bcrypt.hash(otp, salt);
+  return { otp, hashedOTP };
+};
+
+// Sauvegarder l'OTP dans la base de données
+export const saveOTPToUser = async (email, hashedOTP) => {
+  const user = await User.findOne({ email });
+  if (!user) throw new Error("User not found");
+
+  // Stocker l'OTP et définir une date d'expiration (10 minutes)
+  user.otp = hashedOTP;
+  user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  await user.save();
+};
+
+// Vérifier l'OTP
+export const verifyOTP = async (inputOTP, storedHashedOTP) => {
+  return await bcrypt.compare(inputOTP, storedHashedOTP);
+};
+
+
+
+================================================================
+End of Codebase
+================================================================

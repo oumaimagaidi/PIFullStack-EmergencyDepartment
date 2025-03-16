@@ -1,0 +1,112 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Clock, Calendar } from "lucide-react";
+
+const EmergencyStatus = () => {
+    const location = useLocation();
+    const patientId = location.state?.patientId; // **Correctly get patientId from location.state - NO HARDCODING**
+    console.log("PatientId from location.state:", patientId); // Log patientId from state
+
+    const [status, setStatus] = useState('Chargement du statut...');
+    const [estimatedWaitTime, setEstimatedWaitTime] = useState('Calcul en cours...');
+
+    const fetchStatus = async () => {
+        if (!patientId) {
+            console.error("patientId est manquant dans l'état de navigation");
+            setStatus("ID patient manquant");
+            setEstimatedWaitTime("Indisponible");
+            return;
+        }
+        try {
+            const apiUrl = `http://localhost:8089/api/emergency-patients/${patientId}/status`;
+            console.log("URL being requested:", apiUrl);
+            const response = await axios.get(apiUrl, {
+                withCredentials: true,
+            });
+
+            const newStatus = response.data.status; // Extract status from response
+            setStatus(newStatus); // Set the status state
+
+            switch (newStatus) {
+                case "Demande Enregistrée":
+                    setEstimatedWaitTime("10-15 minutes");
+                    break;
+                case "En Cours d'Examen":
+                    setEstimatedWaitTime("5-10 minutes");
+                    break;
+                case "Médecin En Route":
+                    setEstimatedWaitTime("2-5 minutes");
+                    break;
+                case "Traité":
+                    setEstimatedWaitTime("Traitement terminé");
+                    break;
+                case "Annulé":
+                    setEstimatedWaitTime("Demande annulée");
+                    break;
+                default:
+                    setEstimatedWaitTime("Indisponible");
+            }
+        } catch (error) {
+            console.error("Erreur lors de la récupération du statut:", error);
+            setStatus("Impossible de récupérer le statut");
+            setEstimatedWaitTime("Indisponible");
+        }
+    };
+
+    useEffect(() => {
+        console.log("PatientId inside useEffect:", patientId);
+        if (patientId) {
+            fetchStatus();
+            const interval = setInterval(fetchStatus, 5000);
+            return () => clearInterval(interval);
+        } else {
+            console.warn("patientId est manquant, requête de statut annulée.");
+        }
+    }, [patientId]);
+
+    return (
+        <div className="container mx-auto py-12 px-4 md:px-6">
+            <Card className="max-w-2xl mx-auto">
+                <CardHeader className="flex flex-col space-y-1">
+                    <CardTitle className="text-2xl font-bold">
+                        <Clock className="mr-2 inline-block h-6 w-6 text-blue-500 align-top" />
+                        Statut de Votre Demande d'Urgence
+                    </CardTitle>
+                    <CardDescription>
+                        Suivez l'évolution de votre demande en temps réel.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="border rounded-md p-6 bg-gray-50">
+                        <h4 className="font-semibold mb-4">Statut Actuel :</h4>
+                        <p className="text-xl font-semibold text-blue-700">{status}</p>
+                        <p className="text-muted-foreground">Dernière mise à jour : {new Date().toLocaleTimeString()}</p>
+                    </div>
+
+                    <div className="border rounded-md p-6 bg-blue-50">
+                        <h4 className="font-semibold mb-4 flex items-center">
+                            <Clock className="mr-2 h-4 w-4 text-blue-600 align-baseline" /> Temps d'Attente Estimé
+                        </h4>
+                        <p>
+                            Le temps d'attente estimé est actuellement de : <span className="font-semibold">{estimatedWaitTime}</span>. Ce temps peut varier en fonction de l'activité du service d'urgence.
+                        </p>
+                    </div>
+
+                    <div className="flex justify-between">
+                        <Button asChild variant="secondary">
+                            <Link to="/home">Retour à l'Accueil</Link>
+                        </Button>
+                        <Button asChild variant="outline">
+                            <Link to="/calendar"> <Calendar className="mr-2 h-4 w-4 inline-block align-baseline" /> Prendre un Rendez-vous de Suivi</Link>
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
+export default EmergencyStatus;

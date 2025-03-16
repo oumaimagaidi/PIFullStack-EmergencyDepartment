@@ -1,0 +1,201 @@
+/* Updated Header Styles for a Professional Blue Look */
+.header_container {
+ 
+  /* Secondary Blue for background */
+  padding: 10px 20px ;
+  display: flex;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+ background-color: #edf4f8;
+  border-bottom: 1px solid #E0F2FE;
+  /* Match border color to background for subtle effect */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.header_logo {
+  /* Logo styles remain the same */
+}
+
+.header_logo-img {
+  height: 60px;
+  /* Slightly smaller logo for a cleaner look */
+  vertical-align: middle;
+}
+
+.header_navLinks {
+  display: flex;
+  align-items: center;
+}
+
+.header_links {
+  display: flex;
+  margin-right: 20px;
+}
+
+.header_links a {
+  color: #3c7f77;
+  /* Dark Blue for links */
+  text-decoration: none;
+  margin: 0 15px;
+  font-weight: 500;
+  transition: color 0.2s ease-in-out;
+  /* Smooth color transition */
+}
+
+.header_links a:hover {
+  color: #C3DAFD;
+  /* Primary Blue on hover */
+}
+
+.header_btn {
+  padding: 8px 18px;
+  /* Adjusted button padding */
+  border: none;
+  border-radius: 5px;
+  /* Slightly rounded buttons */
+  background-color: #C4DBFF;
+  /* Primary Blue for button background */
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out;
+  /* Button hover transition */
+}
+
+.header_btn:hover {
+  background-color: #0056b3;
+  /* Darker shade of primary blue on hover */
+}
+
+.header_loginBtn {
+  /* Specific login button styles if needed */
+}
+
+.header_hamburger {
+  font-size: 24px;
+  cursor: pointer;
+  color: #0D47A1;
+  /* Dark Blue for hamburger icon */
+}
+
+/* User Menu Styles */
+.header_user-menu {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.header_user-info {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  /* White background for user info area */
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: 1px solid #E0F2FE;
+  /* Light border */
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.header_user-info:hover,
+.header_user-info:focus {
+  background-color: #F0F0F0;
+  /* Light Gray/Blue on hover/focus */
+  border-color: #007BFF;
+  /* Primary Blue border on hover/focus */
+}
+
+.header_user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+  border: 1px solid #E0F2FE;
+  /* Light border for avatar */
+}
+
+.header_user-icon {
+  margin-left: 5px;
+  font-size: 18px;
+  /* Slightly smaller icon */
+  vertical-align: middle;
+  color: #0D47A1;
+  /* Dark Blue for user icon */
+}
+
+.header_dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #E0F2FE;
+  /* Light border for dropdown */
+  border-radius: 5px;
+  padding: 8px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  min-width: 160px;
+  /* Slightly wider dropdown */
+}
+
+.header_dropdown-menu a,
+.header_dropdown-menu button {
+  display: block;
+  padding: 8px 20px;
+  text-decoration: none;
+  color: #0D47A1;
+  /* Dark Blue for dropdown items */
+  text-align: left;
+  border: none;
+  background: none;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  /* Dropdown item hover transition */
+}
+
+.header_dropdown-menu a:hover,
+.header_dropdown-menu button:hover {
+  background-color: #F0F0F0;
+  /* Light Gray/Blue on dropdown item hover */
+}
+
+/* Responsive Styles (Mobile) - Adjust as needed, but keeping it similar */
+@media (max-width: 768px) {
+  .header_navLinks {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #E0F2FE;
+    /* Secondary Blue for mobile menu background */
+    text-align: center;
+    padding: 20px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .header_showmenu {
+    display: flex;
+  }
+
+  .header_links {
+    flex-direction: column;
+    margin-right: 0;
+  }
+
+  .header_links a {
+    margin: 10px 0;
+    display: block;
+  }
+
+  .header_hamburger {
+    display: block;
+  }
+}
