@@ -3,6 +3,8 @@ import { User } from "../models/User.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import cors from "cors";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
+
 
 const router = express.Router();
 router.use(cors({ origin: "http://localhost:3000", credentials: true }));
@@ -174,4 +176,60 @@ router.put("/patients/:id", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 });
+router.put("/:id/availability", authenticateToken, async (req, res) => {
+    const targetUserId = req.params.id;
+    const requesterUserId = req.user.id; // ID de celui qui fait la requête
+    const requesterRole = req.user.role; // Rôle de celui qui fait la requête
+    const { isAvailable } = req.body; // Valeur attendue : true ou false
+
+    // 1. Validation de l'ID cible
+    if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
+        return res.status(400).json({ message: "ID utilisateur cible invalide." });
+    }
+
+    // 2. Vérification d'autorisation : Admin OU le médecin lui-même
+    if (requesterRole !== "Administrator" && requesterUserId !== targetUserId) {
+        console.log(`Accès refusé pour ${requesterUserId} (rôle ${requesterRole}) tentant de modifier ${targetUserId}`);
+        return res.status(403).json({ message: "Accès refusé. Vous ne pouvez modifier que votre propre disponibilité ou être administrateur." });
+    }
+
+    // 3. Validation de la valeur 'isAvailable' reçue
+    if (typeof isAvailable !== 'boolean') {
+        return res.status(400).json({ message: "La valeur fournie pour 'isAvailable' est invalide (doit être true ou false)." });
+    }
+
+    try {
+        // 4. Trouver l'utilisateur cible
+        const userToUpdate = await User.findById(targetUserId);
+
+        if (!userToUpdate) {
+             return res.status(404).json({ message: "L'utilisateur cible n'a pas été trouvé." });
+        }
+
+        // 5. Vérifier si l'utilisateur cible est bien un médecin
+        if (userToUpdate.role !== 'Doctor') {
+           return res.status(400).json({ message: "La disponibilité ne peut être modifiée que pour un utilisateur ayant le rôle 'Doctor'." });
+        }
+
+        // 6. Mettre à jour la disponibilité et sauvegarder
+        userToUpdate.isAvailable = isAvailable;
+        await userToUpdate.save();
+        console.log(`Disponibilité de ${userToUpdate.username} (ID: ${targetUserId}) mise à jour à ${isAvailable} par ${requesterUserId}`);
+
+        // 7. Renvoyer une réponse de succès
+        res.status(200).json({
+            message: `Disponibilité de ${userToUpdate.username} mise à jour à ${isAvailable ? 'Disponible' : 'Occupé'}.`,
+            user: { // Renvoyer seulement les infos nécessaires
+                _id: userToUpdate._id,
+                username: userToUpdate.username,
+                isAvailable: userToUpdate.isAvailable
+            }
+        });
+
+    } catch (error) {
+        console.error(`Erreur PUT /${targetUserId}/availability:`, error);
+        res.status(500).json({ message: "Erreur serveur lors de la mise à jour de la disponibilité.", error: error.message });
+    }
+});
+
 export default router;

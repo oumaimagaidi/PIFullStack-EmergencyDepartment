@@ -24,6 +24,9 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
+
+
+
 // THEN other middleware
 app.use(express.json()); // Parse JSON request bodies
 app.use(cookieParser()); // Parse cookies

@@ -44,7 +44,7 @@ const EmergencyRegister = () => {
             const response = await axios.post('http://localhost:8089/api/emergency-patients', data);
             console.log("Response data after registration (EmergencyRegister):", JSON.stringify(response.data, null, 2)); // Log JSON string
             const patientIdToNavigate = response.data._id;
-
+              
             toast.success("Your emergency request has been registered", { description: "A member of our medical team will contact you shortly." });
             form.reset();
             navigate('/emergency-confirmation', { state: { formData: data, patientId: patientIdToNavigate } });
