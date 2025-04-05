@@ -22,7 +22,11 @@ import Forum from "./pages/Forum";
 import EmergencyRegister from "./pages/EmergencyRegister";
 import ConfirmationEmergencyRegister from "./pages/ConfirmationEmergencyRegister";
 import EmergencyStatus from "./pages/EmergencyStatus"; // Importez le composant de statut
+import AmbulanceDashboard from "./pages/AmbulanceDashboard";
+import AmbulanceNurseDashboard from "./pages/AmbulanceNurseDashboard";
 function App() {
+  const user = JSON.parse(sessionStorage.getItem("user"));
+
   return (
       <Routes>
         {/* Redirection par défaut vers login */}
@@ -55,6 +59,11 @@ function App() {
         <Route path="/emergency" element={<DashboardLayout><Emergency /></DashboardLayout>} />
         <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
         <Route path="/forum" element={<DashboardLayout><Forum /></DashboardLayout>} />
+        {user?.role === 'Administrator' ? (
+          <Route path="/ambulance" element={<DashboardLayout><AmbulanceDashboard /></DashboardLayout>} />
+        ) : (
+          <Route path="/ambulance" element={<DashboardLayout><AmbulanceNurseDashboard /></DashboardLayout>} />
+        )}
       </Routes>
   );
 }

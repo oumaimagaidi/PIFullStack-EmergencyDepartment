@@ -231,5 +231,19 @@ router.put("/:id/availability", authenticateToken, async (req, res) => {
         res.status(500).json({ message: "Erreur serveur lors de la mise à jour de la disponibilité.", error: error.message });
     }
 });
+router.get("/nurses", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "Administrator") {
+      console.log(req.user.role);
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+    // Find users with the role "Nurse"
+    const nurses = await User.find({ role: "Nurse" });
+    res.status(200).json(nurses);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+
 
 export default router;

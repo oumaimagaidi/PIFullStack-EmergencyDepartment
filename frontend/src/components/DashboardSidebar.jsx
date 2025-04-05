@@ -20,6 +20,7 @@ import {
   Stethoscope,
   MessageCircle,
   LogIn,
+  Ambulance,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import "../app.css";
@@ -34,6 +35,7 @@ const menuItems = [
   { title: "Forum", icon: MessageCircle, path: "/forum" },
   { title: "Alerts", icon: Bell, path: "/alerts" },
   { title: "Settings", icon: Settings, path: "/settings" },
+  { title: "Ambulance", icon: Ambulance, path: "/ambulance" },
   { title: "Login", icon: LogIn, path: "/login" },
 ];
 
