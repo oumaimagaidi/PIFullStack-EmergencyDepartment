@@ -32,6 +32,11 @@ const emergencyPatientSchema = new mongoose.Schema({
         ref: 'User', // Référence au modèle User (qui inclut les Doctors)
         default: null // Par défaut, aucun médecin assigné
     },
+    medicalRecord: { // Nouvelle référence
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'MedicalRecord',
+        default: null,
+      },
     // --- FIN NOUVEAU CHAMP ---
     createdAt: { type: Date, default: Date.now },
     arrivalTime: { type: Date, default: Date.now } // Ajout pour la prédiction, gardons-le

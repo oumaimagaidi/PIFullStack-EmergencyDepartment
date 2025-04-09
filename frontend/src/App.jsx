@@ -2,9 +2,10 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./Layouts/MainLayout";
 import DashboardLayout from "./Layouts/DashboardLayout";
 import { SidebarProvider } from "@/components/ui/sidebar";
-
+import Records from "./pages/Records";
 import PublicLayout from "./Layouts/PublicLayout";
 import './index.css'
+
 import Home from "./components/Home";
 import Profile from "./components/Profile";
 import Login from "./pages/Login";
@@ -24,6 +25,7 @@ import ConfirmationEmergencyRegister from "./pages/ConfirmationEmergencyRegister
 import EmergencyStatus from "./pages/EmergencyStatus"; // Importez le composant de statut
 import AmbulanceDashboard from "./pages/AmbulanceDashboard";
 import AmbulanceNurseDashboard from "./pages/AmbulanceNurseDashboard";
+import MedicalRecordDetails from './pages/MedicalRecordDetails';
 function App() {
   const user = JSON.parse(sessionStorage.getItem("user"));
 
@@ -54,6 +56,8 @@ function App() {
         <Route path="/doctors" element={<DashboardLayout><Doctors /></DashboardLayout>} />
         <Route path="/patients" element={<DashboardLayout><Patients /></DashboardLayout>} />
         <Route path="/calendar" element={<DashboardLayout><Calendar /></DashboardLayout>} />
+        <Route path="/records" element={<DashboardLayout><Records /></DashboardLayout>} />
+        <Route path="/medical-records/:id" element={<DashboardLayout><MedicalRecordDetails /></DashboardLayout>} />
         <Route path="/staff" element={<DashboardLayout><Staff /></DashboardLayout>} />
         <Route path="/alerts" element={<DashboardLayout><Alerts /></DashboardLayout>} />
         <Route path="/emergency" element={<DashboardLayout><Emergency /></DashboardLayout>} />

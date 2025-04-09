@@ -19,8 +19,6 @@ const UserSchema = new mongoose.Schema(
 	},
 	options
 );
-
-
 // Méthodes communes
 UserSchema.methods.login = function () {
 	console.log(`${this.username} logged in.`);

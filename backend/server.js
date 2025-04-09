@@ -10,7 +10,8 @@ import cookieParser from "cookie-parser";
 import profileRoutes from "./routes/profile.js";
 import emergencyPatientRoutes from './routes/emergencyPatients.js'; // Import emergency patients routes
 import ambulanceRoutes from './routes/ambulance.js';
-
+import medicalRecordRoutes from './routes/medicalRecords.js'; // Ajoute cette ligne
+import patientFileRoutes from './routes/patientFile.js';  
 dotenv.config();
 
 const app = express();
@@ -38,5 +39,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/", profileRoutes);
 app.use('/api/emergency-patients', emergencyPatientRoutes); // Mount emergency patients routes at /api/emergency-patients
 app.use('/api/ambulance', ambulanceRoutes);
+app.use('/api/medical-records', medicalRecordRoutes);
+app.use('/api/patient-files', patientFileRoutes);
 const PORT = process.env.PORT || 8089;
 app.listen(PORT, () => console.log(`✅ Serveur démarré sur le port ${PORT}`));
