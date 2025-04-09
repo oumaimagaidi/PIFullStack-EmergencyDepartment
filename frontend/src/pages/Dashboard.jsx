@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Users, Calendar, Bell, Hospital, UserPlus, Pencil, UserMinus, UserCheck, UserCog, User } from "lucide-react";
+import { Users, Hospital, UserPlus, Pencil, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
@@ -106,40 +106,10 @@ const Dashboard = () => {
         fetchUserStatistics();
     }, []);
 
-    const handleDelete = async (id) => {
-        try {
-            await axios.delete(`http://localhost:8089/api/users/patients/${id}`, {
-                withCredentials: true,
-            });
-            setPatients(patients.filter(patient => patient._id !== id));
-        } catch (error) {
-            console.error("Erreur lors de la suppression du patient:", error);
-        }
-    };
-
-    const handleEdit = (patient) => {
-        setEditingPatient({ ...patient });
-    };
-
-    const handleUpdate = async () => {
-        if (editingPatient) {
-            try {
-                await axios.put(`http://localhost:8089/api/users/patients/${editingPatient._id}`, editingPatient, {
-                    withCredentials: true,
-                });
-                setPatients(patients.map(p => p._id === editingPatient._id ? editingPatient : p));
-                setEditingPatient(null);
-            } catch (error) {
-                console.error("Erreur lors de la mise à jour du patient:", error);
-            }
-        }
-    };
-
     const statsCards = [
         { title: "Total Patients", value: patientsCount.toLocaleString(), icon: Users, color: "text-blue-600", bg: "bg-blue-100" },
         { title: "Emergency Cases Today", value: emergencyStats.today.toLocaleString(), icon: Hospital, color: "text-red-500", bg: "bg-red-50" },
-        { title: "Total Emergency Cases", value: emergencyStats.total.toLocaleString(), icon: Hospital, color: "text-red-700", bg: "bg-red-100" },
-        { title: "Pending Alerts", value: "12", icon: Bell, color: "text-blue-500", bg: "bg-blue-50" },
+        { title: "Total Emergency Cases", value: emergencyStats.total.toLocaleString(), icon: Hospital, color: "text-red-700", bg: "bg-red-100" }
     ];
 
     const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
@@ -168,7 +138,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-3">
                 {statsCards.map((stat) => (
                     <Card key={stat.title} className="p-6 hover-scale">
                         <div className="flex items-center gap-4">
@@ -226,6 +196,10 @@ const Dashboard = () => {
             <Card className="p-6">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-semibold text-blue-900">Patient List</h2>
+                    <Button>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add Patient
+                    </Button>
                 </div>
 
                 {loading ? (
@@ -237,39 +211,19 @@ const Dashboard = () => {
                         {patients && patients.length > 0 ? (
                             patients.map((patient) => (
                                 <div key={patient._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                                    {editingPatient?._id === patient._id ? (
-                                        <div className="flex-1 flex gap-4">
-                                            <Input
-                                                value={editingPatient.name}
-                                                onChange={(e) => setEditingPatient({ ...editingPatient, name: e.target.value })}
-                                            />
-                                            <Input
-                                                value={editingPatient.email}
-                                                onChange={(e) => setEditingPatient({ ...editingPatient, email: e.target.value })}
-                                            />
-                                            <Input
-                                                value={editingPatient.bloodType}
-                                                onChange={(e) => setEditingPatient({ ...editingPatient, bloodType: e.target.value })}
-                                            />
-                                            <Button onClick={handleUpdate}>Save</Button>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div>
-                                                <h3 className="font-semibold">{patient.name}</h3>
-                                                <p className="text-sm text-muted-foreground">{patient.email}</p>
-                                                <p className="text-sm text-blue-600">{patient.bloodType}</p>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <Button variant="outline" size="icon" onClick={() => handleEdit(patient)}>
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button variant="outline" size="icon" onClick={() => handleDelete(patient._id)}>
-                                                    <UserMinus className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </>
-                                    )}
+                                    <div>
+                                        <h3 className="font-semibold">{patient.name}</h3>
+                                        <p className="text-sm text-muted-foreground">{patient.email}</p>
+                                        <p className="text-sm text-blue-600">{patient.bloodType}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" size="icon" onClick={() => handleEdit(patient)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="outline" size="icon" onClick={() => handleDelete(patient._id)}>
+                                            <UserMinus className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
                             ))
                         ) : (
