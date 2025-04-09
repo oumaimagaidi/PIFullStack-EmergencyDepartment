@@ -273,5 +273,41 @@ router.get('/by-doctor/:doctorId', authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
+router.get('/stats/total', async (req, res) => {
+  try {
+    const totalPatients = await EmergencyPatient.countDocuments();
+    res.status(200).json({ total: totalPatients });
+  } catch (error) {
+    console.error("Erreur récupération nombre total de patients:", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+/**
+ * @route GET /api/emergency-patients/stats/today
+ * @description Récupère le nombre de patients d'urgence enregistrés aujourd'hui
+ * @access Public ou Protégé selon vos besoins
+ */
+router.get('/stats/today', async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const patientsToday = await EmergencyPatient.countDocuments({
+      createdAt: {
+        $gte: today,
+        $lt: tomorrow
+      }
+    });
+    
+    res.status(200).json({ today: patientsToday });
+  } catch (error) {
+    console.error("Erreur récupération nombre de patients aujourd'hui:", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
 
 export default router;

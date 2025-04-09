@@ -1,9 +1,9 @@
 import { Card } from "@/components/ui/card";
-import { Users, Calendar, Bell, Hospital, UserPlus, Pencil, UserMinus } from "lucide-react";
+import { Users, Calendar, Bell, Hospital, UserPlus, Pencil, UserMinus, UserCheck, UserCog, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
-import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import axios from "axios";
 import "../App.css";
 
@@ -24,14 +24,7 @@ const initialPatients = [
     }
 ];
 
-const departmentData = [
-    { name: "Cardiology", patients: 45 },
-    { name: "Neurology", patients: 30 },
-    { name: "Pediatrics", patients: 25 },
-    { name: "Oncology", patients: 20 },
-];
-
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
 const Dashboard = () => {
     const [patients, setPatients] = useState([]);
@@ -39,6 +32,11 @@ const Dashboard = () => {
     const [error, setError] = useState(null);
     const [patientsCount, setPatientsCount] = useState(0);
     const [editingPatient, setEditingPatient] = useState(null);
+    const [emergencyStats, setEmergencyStats] = useState({
+        total: 0,
+        today: 0
+    });
+    const [userStats, setUserStats] = useState([]);
 
     useEffect(() => {
         const fetchPatients = async () => {
@@ -49,7 +47,7 @@ const Dashboard = () => {
                 setPatients(response.data);
             } catch (err) {
                 console.error("Erreur lors de la récupération des patients:", err);
-                setPatients(initialPatients); // Fallback vers les données statiques
+                setPatients(initialPatients);
                 setError("Impossible de récupérer les patients. Affichage des données locales.");
             } finally {
                 setLoading(false);
@@ -70,6 +68,42 @@ const Dashboard = () => {
             }
         };
         fetchPatientsCount();
+    }, []);
+
+    useEffect(() => {
+        const fetchEmergencyStats = async () => {
+            try {
+                const [totalRes, todayRes] = await Promise.all([
+                    axios.get("http://localhost:8089/api/emergency-patients/stats/total", {
+                        withCredentials: true,
+                    }),
+                    axios.get("http://localhost:8089/api/emergency-patients/stats/today", {
+                        withCredentials: true,
+                    })
+                ]);
+                setEmergencyStats({
+                    total: totalRes.data.total,
+                    today: todayRes.data.today
+                });
+            } catch (err) {
+                console.error("Erreur récupération stats urgences:", err);
+            }
+        };
+        fetchEmergencyStats();
+    }, []);
+
+    useEffect(() => {
+        const fetchUserStatistics = async () => {
+            try {
+                const response = await axios.get("http://localhost:8089/api/users/stats", {
+                    withCredentials: true,
+                });
+                setUserStats(response.data);
+            } catch (err) {
+                console.error("Erreur récupération stats utilisateurs:", err);
+            }
+        };
+        fetchUserStatistics();
     }, []);
 
     const handleDelete = async (id) => {
@@ -103,10 +137,22 @@ const Dashboard = () => {
 
     const statsCards = [
         { title: "Total Patients", value: patientsCount.toLocaleString(), icon: Users, color: "text-blue-600", bg: "bg-blue-100" },
-        { title: "Appointments Today", value: "48", icon: Calendar, color: "text-blue-700", bg: "bg-blue-50" },
-        { title: "Emergency Cases", value: "7", icon: Hospital, color: "text-red-500", bg: "bg-red-50" },
+        { title: "Emergency Cases Today", value: emergencyStats.today.toLocaleString(), icon: Hospital, color: "text-red-500", bg: "bg-red-50" },
+        { title: "Total Emergency Cases", value: emergencyStats.total.toLocaleString(), icon: Hospital, color: "text-red-700", bg: "bg-red-100" },
         { title: "Pending Alerts", value: "12", icon: Bell, color: "text-blue-500", bg: "bg-blue-50" },
     ];
+
+    const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+        const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+        const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+
+        return (
+            <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central">
+                {`${(percent * 100).toFixed(0)}%`}
+            </text>
+        );
+    };
 
     return (
         <div className="space-y-6">
@@ -142,25 +188,36 @@ const Dashboard = () => {
                 <Card className="p-6">
                     <h2 className="text-xl font-semibold mb-4 text-blue-900">Department Statistics</h2>
                     <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={departmentData}>
+                        <BarChart data={userStats}>
                             <XAxis dataKey="name" />
                             <YAxis />
                             <Tooltip />
-                            <Bar dataKey="patients" fill="#0088FE" />
+                            <Bar dataKey="count" fill="#0088FE" />
                         </BarChart>
                     </ResponsiveContainer>
                 </Card>
 
                 <Card className="p-6">
-                    <h2 className="text-xl font-semibold mb-4 text-blue-900">Patient Distribution</h2>
+                    <h2 className="text-xl font-semibold mb-4 text-blue-900">User Distribution</h2>
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
-                            <Pie data={departmentData} dataKey="patients" nameKey="name" cx="50%" cy="50%" outerRadius={100}>
-                                {departmentData.map((entry, index) => (
+                            <Pie
+                                data={userStats}
+                                dataKey="count"
+                                nameKey="name"
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={100}
+                                fill="#8884d8"
+                                label={renderCustomizedLabel}
+                                labelLine={false}
+                            >
+                                {userStats.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
                             <Tooltip />
+                            <Legend />
                         </PieChart>
                     </ResponsiveContainer>
                 </Card>
