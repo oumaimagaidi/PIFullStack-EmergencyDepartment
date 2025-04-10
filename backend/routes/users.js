@@ -233,10 +233,6 @@ router.put("/:id/availability", authenticateToken, async (req, res) => {
 });
 router.get("/nurses", authenticateToken, async (req, res) => {
   try {
-    if (req.user.role !== "Administrator") {
-      console.log(req.user.role);
-      return res.status(403).json({ message: "Accès refusé" });
-    }
     // Find users with the role "Nurse"
     const nurses = await User.find({ role: "Nurse" });
     res.status(200).json(nurses);

@@ -1,5 +1,7 @@
+// NurseDashboard.jsx
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { io } from "socket.io-client";
 import {
   MapContainer,
   TileLayer,
@@ -10,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-// Parse destination string "lat,lng" into [lat, lng]
+// Parse destination string "lat,lng" into a [lat, lng] array
 const parseDestination = (dest) => {
   if (!dest) return null;
   const parts = dest.split(",");
@@ -27,35 +29,33 @@ const fetchRoute = async (origin, destination) => {
     const res = await fetch(url);
     const data = await res.json();
     if (data.routes && data.routes.length > 0) {
-      const coords = data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
-      const duration = data.routes[0].duration; // in seconds
+      const coords = data.routes[0].geometry.coordinates.map(
+        ([lng, lat]) => [lat, lng]
+      );
+      const duration = data.routes[0].duration; // duration in seconds
       return { coordinates: coords, duration };
     }
-    return null;
   } catch (error) {
     console.error("Error fetching route:", error);
-    return null;
   }
+  return null;
 };
 
-// Fetch place coordinates using Nominatim (OpenStreetMap)
+// Fetch place coordinates from Nominatim
 const fetchPlaceCoordinates = async (query) => {
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
     const response = await fetch(url, {
-      headers: {
-        "User-Agent": "NurseDashboard/1.0 (contact@example.com)", // Nominatim requires a User-Agent
-      },
+      headers: { "User-Agent": "NurseDashboard/1.0 (contact@example.com)" },
     });
     const data = await response.json();
     if (data.length > 0) {
       return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
     }
-    return null;
   } catch (error) {
     console.error("Error fetching place coordinates:", error);
-    return null;
   }
+  return null;
 };
 
 const NurseDashboard = () => {
@@ -69,42 +69,54 @@ const NurseDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [route, setRoute] = useState([]);
   const [eta, setEta] = useState(null);
+
   const mapRef = useRef(null);
   const locationIntervalRef = useRef(null);
+  const socketRef = useRef(null);
 
-  const statusOptions = ["OFF_DUTY", "AVAILABLE", "ON_MISSION", "MAINTENANCE"];
+  const statusOptions = [
+    "OFF_DUTY",
+    "AVAILABLE",
+    "ON_MISSION",
+    "MAINTENANCE",
+  ];
 
-  // Fetch assigned ambulance on mount, including pre-set destination
+  // 1) Fetch assigned ambulance data & initialize Socket.IO connection
   useEffect(() => {
     const fetchAssignedAmbulance = async () => {
       try {
-        const response = await axios.get(
+        const { data } = await axios.get(
           "http://localhost:8089/api/ambulance/assigned",
           { withCredentials: true }
         );
-        if (response.data) {
-          setAssignedAmbulance(response.data);
-          setAmbulanceStatus(response.data.status);
-          setLocation({
-            lat: response.data.latitude,
-            lng: response.data.longitude,
-          });
-          setDestination(response.data.destination || "");
+        if (data) {
+          setAssignedAmbulance(data);
+          setAmbulanceStatus(data.status);
+          if (data.latitude != null && data.longitude != null) {
+            setLocation({ lat: data.latitude, lng: data.longitude });
+          }
+          setDestination(data.destination || "");
         }
-      } catch (error) {
-        console.error("Error fetching assigned ambulance:", error);
+      } catch (err) {
+        console.error(err);
         setAlertMessage("Failed to load ambulance data.");
       }
     };
-
     fetchAssignedAmbulance();
+
+    // Socket.IO setup
+    socketRef.current = io("http://localhost:8089", { withCredentials: true });
+    socketRef.current.on("connect", () =>
+      console.log("🔌 Nurse socket connected:", socketRef.current.id)
+    );
 
     return () => {
       if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
+      socketRef.current.disconnect();
     };
   }, []);
 
-  // Update route and ETA when ambulance or location changes
+  // 2) Update route & ETA whenever location or ambulance destination changes
   useEffect(() => {
     const updateRoute = async () => {
       if (assignedAmbulance && location && assignedAmbulance.destination) {
@@ -122,18 +134,60 @@ const NurseDashboard = () => {
             setEta(null);
           }
         } else {
+          // Could not parse the destination coordinates; clear route/ETA
           setRoute([]);
           setEta(null);
         }
-      } else {
-        setRoute([]);
-        setEta(null);
       }
     };
     updateRoute();
   }, [assignedAmbulance, location]);
 
-  // Handle place search, mirroring AmbulanceDashboard
+  // 3) Start sharing location at an interval (every 60 seconds)
+  const startLocationSharing = () => {
+    if (!assignedAmbulance || sharing) return;
+    setSharing(true);
+    locationIntervalRef.current = setInterval(() => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          ({ coords }) => {
+            const { latitude, longitude } = coords;
+            // Emit location update via socket
+            socketRef.current.emit("locationUpdate", {
+              id: assignedAmbulance._id,
+              latitude,
+              longitude,
+              timestamp: new Date().toISOString(),
+            });
+            setLocation({ lat: latitude, lng: longitude });
+            if (mapRef.current) {
+              mapRef.current.setView([latitude, longitude], 13);
+            }
+          },
+          (error) => {
+            console.error("Geolocation error:", error);
+          },
+          { enableHighAccuracy: true }
+        );
+      }
+    }, 60000);
+  };
+
+  const stopLocationSharing = () => {
+    if (locationIntervalRef.current) {
+      clearInterval(locationIntervalRef.current);
+      setSharing(false);
+      setAlertMessage("Location sharing stopped.");
+    }
+  };
+
+  const viewOnMap = () => {
+    if (mapRef.current && location) {
+      mapRef.current.flyTo([location.lat, location.lng], 15);
+    }
+  };
+
+  // 4) Search for a place via Nominatim and update the destination accordingly
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       setAlertMessage("Please enter a place to search.");
@@ -151,7 +205,7 @@ const NurseDashboard = () => {
     }
   };
 
-  // Save destination to backend
+  // 5) Save updated destination information to the backend
   const handleSaveDestination = async () => {
     if (!assignedAmbulance) {
       setAlertMessage("No ambulance assigned.");
@@ -163,43 +217,41 @@ const NurseDashboard = () => {
       return;
     }
     try {
-      const updatedAmbulance = {
-        ...assignedAmbulance,
-        destination: destination || null,
-      };
-      const response = await axios.put(
+      const updated = { ...assignedAmbulance, destination: destination || null };
+      const { data } = await axios.put(
         `http://localhost:8089/api/ambulance/${assignedAmbulance._id}`,
-        updatedAmbulance,
+        updated,
         { withCredentials: true }
       );
-      setAssignedAmbulance(response.data);
+      setAssignedAmbulance(data);
       setAlertMessage(
-        destination ? "Destination updated successfully." : "Destination cleared."
+        destination
+          ? "Destination updated successfully."
+          : "Destination cleared."
       );
-    } catch (error) {
-      console.error("Error saving destination:", error);
+    } catch (err) {
+      console.error(err);
       setAlertMessage("Failed to update destination.");
     }
   };
 
-  // Update ambulance status
+  // 6) Update ambulance status
   const updateAmbulanceStatus = async (newStatus) => {
     if (!assignedAmbulance) return;
     try {
-      const response = await axios.put(
+      const { data } = await axios.put(
         `http://localhost:8089/api/ambulance/${assignedAmbulance._id}/status`,
         { status: newStatus },
         { withCredentials: true }
       );
-      const updated = response.data.ambulance || response.data;
-      setAssignedAmbulance(updated);
-      setAmbulanceStatus(updated.status);
-    } catch (error) {
-      console.error("Error updating status:", error);
+      setAssignedAmbulance(data.ambulance || data);
+      setAmbulanceStatus(data.ambulance?.status || data.status);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  // Send alert to doctors
+  // 7) Send alert message to doctors
   const sendAlertToDoctors = async () => {
     if (!alertText.trim()) {
       setAlertMessage("Please type a message.");
@@ -213,85 +265,38 @@ const NurseDashboard = () => {
       );
       setAlertMessage("Alert sent successfully!");
       setAlertText("");
-    } catch (error) {
-      console.error("Error sending alert:", error);
+    } catch (err) {
+      console.error(err);
       setAlertMessage("Failed to send alert.");
-    }
-  };
-
-  // Start sharing location
-  const startLocationSharing = () => {
-    if (!assignedAmbulance || sharing) return;
-    setSharing(true);
-    locationIntervalRef.current = setInterval(() => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
-            try {
-              await axios.put(
-                `http://localhost:8089/api/ambulance/${assignedAmbulance._id}/location`,
-                { latitude, longitude },
-                { withCredentials: true }
-              );
-              setLocation({ lat: latitude, lng: longitude });
-              if (mapRef.current) {
-                mapRef.current.setView([latitude, longitude], 13);
-              }
-            } catch (error) {
-              console.error("Error updating location:", error);
-            }
-          },
-          (error) => {
-            console.error("Error getting position:", error);
-          },
-          { enableHighAccuracy: true }
-        );
-      }
-    }, 60000); // Update every 60 seconds
-  };
-
-  // Stop sharing location
-  const stopLocationSharing = () => {
-    if (locationIntervalRef.current) {
-      clearInterval(locationIntervalRef.current);
-      setSharing(false);
-      setAlertMessage("Location sharing stopped.");
-    }
-  };
-
-  // View current location on map
-  const viewOnMap = () => {
-    if (mapRef.current && location) {
-      mapRef.current.flyTo([location.lat, location.lng], 15);
     }
   };
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Nurse Dashboard</h1>
-
       {assignedAmbulance ? (
         <>
-          {/* Ambulance Info */}
           <div className="mb-4">
             <h2 className="text-xl font-semibold">My Assigned Ambulance</h2>
-            <p><strong>ID:</strong> {assignedAmbulance._id}</p>
-            <p><strong>Status:</strong> {ambulanceStatus}</p>
+            <p>
+              <strong>ID:</strong> {assignedAmbulance._id}
+            </p>
+            <p>
+              <strong>Status:</strong> {ambulanceStatus}
+            </p>
             <select
               value={ambulanceStatus}
               onChange={(e) => updateAmbulanceStatus(e.target.value)}
               className="border rounded p-1 mt-2"
             >
-              {statusOptions.map((status) => (
-                <option key={status} value={status}>
-                  {status}
+              {statusOptions.map((s) => (
+                <option key={s} value={s}>
+                  {s}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Alert Section */}
           <div className="mb-4">
             <Input
               placeholder="Type your alert message"
@@ -299,10 +304,11 @@ const NurseDashboard = () => {
               onChange={(e) => setAlertText(e.target.value)}
               className="mb-2"
             />
-            <Button onClick={sendAlertToDoctors}>Send Alert to Doctors</Button>
+            <Button onClick={sendAlertToDoctors}>
+              Send Alert to Doctors
+            </Button>
           </div>
 
-          {/* Location Sharing Section */}
           <div className="mb-4 flex space-x-2">
             <Button onClick={startLocationSharing} disabled={sharing}>
               {sharing ? "Sharing Location..." : "Share Location"}
@@ -315,7 +321,6 @@ const NurseDashboard = () => {
             </Button>
           </div>
 
-          {/* Destination Setting Section */}
           <div className="mb-4">
             <h3 className="text-lg font-semibold">Set Destination</h3>
             <div className="space-y-2 mt-2">
@@ -338,7 +343,6 @@ const NurseDashboard = () => {
             </div>
           </div>
 
-          {/* ETA Display and Map */}
           {location ? (
             <>
               {assignedAmbulance.destination && eta && (
@@ -354,6 +358,7 @@ const NurseDashboard = () => {
                   style={{ height: "100%", width: "100%" }}
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  {/* Ambulance/Current Location Marker */}
                   <Marker position={[location.lat, location.lng]}>
                     <Popup>
                       {assignedAmbulance._id} (Status: {ambulanceStatus})
@@ -361,21 +366,27 @@ const NurseDashboard = () => {
                         <>
                           <br />
                           Destination: {assignedAmbulance.destination}
-                          {eta && <br />}
-                          {eta && `ETA: ${Math.round(eta / 60)} minutes`}
+                          {eta && (
+                            <>
+                              <br />ETA: {Math.round(eta / 60)} mins
+                            </>
+                          )}
                         </>
                       )}
                     </Popup>
                   </Marker>
-                  {assignedAmbulance.destination && (() => {
-                    const destCoords = parseDestination(assignedAmbulance.destination);
-                    return destCoords ? (
-                      <Marker position={destCoords}>
-                        <Popup>Destination</Popup>
-                      </Marker>
-                    ) : null;
-                  })()}
-                  {route.length > 0 && <Polyline positions={route} color="blue" />}
+                  {/* Destination Marker */}
+                  {assignedAmbulance.destination &&
+                    (() => {
+                      const destCoords = parseDestination(assignedAmbulance.destination);
+                      return destCoords ? (
+                        <Marker position={destCoords}>
+                          <Popup>Destination</Popup>
+                        </Marker>
+                      ) : null;
+                    })()}
+                  {/* Route Polyline */}
+                  {route.length > 0 && <Polyline positions={route} />}
                 </MapContainer>
               </div>
             </>
