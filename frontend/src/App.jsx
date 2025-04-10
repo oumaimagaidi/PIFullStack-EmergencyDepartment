@@ -26,6 +26,7 @@ import EmergencyStatus from "./pages/EmergencyStatus"; // Importez le composant 
 import AmbulanceDashboard from "./pages/AmbulanceDashboard";
 import AmbulanceNurseDashboard from "./pages/AmbulanceNurseDashboard";
 import MedicalRecordDetails from './pages/MedicalRecordDetails';
+import MedicalDocument from './pages/MedicalDocument';
 function App() {
   const user = JSON.parse(sessionStorage.getItem("user"));
   
@@ -45,6 +46,7 @@ function App() {
 
         {/* Routes Main avec header/footer */}
         <Route path="/home" element={<MainLayout><Home /></MainLayout>} />
+        <Route path="/document" element={<MainLayout><MedicalDocument /></MainLayout>} />
         <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
         <Route path="/emergency-register" element={<MainLayout><EmergencyRegister /></MainLayout>} />
         <Route path="/emergency-confirmation" element={<MainLayout><ConfirmationEmergencyRegister /></MainLayout>} />

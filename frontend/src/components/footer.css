@@ -1,0 +1,291 @@
+/* Emergency Department Footer Styles with #42A5FF color scheme */
+.footer_container {
+    background-color: #42a5ff;
+    color: #ffffff;
+    padding-bottom: 20px;
+    margin-top: 50px;
+  }
+  
+  /* Emergency Contact Banner */
+  .emergency-contact-banner {
+    background-color: #ff4242; /* Red for emergency */
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+  }
+  
+  .emergency-contact-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+  }
+  
+  .emergency-icon {
+    font-size: 28px;
+    margin-right: 15px;
+    color: white;
+  }
+  
+  .pulse-icon {
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  .emergency-contact-item h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+  }
+  
+  .emergency-contact-item a,
+  .emergency-contact-item p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    text-decoration: none;
+  }
+  
+  .emergency-contact-item a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Footer Content */
+  .footer_content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 0 40px 20px;
+    gap: 30px;
+  }
+  
+  .footer_section {
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .footer_about {
+    flex: 1.5;
+  }
+  
+  .footer_logo {
+    margin-bottom: 15px;
+  }
+  
+  .footer_logo-img {
+    height: 60px;
+    background-color: white;
+    padding: 5px;
+    border-radius: 5px;
+  }
+  
+  .footer_tagline {
+    color: white;
+    margin-bottom: 15px;
+    line-height: 1.5;
+  }
+  
+  .footer_social {
+    display: flex;
+    gap: 15px;
+  }
+  
+  .footer_social a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: white;
+    transition: all 0.3s ease;
+  }
+  
+  .footer_social a:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-3px);
+  }
+  
+  .footer_section h4 {
+    color: white;
+    font-size: 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid #0056b3; /* Darker blue border */
+    padding-bottom: 10px;
+  }
+  
+  .footer-icon {
+    margin-right: 8px;
+    color: #0056b3; /* Darker blue for icons */
+  }
+  
+  /* Quick Links */
+  .footer_links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .footer_links li {
+    margin-bottom: 12px;
+  }
+  
+  .footer_links a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+  }
+  
+  .footer_links a:hover {
+    color: #e6f4ff; /* Light blue on hover */
+  }
+  
+  .footer_links a:before {
+    content: "›";
+    margin-right: 8px;
+    color: #0056b3; /* Darker blue for arrow */
+  }
+  
+  /* Opening Hours */
+  .footer_hours {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .footer_hours li {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+  }
+  
+  .footer_hours .day {
+    color: white;
+  }
+  
+  .footer_hours .time {
+    color: #e6f4ff; /* Light blue for time */
+  }
+  
+  .emergency-hours {
+    background-color: rgba(255, 66, 66, 0.2); /* Red background for emergency hours */
+    padding: 5px 10px;
+    border-radius: 4px;
+    border-bottom: none !important;
+  }
+  
+  .emergency-hours .day {
+    font-weight: bold;
+    color: white !important;
+  }
+  
+  /* Contact Us */
+  .footer_contact {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .contact-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  .contact-icon {
+    margin-right: 10px;
+    color: #0056b3; /* Darker blue for icons */
+    font-size: 16px;
+  }
+  
+  .footer_contact a,
+  .footer_contact address {
+    color: white;
+    text-decoration: none;
+    font-style: normal;
+    margin: 0;
+  }
+  
+  .footer_contact a:hover {
+    color: #e6f4ff; /* Light blue on hover */
+    text-decoration: underline;
+  }
+  
+  /* Footer Bottom */
+  .footer_bottom {
+    text-align: center;
+    padding-top: 20px;
+    margin-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 20px 40px 0;
+  }
+  
+  .footer_bottom p {
+    margin: 0;
+    color: white;
+    font-size: 14px;
+  }
+  
+  .footer_bottom-links {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .footer_bottom-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+  }
+  
+  .footer_bottom-links a:hover {
+    color: #e6f4ff; /* Light blue on hover */
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .footer_content {
+      flex-direction: column;
+      padding: 0 20px;
+    }
+  
+    .emergency-contact-banner {
+      flex-direction: column;
+      gap: 15px;
+    }
+  
+    .footer_bottom {
+      flex-direction: column;
+      gap: 15px;
+      padding: 20px 20px 0;
+    }
+  
+    .footer_bottom-links {
+      justify-content: center;
+    }
+  }
+  
