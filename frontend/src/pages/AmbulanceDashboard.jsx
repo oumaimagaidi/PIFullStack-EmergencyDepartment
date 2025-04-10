@@ -178,7 +178,6 @@ const AmbulanceDashboard = () => {
     axios
       .get("http://localhost:8089/api/ambulance", { withCredentials: true })
       .then(({ data }) => {
-        console.log("Fetched ambulances:", data);
         setAmbulances(data);
       })
       .catch(console.error);
@@ -190,6 +189,8 @@ const AmbulanceDashboard = () => {
     socketRef.current.on("connect", () =>
       console.log("🔌 Dashboard socket connected:", socketRef.current.id)
     );
+
+    // location updates
     socketRef.current.on(
       "locationUpdate",
       ({ id, latitude, longitude, timestamp }) => {
@@ -202,6 +203,25 @@ const AmbulanceDashboard = () => {
         );
       }
     );
+
+    // **destination updates**
+    socketRef.current.on(
+      "destinationUpdate",
+      ({ id, destinationLatitude, destinationLongitude }) => {
+        setAmbulances((prev) =>
+          prev.map((a) =>
+            a._id === id
+              ? {
+                  ...a,
+                  destination: `${destinationLatitude},${destinationLongitude}`,
+                  lastUpdated: new Date().toISOString(),
+                }
+              : a
+          )
+        );
+      }
+    );
+
     return () => socketRef.current.disconnect();
   }, []);
 
@@ -243,7 +263,7 @@ const AmbulanceDashboard = () => {
     });
   }, [ambulances]);
 
-  // Save (POST/PUT) ambulance data
+  // Save (POST/PUT) ambulance data, then emit destinationUpdate if present
   const handleSaveAmbulance = async (data) => {
     try {
       const res = currentAmbulance?._id
@@ -256,11 +276,24 @@ const AmbulanceDashboard = () => {
             withCredentials: true,
           });
       const saved = res.data;
+
+      // update local list
       setAmbulances((prev) =>
         currentAmbulance
           ? prev.map((a) => (a._id === saved._id ? saved : a))
           : [...prev, saved]
       );
+
+      // emit destinationUpdate if we have one
+      if (saved.destination) {
+        const [lat, lng] = parseDestination(saved.destination);
+        socketRef.current.emit("destinationUpdate", {
+          id: saved._id,
+          destinationLatitude: lat,
+          destinationLongitude: lng,
+        });
+      }
+
       setSheetOpen(false);
     } catch (err) {
       console.error(err);
@@ -304,20 +337,12 @@ const AmbulanceDashboard = () => {
     return coords;
   };
 
-  // Function to view a specific ambulance on the map
+  // Focus map on a particular ambulance
   const viewOnMap = (ambulance) => {
-    if (!mapInstance) {
-      console.warn("Map instance is not available.");
-      return;
-    }
-    // Ensure the coordinates are numbers
+    if (!mapInstance) return;
     const lat = parseFloat(ambulance.latitude);
     const lng = parseFloat(ambulance.longitude);
-    if (isNaN(lat) || isNaN(lng)) {
-      console.warn("Invalid coordinates provided:", ambulance);
-      return;
-    }
-    console.log("Focusing on coordinates:", lat, lng);
+    if (isNaN(lat) || isNaN(lng)) return;
     mapInstance.flyTo([lat, lng], 15);
   };
 
@@ -354,7 +379,9 @@ const AmbulanceDashboard = () => {
                           a.latitude,
                           a.longitude,
                           ...parseDestination(a.destination)
-                        ) / 40 * 60
+                        ) /
+                          40 *
+                          60
                       )}{" "}
                       mins)
                     </>
@@ -418,7 +445,9 @@ const AmbulanceDashboard = () => {
                               a.latitude,
                               a.longitude,
                               ...destinationCoords
-                            ) / 40 * 60
+                            ) /
+                              40 *
+                              60
                           )}{" "}
                           mins
                         </>
@@ -434,7 +463,10 @@ const AmbulanceDashboard = () => {
 
       {/* Slide-out Sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-[400px] sm:w-[540px]" style={{ zIndex: 10000 }}>
+        <SheetContent
+          className="w-[400px] sm:w-[540px]"
+          style={{ zIndex: 10000 }}
+        >
           <SheetHeader>
             <SheetTitle>
               {currentAmbulance ? "Edit Ambulance" : "Add New Ambulance"}
@@ -469,7 +501,10 @@ const AmbulanceDashboard = () => {
                 >
                   <option value="">Select Nurse to add</option>
                   {nurses
-                    .filter((n) => !currentAmbulance.team?.find((m) => m._id === n._id))
+                    .filter(
+                      (n) =>
+                        !currentAmbulance.team?.find((m) => m._id === n._id)
+                    )
                     .map((n) => (
                       <option key={n._id} value={n._id}>
                         {n.username} ({n.email})

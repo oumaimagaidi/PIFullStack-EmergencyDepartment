@@ -110,6 +110,16 @@ const NurseDashboard = () => {
       console.log("🔌 Nurse socket connected:", socketRef.current.id)
     );
 
+    // Listen for real-time destination updates
+    socketRef.current.on("destinationUpdate", (data) => {
+      console.log("🏁 Nurse received destinationUpdate:", data);
+      setAssignedAmbulance((prev) => {
+        if (!prev || prev._id !== data.id) return prev;
+        const newDest = `${data.destinationLatitude},${data.destinationLongitude}`;
+        return { ...prev, destination: newDest };
+      });
+    });
+
     return () => {
       if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
       socketRef.current.disconnect();
@@ -134,7 +144,6 @@ const NurseDashboard = () => {
             setEta(null);
           }
         } else {
-          // Could not parse the destination coordinates; clear route/ETA
           setRoute([]);
           setEta(null);
         }
@@ -152,7 +161,7 @@ const NurseDashboard = () => {
         navigator.geolocation.getCurrentPosition(
           ({ coords }) => {
             const { latitude, longitude } = coords;
-            // Emit location update via socket
+            // Emit location update
             socketRef.current.emit("locationUpdate", {
               id: assignedAmbulance._id,
               latitude,
@@ -205,7 +214,7 @@ const NurseDashboard = () => {
     }
   };
 
-  // 5) Save updated destination information to the backend
+  // 5) Save updated destination information to the backend and emit
   const handleSaveDestination = async () => {
     if (!assignedAmbulance) {
       setAlertMessage("No ambulance assigned.");
@@ -217,10 +226,10 @@ const NurseDashboard = () => {
       return;
     }
     try {
-      const updated = { ...assignedAmbulance, destination: destination || null };
+      const updatedPayload = { ...assignedAmbulance, destination: destination || null };
       const { data } = await axios.put(
         `http://localhost:8089/api/ambulance/${assignedAmbulance._id}`,
-        updated,
+        updatedPayload,
         { withCredentials: true }
       );
       setAssignedAmbulance(data);
@@ -229,6 +238,15 @@ const NurseDashboard = () => {
           ? "Destination updated successfully."
           : "Destination cleared."
       );
+
+      // Emit the new destination over Socket.IO
+      if (destCoords) {
+        socketRef.current.emit("destinationUpdate", {
+          id: data._id,
+          destinationLatitude: destCoords[0],
+          destinationLongitude: destCoords[1],
+        });
+      }
     } catch (err) {
       console.error(err);
       setAlertMessage("Failed to update destination.");
@@ -358,7 +376,7 @@ const NurseDashboard = () => {
                   style={{ height: "100%", width: "100%" }}
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  {/* Ambulance/Current Location Marker */}
+                  {/* Current Location Marker */}
                   <Marker position={[location.lat, location.lng]}>
                     <Popup>
                       {assignedAmbulance._id} (Status: {ambulanceStatus})

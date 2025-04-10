@@ -79,6 +79,26 @@ io.on("connection", (socket) => {
     io.emit("locationUpdate", data);
     console.log("📍 locationUpdate emitted:", data);
   });
+  socket.on("destinationUpdate", async (data) => {
+    console.log("🏁 destinationUpdate received:", data);
+    try {
+      // Format destination as "latitude,longitude" string
+      const destinationString = `${data.destinationLatitude},${data.destinationLongitude}`;
+      
+      // Update the ambulance with the destination string
+      await Ambulance.findByIdAndUpdate(data.id, {
+        destination: destinationString,
+        lastUpdated: Date.now(),
+      });
+      console.log("🏁 Destination saved to database for ambulance:", data.id);
+    } catch (err) {
+      console.error("Error saving destination to database:", err);
+    }
+    
+    // Emit the destination update to all connected clients
+    io.emit("destinationUpdate", data);
+    console.log("🏁 destinationUpdate emitted:", data);
+  });
 
   socket.on("disconnect", () => {
     console.log("❌ Socket disconnected:", socket.id);
