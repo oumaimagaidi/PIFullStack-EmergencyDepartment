@@ -1,30 +1,65 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, CheckCircle, Clock, User } from "lucide-react";
+import axios from 'axios';
 
 const ConfirmationEmergencyRegister = () => {
     const location = useLocation();
     const formData = location.state?.formData;
     const patientId = location.state?.patientId;
+    const patientCode = location.state?.patientCode; // Added missing variable
     const predictedWaitTime = location.state?.predictedWaitTime;
     const assignedDoctor = location.state?.assignedDoctor;
 
+    // Declare state variables
+    const [waitTime, setWaitTime] = useState(predictedWaitTime || null);
+    const [doctorInfo, setDoctorInfo] = useState(assignedDoctor || null);
+
     const navigate = useNavigate();
+    
+    React.useEffect(() => {
+        if (!patientId) return;
+
+        // Simuler un temps d'attente estimé
+        const timer = setTimeout(() => {
+            setWaitTime(Math.random() * 30 + 15); // 15-45 minutes
+        }, 1000);
+
+        // Si un médecin est assigné, récupérer ses infos
+        if (assignedDoctor && typeof assignedDoctor === 'object') {
+            setDoctorInfo(assignedDoctor);
+        } else if (assignedDoctor) {
+            // Si c'est juste un ID, faire une requête pour récupérer les infos
+            axios.get(`http://localhost:8089/api/users/${assignedDoctor}`)
+                .then(response => setDoctorInfo(response.data))
+                .catch(console.error);
+        }
+
+        return () => clearTimeout(timer);
+    }, [patientId, assignedDoctor]);
 
     if (!formData || !patientId) {
         return (
             <div className="container mx-auto py-12 px-4 md:px-6 text-center">
                 <Card className="max-w-md mx-auto">
                     <CardHeader>
-                        <CardTitle>Erreur de Confirmation</CardTitle>
+                        <CardTitle className="text-red-500 flex items-center justify-center">
+                            <AlertTriangle className="mr-2" />
+                            Erreur de Confirmation
+                        </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <p>Les informations de confirmation n'ont pas été trouvées. Veuillez réessayer de soumettre le formulaire d'urgence.</p>
-                        <Button asChild>
-                            <Link to="/emergency-register">Retour au Formulaire</Link>
-                        </Button>
+                    <CardContent className="space-y-4">
+                        <p>Les informations de confirmation n'ont pas été trouvées.</p>
+                        <div className="space-x-2">
+                            <Button asChild variant="secondary">
+                                <Link to="/home">Retour à l'accueil</Link>
+                            </Button>
+                            <Button asChild>
+                                <Link to="/emergency-register">Nouvelle demande</Link>
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -32,7 +67,13 @@ const ConfirmationEmergencyRegister = () => {
     }
 
     const handleTrackStatusClick = () => {
-        navigate('/emergency-status', { state: { patientId: patientId ,assignedDoctor: assignedDoctor} });
+        navigate('/emergency-status', { 
+            state: { 
+                patientId,
+                patientCode,
+                doctorInfo
+            }
+        });
     };
 
     return (
@@ -75,13 +116,13 @@ const ConfirmationEmergencyRegister = () => {
                             <AlertTriangle className="mr-2 h-4 w-4 text-blue-600 align-baseline" /> Prochaines Étapes Importantes</h4>
                         <p className="mb-2">
                             <strong className="flex items-center">
-                                <Clock className="mr-2 inline-block h-4 w-4 text-blue-600 align-baseline" /> Temps d'attente estimé: {predictedWaitTime ? `${predictedWaitTime.toFixed(0)} minutes` : "Calcul en cours..."}
+                                <Clock className="mr-2 inline-block h-4 w-4 text-blue-600 align-baseline" /> Temps d'attente estimé: {waitTime ? `${waitTime.toFixed(0)} minutes` : "Calcul en cours..."}
                             </strong>
                         </p>
-                        {assignedDoctor ? (
+                        {doctorInfo ? (
                             <p className="mb-2">
                                 <strong><User className="mr-2 inline-block h-4 w-4 text-green-600 align-baseline" />
-                                Médecin Attribué :</strong> {assignedDoctor.username} (Spécialité : {assignedDoctor.specialization}, Contact : {assignedDoctor.email})
+                                Médecin Attribué :</strong> {doctorInfo.username} (Spécialité : {doctorInfo.specialization}, Contact : {doctorInfo.email})
                             </p>
                         ) : (
                             <p className="mb-2">

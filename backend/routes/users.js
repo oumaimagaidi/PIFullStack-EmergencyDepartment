@@ -231,5 +231,46 @@ router.put("/:id/availability", authenticateToken, async (req, res) => {
         res.status(500).json({ message: "Erreur serveur lors de la mise à jour de la disponibilité.", error: error.message });
     }
 });
+router.get("/nurses", authenticateToken, async (req, res) => {
+  try {
+    // Find users with the role "Nurse"
+    const nurses = await User.find({ role: "Nurse" });
+    res.status(200).json(nurses);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
+
+// Nouvelle route pour les statistiques des utilisateurs
+router.get("/stats", authenticateToken, async (req, res) => {
+  try {
+      if (req.user.role !== "Administrator") {
+          return res.status(403).json({ message: "Accès refusé" });
+      }
+
+      const [patients, doctors, nurses, admins, emergencyPatients] = await Promise.all([
+          User.countDocuments({ role: "Patient" }),
+          User.countDocuments({ role: "Doctor" }),
+          User.countDocuments({ role: "Nurse" }),
+          User.countDocuments({ role: "Administrator" }),
+          mongoose.model('EmergencyPatient').countDocuments()
+      ]);
+
+      const totalUsers = patients + doctors + nurses + admins;
+      
+      const stats = [
+          { name: "Patients", count: patients, percentage: (patients / totalUsers * 100).toFixed(2) },
+          { name: "Doctors", count: doctors, percentage: (doctors / totalUsers * 100).toFixed(2) },
+          { name: "Nurses", count: nurses, percentage: (nurses / totalUsers * 100).toFixed(2) },
+          { name: "Admins", count: admins, percentage: (admins / totalUsers * 100).toFixed(2) },
+          { name: "Emergency", count: emergencyPatients, percentage: (emergencyPatients / (totalUsers + emergencyPatients) * 100).toFixed(2) }
+      ];
+
+      res.status(200).json(stats);
+  } catch (error) {
+      console.error("Erreur récupération stats utilisateurs:", error);
+      res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+});
 
 export default router;

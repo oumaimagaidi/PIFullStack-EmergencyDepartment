@@ -1,9 +1,9 @@
 import { Card } from "@/components/ui/card";
-import { Users, Calendar, Bell, Hospital, UserPlus, Pencil, UserMinus } from "lucide-react";
+import { Users, Hospital, UserPlus, Pencil, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
-import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import axios from "axios";
 import "../App.css";
 
@@ -24,14 +24,7 @@ const initialPatients = [
     }
 ];
 
-const departmentData = [
-    { name: "Cardiology", patients: 45 },
-    { name: "Neurology", patients: 30 },
-    { name: "Pediatrics", patients: 25 },
-    { name: "Oncology", patients: 20 },
-];
-
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
 const Dashboard = () => {
     const [patients, setPatients] = useState([]);
@@ -39,6 +32,11 @@ const Dashboard = () => {
     const [error, setError] = useState(null);
     const [patientsCount, setPatientsCount] = useState(0);
     const [editingPatient, setEditingPatient] = useState(null);
+    const [emergencyStats, setEmergencyStats] = useState({
+        total: 0,
+        today: 0
+    });
+    const [userStats, setUserStats] = useState([]);
 
     useEffect(() => {
         const fetchPatients = async () => {
@@ -49,7 +47,7 @@ const Dashboard = () => {
                 setPatients(response.data);
             } catch (err) {
                 console.error("Erreur lors de la récupération des patients:", err);
-                setPatients(initialPatients); // Fallback vers les données statiques
+                setPatients(initialPatients);
                 setError("Impossible de récupérer les patients. Affichage des données locales.");
             } finally {
                 setLoading(false);
@@ -72,41 +70,59 @@ const Dashboard = () => {
         fetchPatientsCount();
     }, []);
 
-    const handleDelete = async (id) => {
-        try {
-            await axios.delete(`http://localhost:8089/api/users/patients/${id}`, {
-                withCredentials: true,
-            });
-            setPatients(patients.filter(patient => patient._id !== id));
-        } catch (error) {
-            console.error("Erreur lors de la suppression du patient:", error);
-        }
-    };
-
-    const handleEdit = (patient) => {
-        setEditingPatient({ ...patient });
-    };
-
-    const handleUpdate = async () => {
-        if (editingPatient) {
+    useEffect(() => {
+        const fetchEmergencyStats = async () => {
             try {
-                await axios.put(`http://localhost:8089/api/users/patients/${editingPatient._id}`, editingPatient, {
+                const [totalRes, todayRes] = await Promise.all([
+                    axios.get("http://localhost:8089/api/emergency-patients/stats/total", {
+                        withCredentials: true,
+                    }),
+                    axios.get("http://localhost:8089/api/emergency-patients/stats/today", {
+                        withCredentials: true,
+                    })
+                ]);
+                setEmergencyStats({
+                    total: totalRes.data.total,
+                    today: todayRes.data.today
+                });
+            } catch (err) {
+                console.error("Erreur récupération stats urgences:", err);
+            }
+        };
+        fetchEmergencyStats();
+    }, []);
+
+    useEffect(() => {
+        const fetchUserStatistics = async () => {
+            try {
+                const response = await axios.get("http://localhost:8089/api/users/stats", {
                     withCredentials: true,
                 });
-                setPatients(patients.map(p => p._id === editingPatient._id ? editingPatient : p));
-                setEditingPatient(null);
-            } catch (error) {
-                console.error("Erreur lors de la mise à jour du patient:", error);
+                setUserStats(response.data);
+            } catch (err) {
+                console.error("Erreur récupération stats utilisateurs:", err);
             }
-        }
-    };
+        };
+        fetchUserStatistics();
+    }, []);
 
     const statsCards = [
         { title: "Total Patients", value: patientsCount.toLocaleString(), icon: Users, color: "text-blue-600", bg: "bg-blue-100" },
-        { title: "Appointments Today", value: "48", icon: Calendar, color: "text-blue-700", bg: "bg-blue-50" },
-        { title: "Emergency Cases", value: "7", icon: Hospital, color: "text-red-500", bg: "bg-red-50" },
-        { title: "Pending Alerts", value: "12", icon: Bell, color: "text-blue-500", bg: "bg-blue-50" },
+        { title: "Emergency Cases Today", value: emergencyStats.today.toLocaleString(), icon: Hospital, color: "text-red-500", bg: "bg-red-50" },
+        { title: "Total Emergency Cases", value: emergencyStats.total.toLocaleString(), icon: Hospital, color: "text-red-700", bg: "bg-red-100" }
     ];
+
+    const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+        const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+        const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+
+        return (
+            <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central">
+                {`${(percent * 100).toFixed(0)}%`}
+            </text>
+        );
+    };
 
     return (
         <div className="space-y-6">
@@ -122,7 +138,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-3">
                 {statsCards.map((stat) => (
                     <Card key={stat.title} className="p-6 hover-scale">
                         <div className="flex items-center gap-4">
@@ -142,25 +158,36 @@ const Dashboard = () => {
                 <Card className="p-6">
                     <h2 className="text-xl font-semibold mb-4 text-blue-900">Department Statistics</h2>
                     <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={departmentData}>
+                        <BarChart data={userStats}>
                             <XAxis dataKey="name" />
                             <YAxis />
                             <Tooltip />
-                            <Bar dataKey="patients" fill="#0088FE" />
+                            <Bar dataKey="count" fill="#0088FE" />
                         </BarChart>
                     </ResponsiveContainer>
                 </Card>
 
                 <Card className="p-6">
-                    <h2 className="text-xl font-semibold mb-4 text-blue-900">Patient Distribution</h2>
+                    <h2 className="text-xl font-semibold mb-4 text-blue-900">User Distribution</h2>
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
-                            <Pie data={departmentData} dataKey="patients" nameKey="name" cx="50%" cy="50%" outerRadius={100}>
-                                {departmentData.map((entry, index) => (
+                            <Pie
+                                data={userStats}
+                                dataKey="count"
+                                nameKey="name"
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={100}
+                                fill="#8884d8"
+                                label={renderCustomizedLabel}
+                                labelLine={false}
+                            >
+                                {userStats.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
                             <Tooltip />
+                            <Legend />
                         </PieChart>
                     </ResponsiveContainer>
                 </Card>
@@ -169,6 +196,10 @@ const Dashboard = () => {
             <Card className="p-6">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-semibold text-blue-900">Patient List</h2>
+                    <Button>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add Patient
+                    </Button>
                 </div>
 
                 {loading ? (
@@ -180,39 +211,19 @@ const Dashboard = () => {
                         {patients && patients.length > 0 ? (
                             patients.map((patient) => (
                                 <div key={patient._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                                    {editingPatient?._id === patient._id ? (
-                                        <div className="flex-1 flex gap-4">
-                                            <Input
-                                                value={editingPatient.name}
-                                                onChange={(e) => setEditingPatient({ ...editingPatient, name: e.target.value })}
-                                            />
-                                            <Input
-                                                value={editingPatient.email}
-                                                onChange={(e) => setEditingPatient({ ...editingPatient, email: e.target.value })}
-                                            />
-                                            <Input
-                                                value={editingPatient.bloodType}
-                                                onChange={(e) => setEditingPatient({ ...editingPatient, bloodType: e.target.value })}
-                                            />
-                                            <Button onClick={handleUpdate}>Save</Button>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div>
-                                                <h3 className="font-semibold">{patient.name}</h3>
-                                                <p className="text-sm text-muted-foreground">{patient.email}</p>
-                                                <p className="text-sm text-blue-600">{patient.bloodType}</p>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <Button variant="outline" size="icon" onClick={() => handleEdit(patient)}>
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button variant="outline" size="icon" onClick={() => handleDelete(patient._id)}>
-                                                    <UserMinus className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </>
-                                    )}
+                                    <div>
+                                        <h3 className="font-semibold">{patient.name}</h3>
+                                        <p className="text-sm text-muted-foreground">{patient.email}</p>
+                                        <p className="text-sm text-blue-600">{patient.bloodType}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" size="icon" onClick={() => handleEdit(patient)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="outline" size="icon" onClick={() => handleDelete(patient._id)}>
+                                            <UserMinus className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
                             ))
                         ) : (

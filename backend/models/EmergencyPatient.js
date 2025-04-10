@@ -1,5 +1,6 @@
 // backend/models/EmergencyPatient.js
 import mongoose from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 
 const emergencyPatientSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
@@ -26,16 +27,40 @@ const emergencyPatientSchema = new mongoose.Schema({
     painLevel: { type: String, required: true, enum: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] },
     emergencyLevel: { type: String, required: true, enum: ['low', 'medium', 'high', 'critical'] },
     status: { type: String, default: 'Demande Enregistrée' },
-    // --- NOUVEAU CHAMP ---
     assignedDoctor: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // Référence au modèle User (qui inclut les Doctors)
-        default: null // Par défaut, aucun médecin assigné
+        ref: 'User',
+        default: null
     },
-    // --- FIN NOUVEAU CHAMP ---
+    medicalRecord: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'MedicalRecord',
+        default: null,
+    },
+    patientCode: { 
+        type: String, 
+        unique: true,
+        default: () => `EMP-${uuidv4().substr(0, 8).toUpperCase()}`
+    },
+    isNewPatient: { type: Boolean, default: true },
+    previousVisits: [{
+        visitDate: { type: Date, default: Date.now },
+        symptoms: String,
+        treatment: String,
+        doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    }],
     createdAt: { type: Date, default: Date.now },
-    arrivalTime: { type: Date, default: Date.now } // Ajout pour la prédiction, gardons-le
+    arrivalTime: { type: Date, default: Date.now }
 }, { timestamps: true });
+
+// Méthode pour trouver un patient existant
+emergencyPatientSchema.statics.findExistingPatient = async function(firstName, lastName, email) {
+    return this.findOne({ 
+        firstName: { $regex: new RegExp(`^${firstName}$`, 'i') },
+        lastName: { $regex: new RegExp(`^${lastName}$`, 'i') },
+        email: { $regex: new RegExp(`^${email}$`, 'i') }
+    }).populate('medicalRecord');
+};
 
 const EmergencyPatient = mongoose.model('EmergencyPatient', emergencyPatientSchema);
 
