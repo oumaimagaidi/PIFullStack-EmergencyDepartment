@@ -269,24 +269,18 @@ const NurseDashboard = () => {
     }
   };
 
-  // 7) Send alert message to doctors
-  const sendAlertToDoctors = async () => {
+  // 7) Send alert message via Socket.IO
+  const sendAlertToDoctors = () => {
     if (!alertText.trim()) {
       setAlertMessage("Please type a message.");
       return;
     }
-    try {
-      await axios.post(
-        "http://localhost:8089/api/alerts/doctors",
-        { message: alertText },
-        { withCredentials: true }
-      );
-      setAlertMessage("Alert sent successfully!");
-      setAlertText("");
-    } catch (err) {
-      console.error(err);
-      setAlertMessage("Failed to send alert.");
-    }
+    socketRef.current.emit("alert", {
+      message: alertText,
+      source: `Ambulance ${assignedAmbulance?._id || "Unknown"}`,
+    });
+    setAlertMessage("Alert sent!");
+    setAlertText("");
   };
 
   return (
@@ -376,7 +370,6 @@ const NurseDashboard = () => {
                   style={{ height: "100%", width: "100%" }}
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  {/* Current Location Marker */}
                   <Marker position={[location.lat, location.lng]}>
                     <Popup>
                       {assignedAmbulance._id} (Status: {ambulanceStatus})
@@ -393,17 +386,17 @@ const NurseDashboard = () => {
                       )}
                     </Popup>
                   </Marker>
-                  {/* Destination Marker */}
                   {assignedAmbulance.destination &&
                     (() => {
-                      const destCoords = parseDestination(assignedAmbulance.destination);
+                      const destCoords = parseDestination(
+                        assignedAmbulance.destination
+                      );
                       return destCoords ? (
                         <Marker position={destCoords}>
                           <Popup>Destination</Popup>
                         </Marker>
                       ) : null;
                     })()}
-                  {/* Route Polyline */}
                   {route.length > 0 && <Polyline positions={route} />}
                 </MapContainer>
               </div>

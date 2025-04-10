@@ -1,4 +1,3 @@
-// backend/server.js
 import express from "express";
 import http from "http";
 import mongoose from "mongoose";
@@ -16,9 +15,10 @@ import emergencyPatientRoutes from "./routes/emergencyPatients.js";
 import ambulanceRoutes from "./routes/ambulance.js";
 import medicalRecordRoutes from "./routes/medicalRecords.js";
 import patientFileRoutes from "./routes/patientFile.js";
+import alertsRoutes from "./routes/alerts.js";        // ← new
 
-// Import the Ambulance model (adjust the path according to your project structure)
 import Ambulance from "./models/Ambulance.js";
+import Alert from "./models/Alert.js";                // ← new
 
 dotenv.config();
 connectDB();
@@ -46,6 +46,7 @@ app.use("/api/emergency-patients", emergencyPatientRoutes);
 app.use("/api/ambulance", ambulanceRoutes);
 app.use("/api/medical-records", medicalRecordRoutes);
 app.use("/api/patient-files", patientFileRoutes);
+app.use("/api/alerts", alertsRoutes);                // ← new
 
 // Create a single HTTP server from Express
 const server = http.createServer(app);
@@ -59,45 +60,58 @@ const io = new IOServer(server, {
   },
 });
 
+// make io accessible in routes
+app.set("io", io);
+
 io.on("connection", (socket) => {
   console.log("⚡️ Socket connected:", socket.id);
 
+  // Location updates
   socket.on("locationUpdate", async (data) => {
     console.log("📍 locationUpdate received:", data);
     try {
-      // Update the corresponding ambulance record with new location and last updated timestamp
       await Ambulance.findByIdAndUpdate(data.id, {
         latitude: data.latitude,
         longitude: data.longitude,
         lastUpdated: data.timestamp,
       });
-      console.log("📍 Location saved to database for ambulance:", data.id);
+      console.log("📍 Location saved for ambulance:", data.id);
     } catch (err) {
-      console.error("Error saving location to database:", err);
+      console.error("Error saving location:", err);
     }
-    // Emit the location update to all connected clients
     io.emit("locationUpdate", data);
-    console.log("📍 locationUpdate emitted:", data);
   });
+
+  // Destination updates
   socket.on("destinationUpdate", async (data) => {
     console.log("🏁 destinationUpdate received:", data);
     try {
-      // Format destination as "latitude,longitude" string
       const destinationString = `${data.destinationLatitude},${data.destinationLongitude}`;
-      
-      // Update the ambulance with the destination string
       await Ambulance.findByIdAndUpdate(data.id, {
         destination: destinationString,
         lastUpdated: Date.now(),
       });
-      console.log("🏁 Destination saved to database for ambulance:", data.id);
+      console.log("🏁 Destination saved for ambulance:", data.id);
     } catch (err) {
-      console.error("Error saving destination to database:", err);
+      console.error("Error saving destination:", err);
     }
-    
-    // Emit the destination update to all connected clients
     io.emit("destinationUpdate", data);
-    console.log("🏁 destinationUpdate emitted:", data);
+  });
+
+  // New: Ambulance alerts via socket
+  socket.on("alert", async ({ message, source }) => {
+    console.log("🔔 alert received via socket:", message, source);
+    try {
+      const alert = await Alert.create({ message, source });
+      io.emit("alert", {
+        _id: alert._id,
+        message: alert.message,
+        source: alert.source,
+        timestamp: alert.timestamp,
+      });
+    } catch (err) {
+      console.error("Error saving alert:", err);
+    }
   });
 
   socket.on("disconnect", () => {
