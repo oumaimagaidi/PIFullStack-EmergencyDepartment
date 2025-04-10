@@ -62,7 +62,7 @@ router.post('/', async (req, res) => {
           emergencyLevel: savedPatient.emergencyLevel,
           timestamp: new Date()
       };
-      sendNotificationToUser(availableDoctor._id, 'new_assignment', notificationDataForDoctor);
+     // sendNotificationToUser(availableDoctor._id, 'new_assignment', notificationDataForDoctor);
 
       const notificationDataForStaff = {
           type: 'info',
@@ -73,8 +73,8 @@ router.post('/', async (req, res) => {
           patientName: `${savedPatient.firstName} ${savedPatient.lastName}`,
           timestamp: new Date()
       };
-      sendNotificationToRole('Nurse', 'doctor_assigned_info', notificationDataForStaff);
-      sendNotificationToRole('Administrator', 'doctor_assigned_info', notificationDataForStaff);
+     // sendNotificationToRole('Nurse', 'doctor_assigned_info', notificationDataForStaff);
+      //sendNotificationToRole('Administrator', 'doctor_assigned_info', notificationDataForStaff);
    
 
     } else {
