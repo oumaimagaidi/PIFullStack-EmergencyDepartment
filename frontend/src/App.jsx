@@ -28,6 +28,7 @@ import AmbulanceNurseDashboard from "./pages/AmbulanceNurseDashboard";
 import MedicalRecordDetails from './pages/MedicalRecordDetails';
 function App() {
   const user = JSON.parse(sessionStorage.getItem("user"));
+  
 
   return (
       <Routes>

@@ -1,14 +1,22 @@
+// AmbulanceDashboard.jsx
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { io } from "socket.io-client";
 import {
   MapContainer,
   TileLayer,
   Marker,
   Popup,
   Polyline,
+  useMap,
 } from "react-leaflet";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
 import {
   Sheet,
   SheetContent,
@@ -17,7 +25,7 @@ import {
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 
-// Haversine formula (if needed for distance calculation)
+// Haversine formula for ETA estimation
 const computeDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -31,75 +39,88 @@ const computeDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-// Parse destination string "lat,lng" into [lat, lng]
+// Parse "lat,lng" string to coordinate array
 const parseDestination = (dest) => {
   if (!dest) return null;
-  const parts = dest.split(",");
-  if (parts.length !== 2) return null;
-  const lat = parseFloat(parts[0].trim());
-  const lng = parseFloat(parts[1].trim());
+  const [latStr, lngStr] = dest.split(",");
+  const lat = parseFloat(latStr);
+  const lng = parseFloat(lngStr);
   return isNaN(lat) || isNaN(lng) ? null : [lat, lng];
 };
 
-// Fetch a route from OSRM API between two points.
-// OSRM expects coordinates as "lng,lat" in the URL.
+// OSRM route fetch
 const fetchRoute = async (origin, destination) => {
   try {
     const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
     const res = await fetch(url);
     const data = await res.json();
-    if (data.routes && data.routes.length > 0) {
-      // OSRM returns coordinates as [lng, lat]. We swap them.
-      const coords = data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
-      return coords;
+    if (data.routes?.length) {
+      return data.routes[0].geometry.coordinates.map(
+        ([lng, lat]) => [lat, lng]
+      );
     }
-  } catch (error) {
-    console.error("Error fetching route:", error);
+  } catch (err) {
+    console.error(err);
   }
   return null;
 };
 
-// Fetch place coordinates using Nominatim (OpenStreetMap)
+// Nominatim search to fetch place coordinates
 const fetchPlaceCoordinates = async (query) => {
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    if (data.length > 0) {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+      query
+    )}`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (data.length) {
       return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
     }
-  } catch (error) {
-    console.error("Error fetching place coordinates:", error);
+  } catch (err) {
+    console.error(err);
   }
+  return null;
+};
+
+// Helper component that uses the useMap hook to provide the map instance
+const SetMapInstance = ({ setMapInstance }) => {
+  const map = useMap();
+  useEffect(() => {
+    setMapInstance(map);
+  }, [map, setMapInstance]);
   return null;
 };
 
 const AmbulanceForm = ({ ambulance, onSave, onSearchPlace }) => {
-  const [name, setName] = useState(ambulance ? ambulance.name : "");
-  const [status, setStatus] = useState(ambulance ? ambulance.status : "AVAILABLE");
-  const [lastUpdated, setLastUpdated] = useState(ambulance ? ambulance.lastUpdated : "");
-  const [latitude, setLatitude] = useState(ambulance ? ambulance.latitude : 0);
-  const [longitude, setLongitude] = useState(ambulance ? ambulance.longitude : 0);
-  const [destination, setDestination] = useState(ambulance ? ambulance.destination || "" : "");
+  const [name, setName] = useState(ambulance?.name || "");
+  const [status, setStatus] = useState(ambulance?.status || "AVAILABLE");
+  const [lastUpdated, setLastUpdated] = useState(ambulance?.lastUpdated || "");
+  const [latitude, setLatitude] = useState(ambulance?.latitude || 0);
+  const [longitude, setLongitude] = useState(ambulance?.longitude || 0);
+  const [destination, setDestination] = useState(ambulance?.destination || "");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // When searching, update the destination field (instead of current location)
   const handleSearch = async () => {
     const coords = await onSearchPlace(searchQuery);
-    if (coords) {
-      setDestination(`${coords.lat},${coords.lng}`);
-    }
+    if (coords) setDestination(`${coords.lat},${coords.lng}`);
   };
 
   const handleSubmit = () => {
-    const newAmbulance = { name, status, lastUpdated, latitude, longitude, destination };
-    onSave(newAmbulance);
+    onSave({ name, status, lastUpdated, latitude, longitude, destination });
   };
 
   return (
     <div className="space-y-4 mt-4">
-      <Input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-      <Input placeholder="Status" value={status} onChange={(e) => setStatus(e.target.value)} />
+      <Input
+        placeholder="Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <Input
+        placeholder="Status"
+        value={status}
+        onChange={(e) => setStatus(e.target.value)}
+      />
       <Input
         placeholder="Last Updated"
         value={lastUpdated}
@@ -118,7 +139,7 @@ const AmbulanceForm = ({ ambulance, onSave, onSearchPlace }) => {
         onChange={(e) => setLongitude(parseFloat(e.target.value))}
       />
       <Input
-        placeholder='Destination (format: "lat,lng")'
+        placeholder='Destination ("lat,lng")'
         value={destination}
         onChange={(e) => setDestination(e.target.value)}
       />
@@ -143,152 +164,191 @@ const AmbulanceDashboard = () => {
   const [selectedNurse, setSelectedNurse] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [routes, setRoutes] = useState({});
-  const mapRef = useRef(null);
+  const [mapInstance, setMapInstance] = useState(null);
+  const socketRef = useRef(null);
 
-  // Check admin status
+  // Check if current user is an administrator
   useEffect(() => {
     const user = JSON.parse(sessionStorage.getItem("user"));
-    if (user && user.role === "Administrator") setIsAdmin(true);
+    if (user?.role === "Administrator") setIsAdmin(true);
   }, []);
 
-  // Fetch ambulances
+  // Initial REST fetch for ambulances
   useEffect(() => {
-    const fetchAmbulances = async () => {
-      try {
-        const response = await axios.get("http://localhost:8089/api/ambulance", { withCredentials: true });
-        setAmbulances(response.data);
-      } catch (error) {
-        console.error("Error fetching ambulances", error);
-      }
-    };
-    fetchAmbulances();
+    axios
+      .get("http://localhost:8089/api/ambulance", { withCredentials: true })
+      .then(({ data }) => {
+        setAmbulances(data);
+      })
+      .catch(console.error);
   }, []);
 
-  // Fetch nurses if admin and sheet is open
+  // Socket.IO listener for real-time updates
+  useEffect(() => {
+    socketRef.current = io("http://localhost:8089", { withCredentials: true });
+    socketRef.current.on("connect", () =>
+      console.log("🔌 Dashboard socket connected:", socketRef.current.id)
+    );
+
+    // location updates
+    socketRef.current.on(
+      "locationUpdate",
+      ({ id, latitude, longitude, timestamp }) => {
+        setAmbulances((prev) =>
+          prev.map((a) =>
+            a._id === id
+              ? { ...a, latitude, longitude, lastUpdated: timestamp }
+              : a
+          )
+        );
+      }
+    );
+
+    // **destination updates**
+    socketRef.current.on(
+      "destinationUpdate",
+      ({ id, destinationLatitude, destinationLongitude }) => {
+        setAmbulances((prev) =>
+          prev.map((a) =>
+            a._id === id
+              ? {
+                  ...a,
+                  destination: `${destinationLatitude},${destinationLongitude}`,
+                  lastUpdated: new Date().toISOString(),
+                }
+              : a
+          )
+        );
+      }
+    );
+
+    return () => socketRef.current.disconnect();
+  }, []);
+
+  // Fetch nurses when editing if user is admin
   useEffect(() => {
     if (sheetOpen && isAdmin) {
-      const fetchNurses = async () => {
-        try {
-          const response = await axios.get("http://localhost:8089/api/users/nurses", { withCredentials: true });
-          setNurses(response.data);
-        } catch (error) {
-          console.error("Error fetching nurses", error);
-        }
-      };
-      fetchNurses();
+      axios
+        .get("http://localhost:8089/api/users/nurses", { withCredentials: true })
+        .then(({ data }) => setNurses(data))
+        .catch(console.error);
     }
   }, [sheetOpen, isAdmin]);
 
-  // Adjust map view
+  // Fit map bounds using only ambulances with valid coordinates
   useEffect(() => {
-    if (mapRef.current && ambulances.length > 0) {
-      const bounds = ambulances.map((a) => [a.latitude, a.longitude]);
-      mapRef.current.fitBounds(bounds);
+    if (mapInstance && ambulances.length) {
+      const validBounds = ambulances
+        .filter((a) => a.latitude != null && a.longitude != null)
+        .map((a) => [a.latitude, a.longitude]);
+      if (validBounds.length > 0) {
+        mapInstance.fitBounds(validBounds);
+      }
     }
-  }, [ambulances]);
+  }, [ambulances, mapInstance]);
 
-  // Whenever ambulances update, fetch routes for those with a valid destination.
+  // Pre-compute routes for ambulances with valid destination data
   useEffect(() => {
-    ambulances.forEach(async (ambulance) => {
-      if (ambulance.destination) {
-        const destCoords = parseDestination(ambulance.destination);
-        if (destCoords) {
-          const route = await fetchRoute(
-            { lat: ambulance.latitude, lng: ambulance.longitude },
-            { lat: destCoords[0], lng: destCoords[1] }
-          );
-          if (route) {
-            setRoutes((prevRoutes) => ({ ...prevRoutes, [ambulance._id]: route }));
-          }
-        }
+    ambulances.forEach(async (a) => {
+      if (!a.destination) return;
+      const dest = parseDestination(a.destination);
+      if (!dest) return;
+      const coords = await fetchRoute(
+        { lat: a.latitude, lng: a.longitude },
+        { lat: dest[0], lng: dest[1] }
+      );
+      if (coords) {
+        setRoutes((r) => ({ ...r, [a._id]: coords }));
       }
     });
   }, [ambulances]);
 
-  // Save ambulance (PUT if editing, POST if new)
-  const handleSaveAmbulance = async (ambulanceData) => {
+  // Save (POST/PUT) ambulance data, then emit destinationUpdate if present
+  const handleSaveAmbulance = async (data) => {
     try {
-      let response;
-      if (currentAmbulance && currentAmbulance._id) {
-        response = await axios.put(
-          `http://localhost:8089/api/ambulance/${currentAmbulance._id}`,
-          ambulanceData,
-          { withCredentials: true }
-        );
-      } else {
-        response = await axios.post(
-          "http://localhost:8089/api/ambulance",
-          ambulanceData,
-          { withCredentials: true }
-        );
-      }
-      const savedAmbulance = response.data;
-      console.log("Ambulance saved", savedAmbulance);
-      if (currentAmbulance && currentAmbulance._id) {
-        setAmbulances(
-          ambulances.map((a) =>
-            a._id === currentAmbulance._id ? savedAmbulance : a
+      const res = currentAmbulance?._id
+        ? await axios.put(
+            `http://localhost:8089/api/ambulance/${currentAmbulance._id}`,
+            data,
+            { withCredentials: true }
           )
-        );
-      } else {
-        setAmbulances([...ambulances, savedAmbulance]);
-      }
-      setSheetOpen(false);
-    } catch (error) {
-      console.error("Error saving ambulance", error);
-    }
-  };
+        : await axios.post("http://localhost:8089/api/ambulance", data, {
+            withCredentials: true,
+          });
+      const saved = res.data;
 
-  // Delete ambulance (admin only)
-  const handleDeleteAmbulance = async (ambulanceId) => {
-    try {
-      const response = await axios.delete(
-        `http://localhost:8089/api/ambulance/${ambulanceId}`,
-        { withCredentials: true }
+      // update local list
+      setAmbulances((prev) =>
+        currentAmbulance
+          ? prev.map((a) => (a._id === saved._id ? saved : a))
+          : [...prev, saved]
       );
-      console.log("Ambulance deleted", response.data);
-      setAmbulances(ambulances.filter((a) => a._id !== ambulanceId));
-    } catch (error) {
-      console.error("Error deleting ambulance", error);
+
+      // emit destinationUpdate if we have one
+      if (saved.destination) {
+        const [lat, lng] = parseDestination(saved.destination);
+        socketRef.current.emit("destinationUpdate", {
+          id: saved._id,
+          destinationLatitude: lat,
+          destinationLongitude: lng,
+        });
+      }
+
+      setSheetOpen(false);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  // Add nurse to team (admin only)
-  const handleAddTeamMember = async () => {
-    if (!selectedNurse || !currentAmbulance || !currentAmbulance._id) return;
-    try {
-      const response = await axios.post(
+  // Delete an ambulance
+  const handleDeleteAmbulance = (id) => {
+    axios
+      .delete(`http://localhost:8089/api/ambulance/${id}`, { withCredentials: true })
+      .then(() => setAmbulances((prev) => prev.filter((a) => a._id !== id)))
+      .catch(console.error);
+  };
+
+  // Add nurse to ambulance team
+  const handleAddTeamMember = () => {
+    if (!selectedNurse || !currentAmbulance?._id) return;
+    axios
+      .post(
         `http://localhost:8089/api/ambulance/${currentAmbulance._id}/team`,
         { userId: selectedNurse },
         { withCredentials: true }
-      );
-      const updatedAmbulance = response.data.ambulance;
-      console.log("Team member added", updatedAmbulance);
-      setCurrentAmbulance(updatedAmbulance);
-      setAmbulances(
-        ambulances.map((a) =>
-          a._id === currentAmbulance._id ? updatedAmbulance : a
-        )
-      );
-      setSelectedNurse("");
-    } catch (error) {
-      console.error("Error adding team member", error);
-    }
+      )
+      .then(({ data }) => {
+        const updated = data.ambulance;
+        setCurrentAmbulance(updated);
+        setAmbulances((prev) =>
+          prev.map((a) => (a._id === updated._id ? updated : a))
+        );
+        setSelectedNurse("");
+      })
+      .catch(console.error);
   };
 
-  // Handle place search for destination (using Nominatim)
-  const handleSearchPlace = async (query) => {
-    const coords = await fetchPlaceCoordinates(query);
-    if (coords) {
-      mapRef.current?.flyTo([coords.lat, coords.lng], 15);
-      return coords;
+  // Search place helper using Nominatim
+  const handleSearchPlace = async (q) => {
+    const coords = await fetchPlaceCoordinates(q);
+    if (coords && mapInstance) {
+      mapInstance.flyTo([coords.lat, coords.lng], 15);
     }
-    return null;
+    return coords;
+  };
+
+  // Focus map on a particular ambulance
+  const viewOnMap = (ambulance) => {
+    if (!mapInstance) return;
+    const lat = parseFloat(ambulance.latitude);
+    const lng = parseFloat(ambulance.longitude);
+    if (isNaN(lat) || isNaN(lng)) return;
+    mapInstance.flyTo([lat, lng], 15);
   };
 
   return (
     <div className="flex h-screen">
-      {/* Sidebar with ambulance list */}
+      {/* Sidebar */}
       <div className="w-1/3 p-6 overflow-y-auto">
         <h1 className="text-2xl font-bold mb-4">Ambulance Tracking</h1>
         <Button
@@ -300,45 +360,41 @@ const AmbulanceDashboard = () => {
         >
           Add Ambulance
         </Button>
-        {ambulances.map((ambulance) => (
-          <Card key={ambulance._id} className="mb-4">
+        {ambulances.map((a) => (
+          <Card key={a._id} className="mb-4">
             <CardHeader>
-              <CardTitle>{ambulance.name}</CardTitle>
+              <CardTitle>{a.name}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Status: {ambulance.status}</p>
-              <p>Last Updated: {ambulance.lastUpdated || "N/A"}</p>
-              {ambulance.destination && (
+              <p>Status: {a.status}</p>
+              <p>Last Updated: {a.lastUpdated || "N/A"}</p>
+              {a.destination && parseDestination(a.destination) && (
                 <p>
-                  Destination: {ambulance.destination}{" "}
-                  {routes[ambulance._id] && (
-                    <> (Est. Time: {Math.round(
-                      computeDistance(
-                        ambulance.latitude,
-                        ambulance.longitude,
-                        parseDestination(ambulance.destination)[0],
-                        parseDestination(ambulance.destination)[1]
-                      ) / 40 * 60
-                    )} mins)</>
+                  Destination: {a.destination}{" "}
+                  {routes[a._id] && (
+                    <>
+                      (
+                      {Math.round(
+                        computeDistance(
+                          a.latitude,
+                          a.longitude,
+                          ...parseDestination(a.destination)
+                        ) /
+                          40 *
+                          60
+                      )}{" "}
+                      mins)
+                    </>
                   )}
                 </p>
               )}
-              <Button
-                onClick={() =>
-                  mapRef.current?.flyTo(
-                    [ambulance.latitude, ambulance.longitude],
-                    15
-                  )
-                }
-              >
-                View on Map
-              </Button>
+              <Button onClick={() => viewOnMap(a)}>View on Map</Button>
               <Button
                 variant="outline"
                 size="sm"
                 className="mt-2 ml-2"
                 onClick={() => {
-                  setCurrentAmbulance(ambulance);
+                  setCurrentAmbulance(a);
                   setSheetOpen(true);
                 }}
               >
@@ -349,7 +405,7 @@ const AmbulanceDashboard = () => {
                   variant="destructive"
                   size="sm"
                   className="mt-2 ml-2"
-                  onClick={() => handleDeleteAmbulance(ambulance._id)}
+                  onClick={() => handleDeleteAmbulance(a._id)}
                 >
                   Delete
                 </Button>
@@ -359,67 +415,78 @@ const AmbulanceDashboard = () => {
         ))}
       </div>
 
-      {/* Map Display */}
+      {/* Map */}
       <div className="w-2/3">
         <MapContainer
-          ref={mapRef}
           center={[51.505, -0.09]}
           zoom={13}
           style={{ height: "100%", width: "100%", zIndex: 0 }}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          {ambulances.map((ambulance) => {
-            const routeCoords = routes[ambulance._id];
-            return (
-              <React.Fragment key={ambulance._id}>
-                <Marker position={[ambulance.latitude, ambulance.longitude]}>
-                  <Popup>
-                    {ambulance.name} - {ambulance.status}
-                    {routeCoords && (
-                      <>
-                        <br />
-                        Destination: {ambulance.destination}
-                        <br />
-                        Est. Time: {Math.round(
-                          computeDistance(
-                            ambulance.latitude,
-                            ambulance.longitude,
-                            parseDestination(ambulance.destination)[0],
-                            parseDestination(ambulance.destination)[1]
-                          ) / 40 * 60
-                        )} mins
-                      </>
-                    )}
-                  </Popup>
-                </Marker>
-                {routeCoords && (
-                  <Polyline positions={routeCoords} color="blue" />
-                )}
-              </React.Fragment>
-            );
-          })}
+          <SetMapInstance setMapInstance={setMapInstance} />
+          {ambulances
+            .filter((a) => a.latitude != null && a.longitude != null)
+            .map((a) => {
+              const routeCoords = routes[a._id];
+              const destinationCoords = parseDestination(a.destination);
+              return (
+                <React.Fragment key={a._id}>
+                  <Marker position={[a.latitude, a.longitude]}>
+                    <Popup>
+                      {a.name} - {a.status}
+                      {destinationCoords && (
+                        <>
+                          <br />
+                          Destination: {a.destination}
+                          <br />
+                          ETA:{" "}
+                          {Math.round(
+                            computeDistance(
+                              a.latitude,
+                              a.longitude,
+                              ...destinationCoords
+                            ) /
+                              40 *
+                              60
+                          )}{" "}
+                          mins
+                        </>
+                      )}
+                    </Popup>
+                  </Marker>
+                  {routeCoords && <Polyline positions={routeCoords} />}
+                </React.Fragment>
+              );
+            })}
         </MapContainer>
       </div>
 
-      {/* Sheet for Add/Edit Form and Team Management */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen} style={{ zIndex: 9999 }}>
-        <SheetContent className="w-[400px] sm:w-[540px]">
+      {/* Slide-out Sheet */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent
+          className="w-[400px] sm:w-[540px]"
+          style={{ zIndex: 10000 }}
+        >
           <SheetHeader>
-            <SheetTitle>{currentAmbulance ? "Edit Ambulance" : "Add New Ambulance"}</SheetTitle>
+            <SheetTitle>
+              {currentAmbulance ? "Edit Ambulance" : "Add New Ambulance"}
+            </SheetTitle>
           </SheetHeader>
           <AmbulanceForm
             ambulance={currentAmbulance}
             onSave={handleSaveAmbulance}
             onSearchPlace={handleSearchPlace}
           />
-          {isAdmin && currentAmbulance && currentAmbulance._id && (
+          {isAdmin && currentAmbulance?._id && (
             <div className="mt-6">
               <h3 className="text-xl font-semibold mb-2">Team Management</h3>
-              {currentAmbulance.team && currentAmbulance.team.length > 0 ? (
+              {currentAmbulance.team?.length ? (
                 <ul className="mb-4">
-                  {currentAmbulance.team.map((nurse) => (
-                    <li key={nurse._id} className="flex items-center">
-                      <span>{nurse.username} ({nurse.email})</span>
+                  {currentAmbulance.team.map((n) => (
+                    <li key={n._id} className="flex items-center">
+                      <span>
+                        {n.username} ({n.email})
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -435,13 +502,12 @@ const AmbulanceDashboard = () => {
                   <option value="">Select Nurse to add</option>
                   {nurses
                     .filter(
-                      (nurse) =>
-                        !currentAmbulance.team ||
-                        !currentAmbulance.team.find((m) => m._id === nurse._id)
+                      (n) =>
+                        !currentAmbulance.team?.find((m) => m._id === n._id)
                     )
-                    .map((nurse) => (
-                      <option key={nurse._id} value={nurse._id}>
-                        {nurse.username} ({nurse.email})
+                    .map((n) => (
+                      <option key={n._id} value={n._id}>
+                        {n.username} ({n.email})
                       </option>
                     ))}
                 </select>
