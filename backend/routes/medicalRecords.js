@@ -187,6 +187,58 @@ router.post('/:recordId/files', authenticateToken, async (req, res) => {
     });
   }
 });
+// Nouvelle route pour accéder au dossier médical par code
+router.get('/by-access-code/:accessCode', async (req, res) => {
+  try {
+      const { accessCode } = req.params;
+      
+      // 1. Trouver le dossier médical de base
+      const medicalRecord = await MedicalRecord.findOne({ accessCode })
+          .populate('patientId', 'firstName lastName dateOfBirth gender phoneNumber email')
+          .populate('creator', 'username role specialization')
+          .lean();
+
+      if (!medicalRecord) {
+          return res.status(404).json({ message: "Dossier médical non trouvé" });
+      }
+
+      // 2. Récupérer les fichiers patients séparément
+      const patientFiles = await PatientFile.find({ 
+          medicalRecord: medicalRecord._id 
+      })
+      .sort({ createdAt: -1 })
+      .lean();
+
+      // 3. Récupérer les informations des créateurs des fichiers
+      const creatorIds = patientFiles.map(file => file.creator).filter(Boolean);
+      const creators = creatorIds.length > 0 ? await User.find({ 
+          _id: { $in: creatorIds } 
+      }).select('username role').lean() : [];
+
+      // 4. Créer un mapping des créateurs
+      const creatorMap = creators.reduce((map, creator) => {
+          map[creator._id.toString()] = creator;
+          return map;
+      }, {});
+
+      // 5. Combiner les résultats
+      const result = {
+          ...medicalRecord,
+          patientFiles: patientFiles.map(file => ({
+              ...file,
+              creator: file.creator ? creatorMap[file.creator.toString()] : null
+          }))
+      };
+
+      res.status(200).json(result);
+  } catch (error) {
+      console.error("Erreur récupération dossier médical:", error);
+      res.status(500).json({ 
+          message: "Erreur serveur", 
+          error: error.message 
+      });
+  }
+});
 router.get('/:recordId/files', authenticateToken, async (req, res) => {
   const { recordId } = req.params;
 
@@ -230,5 +282,6 @@ router.get('/:recordId/files', authenticateToken, async (req, res) => {
     });
   }
 });
+
 
 export default router;

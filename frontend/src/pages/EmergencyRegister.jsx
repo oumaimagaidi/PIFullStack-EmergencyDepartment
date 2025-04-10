@@ -42,27 +42,44 @@ const EmergencyRegister = () => {
     async function onSubmit(data) {
         try {
             const response = await axios.post('http://localhost:8089/api/emergency-patients', data);
-            console.log("Response data after registration (EmergencyRegister):", JSON.stringify(response.data, null, 2)); // Log JSON string
-            const patientIdToNavigate = response.data._id;
-              
-            toast.success("Your emergency request has been registered", { description: "A member of our medical team will contact you shortly." });
+            
+            // Ajoutez ces logs pour débogage
+            console.log("Full response:", response);
+            console.log("Patient data:", response.data);
+            
+            // Vérifiez que la réponse contient bien les données attendues
+            if (!response.data || !response.data.patient || !response.data.patient._id) {
+                throw new Error("Invalid response format from server");
+            }
+    
+            const patientData = response.data.patient;
+            const patientCode = response.data.patientCode;
+            
+            toast.success("Your emergency request has been registered", { 
+                description: "A member of our medical team will contact you shortly." 
+            });
+            
             form.reset();
-            navigate('/emergency-confirmation', { state: { formData: data, patientId: patientIdToNavigate } });
-
+            
+            navigate('/emergency-confirmation', { 
+                state: { 
+                    formData: data, 
+                    patientId: patientData._id,
+                    patientCode: patientCode,
+                    assignedDoctor: patientData.assignedDoctor || null
+                } 
+            });
+    
         } catch (error) {
+            console.error("Registration error:", error);
             if (error.response) {
-                console.error("Server error:", error.response.data);
-                if (error.response.data.message && Array.isArray(error.response.data.message)) {
-                    error.response.data.message.forEach(errorMessage => { toast.error("Validation Error", { description: errorMessage }); });
-                } else {
-                    toast.error("Failed to register emergency request", { description: error.response.data.message || "An error occurred on the server." });
-                }
-            } else if (error.request) {
-                console.error("No response received from server");
-                toast.error("Failed to register emergency request", { description: "No response received from the server. Please check your network connection." });
+                toast.error("Registration failed", {
+                    description: error.response.data.message || "Server error occurred"
+                });
             } else {
-                console.error("Error setting up request:", error.message);
-                toast.error("Failed to register emergency request", { description: "An unexpected error occurred. Please try again later." });
+                toast.error("Registration failed", {
+                    description: error.message || "Network error occurred"
+                });
             }
         }
     }

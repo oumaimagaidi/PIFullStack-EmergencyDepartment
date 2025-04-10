@@ -22,33 +22,104 @@ const findAvailableDoctor = async () => {
   }
 };
 
+// Nouvelle route POST avec vérification des doublons
 router.post('/', async (req, res) => {
   try {
-    const patient = new EmergencyPatient({ ...req.body });
-    let savedPatient = await patient.save();
+      const { firstName, lastName, email } = req.body;
+      
+      // Vérifier si le patient existe déjà
+      const existingPatient = await EmergencyPatient.findExistingPatient(firstName, lastName, email);
+      let patient;
 
-    const availableDoctor = await findAvailableDoctor();
-
-    if (availableDoctor) {
-      savedPatient.assignedDoctor = availableDoctor._id;
-      savedPatient = await savedPatient.save();
-
-      try {
-        await User.findByIdAndUpdate(availableDoctor._id, { isAvailable: false });
-        console.log(`Statut du médecin ${availableDoctor.username} mis à jour à 'Occupé'.`);
-      } catch (doctorUpdateError) {
-        console.error(`Échec mise à jour disponibilité médecin ${availableDoctor._id}:`, doctorUpdateError);
+      if (existingPatient) {
+          // Mettre à jour le patient existant
+          patient = await EmergencyPatient.findByIdAndUpdate(
+              existingPatient._id, 
+              { 
+                  ...req.body, 
+                  isNewPatient: false,
+                  $push: {
+                      previousVisits: {
+                          symptoms: req.body.currentSymptoms,
+                          doctor: existingPatient.assignedDoctor
+                      }
+                  }
+              },
+              { new: true }
+          );
+      } else {
+          // Créer un nouveau patient
+          patient = new EmergencyPatient(req.body);
+          await patient.save();
       }
-    } else {
-      console.warn(`Aucun médecin disponible pour ${savedPatient.firstName} ${savedPatient.lastName}.`);
+
+      // Assigner un médecin disponible
+      const availableDoctor = await findAvailableDoctor();
+      if (availableDoctor) {
+          patient.assignedDoctor = availableDoctor._id;
+          await patient.save();
+          await User.findByIdAndUpdate(availableDoctor._id, { isAvailable: false });
+      }
+
+      const response = await EmergencyPatient.findById(patient._id)
+          .populate('assignedDoctor', 'username specialization email profileImage')
+          .populate('medicalRecord', 'accessCode');
+
+      res.status(201).json({
+          patient: response,
+          isNewPatient: !existingPatient,
+          patientCode: response.patientCode
+      });
+
+  } catch (error) {
+      console.error("Erreur création patient:", error);
+      res.status(500).json({ message: 'Erreur Serveur Interne', error: error.message });
+  }
+});
+// Ajoutez cette nouvelle route à votre fichier emergencyPatient.js
+/**
+ * @route GET /api/emergency-patients/:id/medical-access-code
+ * @description Récupère le code d'accès du dossier médical d'un patient d'urgence
+ * @access Public
+ */
+router.get('/:id/medical-access-code', async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "ID patient invalide" });
+  }
+
+  try {
+    // 1. Vérifier que le patient existe
+    const patient = await EmergencyPatient.findById(id);
+    if (!patient) {
+      return res.status(404).json({ message: "Patient non trouvé" });
     }
 
-    const responsePatient = await EmergencyPatient.findById(savedPatient._id)
-      .populate('assignedDoctor', 'username specialization email profileImage');
-    res.status(201).json(responsePatient || savedPatient);
+    // 2. Vérifier si un dossier médical existe
+    const medicalRecord = await MedicalRecord.findOne({ patientId: id })
+      .select('accessCode')
+      .lean();
+
+    if (!medicalRecord) {
+      return res.status(404).json({ 
+        message: "Dossier médical non trouvé",
+        shouldDisplay: false
+      });
+    }
+
+    // 3. Retourner le code d'accès
+    res.status(200).json({
+      accessCode: medicalRecord.accessCode,
+      shouldDisplay: true
+    });
+
   } catch (error) {
-    console.error("Erreur création patient:", error);
-    res.status(500).json({ message: 'Erreur Serveur Interne' });
+    console.error("Erreur récupération code accès:", error);
+    res.status(500).json({ 
+      message: "Erreur serveur", 
+      error: error.message 
+    });
   }
 });
 
@@ -78,92 +149,80 @@ router.get('/:id/details', async (req, res) => {
   }
 });
 
+// Route pour mettre à jour le statut et créer le dossier médical si nécessaire
 router.put('/:id/status', authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-
-  console.log(`Mise à jour statut patient ${id} à "${status}"`);
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: "ID invalide" });
-  }
-
-  const allowedStatuses = ['Demande Enregistrée', 'En Cours d\'Examen', 'Médecin Assigné', 'Médecin En Route', 'Traité', 'Annulé'];
-  if (!status || !allowedStatuses.includes(status)) {
-    return res.status(400).json({ message: `Statut invalide. Valeurs autorisées: ${allowedStatuses.join(', ')}` });
-  }
-
   try {
-    const updatedPatient = await EmergencyPatient.findByIdAndUpdate(
-      id,
-      { status },
-      { new: true, runValidators: true }
-    ).populate('assignedDoctor', 'username specialization email');
+      const { id } = req.params;
+      const { status } = req.body;
 
-    if (!updatedPatient) {
-      return res.status(404).json({ message: "Patient non trouvé" });
-    }
-
-    console.log(`Statut patient ${updatedPatient._id} mis à jour à "${status}"`);
-
-    // Création automatique du MedicalRecord et PatientFile
-    if (['Médecin En Route', 'Traité'].includes(status)) {
-      console.log(`Statut "${status}" détecté, vérification MedicalRecord...`);
-
-      let medicalRecord = await MedicalRecord.findOne({ patientId: updatedPatient._id });
-
-      if (!medicalRecord) {
-        console.log(`Création MedicalRecord pour patient ${updatedPatient._id}`);
-        medicalRecord = new MedicalRecord({
-          patientId: updatedPatient._id,
-          creator: updatedPatient.assignedDoctor || req.user._id,
-          emergencyContact: { phone: updatedPatient.emergencyContact },
-          knownAllergies: updatedPatient.allergies ? updatedPatient.allergies.split(',') : [],
-        });
-        await medicalRecord.save();
-
-        updatedPatient.medicalRecord = medicalRecord._id;
-        await updatedPatient.save();
-
-        console.log(`MedicalRecord créé avec ID: ${medicalRecord._id}`);
-
-        console.log(`Création PatientFile pour MedicalRecord ${medicalRecord._id}`);
-        const patientFile = new PatientFile({
-          medicalRecord: medicalRecord._id,
-          creator: updatedPatient.assignedDoctor || req.user._id,
-          type: "PatientInformation",
-          details: {
-            patientInfo: {
-              firstName: updatedPatient.firstName,
-              lastName: updatedPatient.lastName,
-              dateOfBirth: updatedPatient.dateOfBirth,
-              gender: updatedPatient.gender,
-              phoneNumber: updatedPatient.phoneNumber,
-              email: updatedPatient.email,
-              address: updatedPatient.address,
-              emergencyContact: updatedPatient.emergencyContact,
-              insuranceInfo: updatedPatient.insuranceInfo,
-              allergies: updatedPatient.allergies,
-              currentMedications: updatedPatient.currentMedications,
-              medicalHistory: updatedPatient.medicalHistory,
-              currentSymptoms: updatedPatient.currentSymptoms,
-              painLevel: updatedPatient.painLevel,
-              emergencyLevel: updatedPatient.emergencyLevel,
-            },
-          },
-        });
-        await patientFile.save();
-
-        console.log(`PatientFile créé avec ID: ${patientFile._id}`);
-      } else {
-        console.log(`MedicalRecord déjà existant pour patient ${updatedPatient._id}: ${medicalRecord._id}`);
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+          return res.status(400).json({ message: "ID invalide" });
       }
-    }
 
-    res.status(200).json(updatedPatient);
+      const allowedStatuses = ['Demande Enregistrée', 'En Cours d\'Examen', 'Médecin Assigné', 'Médecin En Route', 'Traité', 'Annulé'];
+      if (!allowedStatuses.includes(status)) {
+          return res.status(400).json({ message: "Statut invalide" });
+      }
+
+      const updatedPatient = await EmergencyPatient.findByIdAndUpdate(
+          id,
+          { status },
+          { new: true }
+      ).populate('assignedDoctor', 'username specialization email');
+
+      if (!updatedPatient) {
+          return res.status(404).json({ message: "Patient non trouvé" });
+      }
+
+      // Création du dossier médical si nécessaire
+      if (['Médecin En Route', 'Traité'].includes(status)) {
+          let medicalRecord = await MedicalRecord.findOne({ patientId: id });
+
+          if (!medicalRecord) {
+              medicalRecord = new MedicalRecord({
+                  patientId: id,
+                  creator: updatedPatient.assignedDoctor || req.user._id,
+                  emergencyContact: { phone: updatedPatient.emergencyContact },
+                  knownAllergies: updatedPatient.allergies ? updatedPatient.allergies.split(',') : [],
+              });
+              await medicalRecord.save();
+
+              updatedPatient.medicalRecord = medicalRecord._id;
+              await updatedPatient.save();
+
+              // Créer le fichier patient initial
+              const patientFile = new PatientFile({
+                  medicalRecord: medicalRecord._id,
+                  creator: updatedPatient.assignedDoctor || req.user._id,
+                  type: "PatientInformation",
+                  details: {
+                      patientInfo: {
+                          firstName: updatedPatient.firstName,
+                          lastName: updatedPatient.lastName,
+                          dateOfBirth: updatedPatient.dateOfBirth,
+                          gender: updatedPatient.gender,
+                          phoneNumber: updatedPatient.phoneNumber,
+                          email: updatedPatient.email,
+                          address: updatedPatient.address,
+                          emergencyContact: updatedPatient.emergencyContact,
+                          insuranceInfo: updatedPatient.insuranceInfo,
+                          allergies: updatedPatient.allergies,
+                          currentMedications: updatedPatient.currentMedications,
+                          medicalHistory: updatedPatient.medicalHistory,
+                          currentSymptoms: updatedPatient.currentSymptoms,
+                          painLevel: updatedPatient.painLevel,
+                          emergencyLevel: updatedPatient.emergencyLevel,
+                      },
+                  },
+              });
+              await patientFile.save();
+          }
+      }
+
+      res.status(200).json(updatedPatient);
   } catch (error) {
-    console.error("Erreur mise à jour statut:", error);
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
+      console.error("Erreur mise à jour statut:", error);
+      res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 });
 // Ajoutez cette nouvelle route à la fin de votre fichier emergencyPatient.js

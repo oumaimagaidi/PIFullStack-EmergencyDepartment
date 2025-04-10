@@ -37,8 +37,8 @@ function App() {
         {/* Routes publiques sans header/footer/sidebar */}
         <Route path="/login" element={<PublicLayout><Login /></PublicLayout>} />
       
-        <Route path="/emergency-confirmation" element={<PublicLayout><ConfirmationEmergencyRegister /></PublicLayout>} />
-        <Route path="/emergency-status" element={<EmergencyStatus />} />
+        <Route path="/emergency-confirmation" element={<MainLayout><ConfirmationEmergencyRegister /></MainLayout>} />
+        <Route path="/emergency-status" element={<MainLayout><EmergencyStatus /> </MainLayout>} />
         <Route path="/register" element={<PublicLayout><Register /></PublicLayout>} />
         <Route path="/forgotpassword" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
 
