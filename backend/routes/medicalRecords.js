@@ -60,7 +60,6 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
-// Récupérer un MedicalRecord spécifique
 router.get("/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -69,25 +68,61 @@ router.get("/:id", authenticateToken, async (req, res) => {
       return res.status(400).json({ message: "ID invalide" });
     }
 
+    // 1. Récupérer le dossier médical de base
     const record = await MedicalRecord.findById(id)
-      .populate('patientId')
-      .populate('creator')
-      .populate({
-        path: 'patientFiles',
-        model: 'PatientFile',
-        options: { sort: { dateRecorded: -1 } }
-      });
+      .populate('patientId', 'firstName lastName dateOfBirth gender phoneNumber')
+      .populate('creator', 'username role specialization')
+      .lean();
 
     if (!record) {
       return res.status(404).json({ message: "Dossier médical non trouvé" });
     }
 
-    res.status(200).json(record);
+    // 2. Récupérer les fichiers patients séparément avec les créateurs
+    const patientFiles = await PatientFile.aggregate([
+      { $match: { medicalRecord: new mongoose.Types.ObjectId(id) } },
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "creator",
+          foreignField: "_id",
+          as: "creatorInfo"
+        }
+      },
+      { $unwind: { path: "$creatorInfo", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          type: 1,
+          notes: 1,
+          details: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          creator: {
+            username: "$creatorInfo.username",
+            role: "$creatorInfo.role"
+          }
+        }
+      }
+    ]);
+
+    // 3. Combiner les résultats
+    const result = {
+      ...record,
+      patientFiles
+    };
+
+    res.status(200).json(result);
+
   } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
+    console.error("Error fetching medical record:", error);
+    res.status(500).json({ 
+      message: "Erreur serveur", 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
-
 // Mettre à jour un MedicalRecord
 router.put("/:id", authenticateToken, async (req, res) => {
   try {

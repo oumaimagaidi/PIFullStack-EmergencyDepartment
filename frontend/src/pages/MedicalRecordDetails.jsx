@@ -34,7 +34,7 @@ const MedicalRecordDetails = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = Cookies.get("token")
+        const token = Cookies.get("token");
         const [recordRes, filesRes] = await Promise.all([
           axios.get(`http://localhost:8089/api/medical-records/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -42,17 +42,27 @@ const MedicalRecordDetails = () => {
           axios.get(`http://localhost:8089/api/medical-records/${id}/files`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-        ])
-
-        setMedicalRecord(recordRes.data)
-        setPatientFiles(filesRes.data)
+        ]);
+    
+        // Add error handling for responses
+        if (recordRes.status !== 200 || filesRes.status !== 200) {
+          throw new Error('Failed to fetch data');
+        }
+    
+        setMedicalRecord(recordRes.data);
+        setPatientFiles(filesRes.data);
       } catch (err) {
-        setError("Erreur lors du chargement des données")
-        console.error("Erreur:", err)
+        console.error("Fetch error:", err);
+        setError(err.response?.data?.message || "Erreur lors du chargement des données");
+        
+        // If 404, redirect or show not found message
+        if (err.response?.status === 404) {
+          setError("Dossier médical non trouvé");
+        }
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
     fetchData()
   }, [id])

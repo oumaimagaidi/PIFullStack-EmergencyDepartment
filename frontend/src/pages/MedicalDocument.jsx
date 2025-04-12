@@ -20,6 +20,13 @@ import {
   AlertTriangle,
   Activity,
   Phone,
+  FilePlus,
+  Clock,
+  Calendar,
+  Thermometer,
+  Droplet,
+  ActivityIcon,
+  ClipboardList
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -43,9 +50,7 @@ const MedicalDocument = () => {
     setError(null)
 
     try {
-      const response = await axios.get(`http://localhost:8089/api/medical-records/by-access-code/${accessCode}`, {
-        withCredentials: true,
-      })
+      const response = await axios.get(`http://localhost:8089/api/medical-records/by-access-code/${accessCode}`)
 
       if (response.data) {
         setMedicalRecord(response.data)
@@ -67,7 +72,142 @@ const MedicalDocument = () => {
       year: "numeric",
       month: "long",
       day: "numeric",
+      hour: '2-digit',
+      minute: '2-digit'
     })
+  }
+
+  const getFileIcon = (fileType) => {
+    switch (fileType) {
+      case "Prescription": return <Pill className="h-5 w-5 text-emerald-500" />
+      case "Diagnostic": return <Stethoscope className="h-5 w-5 text-violet-500" />
+      case "Treatment": return <Activity className="h-5 w-5 text-amber-500" />
+      case "VitalSigns": return <Heart className="h-5 w-5 text-rose-500" />
+      case "Triage": return <AlertTriangle className="h-5 w-5 text-orange-500" />
+      case "Discharge": return <Clipboard className="h-5 w-5 text-sky-500" />
+      case "PatientInformation": return <User className="h-5 w-5 text-slate-500" />
+      default: return <FileText className="h-5 w-5 text-slate-500" />
+    }
+  }
+
+  const renderFileDetails = (file) => {
+    switch (file.type) {
+      case "Prescription":
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Pill className="h-5 w-5 text-emerald-500" />
+              <h3 className="font-medium text-lg">Prescription médicale</h3>
+            </div>
+            
+            {file.details?.medications?.length > 0 ? (
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm text-slate-700">Médicaments prescrits</h4>
+                <div className="grid gap-3">
+                  {file.details.medications.map((med, idx) => (
+                    <Card key={idx} className="bg-emerald-50 border-emerald-100">
+                      <CardContent className="p-3">
+                        <div className="flex justify-between">
+                          <div className="font-medium">{med.name}</div>
+                          <Badge variant="outline" className="bg-white">
+                            {med.dosage}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-slate-600 mt-1">
+                          {med.frequency}, {med.duration}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 italic">Aucun médicament prescrit</p>
+            )}
+            
+            {file.notes && (
+              <div className="mt-4 text-sm">
+                <h4 className="font-medium text-slate-700">Notes</h4>
+                <p className="text-slate-600 mt-1">{file.notes}</p>
+              </div>
+            )}
+          </div>
+        )
+
+      case "Diagnostic":
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Stethoscope className="h-5 w-5 text-violet-500" />
+              <h3 className="font-medium text-lg">Diagnostic</h3>
+            </div>
+            
+            {file.details?.diagnosis && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm text-slate-700">Diagnostic principal</h4>
+                <Card className="bg-violet-50 border-violet-100">
+                  <CardContent className="p-3">
+                    <p>{file.details.diagnosis}</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+            
+            {file.details?.diagnosticTests?.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm text-slate-700">Tests diagnostiques</h4>
+                <div className="grid gap-2">
+                  {file.details.diagnosticTests.map((test, idx) => (
+                    <div key={idx} className="flex justify-between items-center p-2 border rounded-md bg-white">
+                      <div>
+                        <span className="font-medium">{test.testName}</span>
+                        <div className="text-sm text-slate-500">
+                          {test.date ? formatDate(test.date) : "Date non spécifiée"}
+                        </div>
+                      </div>
+                      <Badge variant={test.result.toLowerCase().includes("normal") ? "outline" : "secondary"}>
+                        {test.result}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {file.notes && (
+              <div className="mt-4 text-sm">
+                <h4 className="font-medium text-slate-700">Notes</h4>
+                <p className="text-slate-600 mt-1">{file.notes}</p>
+              </div>
+            )}
+          </div>
+        )
+
+      // ... Ajoutez les autres cas (Treatment, VitalSigns, etc.) de la même manière
+
+      default:
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-slate-500" />
+              <h3 className="font-medium text-lg">Document médical</h3>
+            </div>
+            
+            {file.notes && (
+              <Card>
+                <CardContent className="p-3">
+                  <p>{file.notes}</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            <div className="text-sm text-slate-500 flex items-center">
+              <Clock className="h-4 w-4 mr-1" />
+              Créé le {formatDate(file.createdAt)}
+            </div>
+          </div>
+        )
+    }
   }
 
   const renderMedicalRecord = () => {
@@ -75,6 +215,7 @@ const MedicalDocument = () => {
 
     return (
       <div className="space-y-6">
+        {/* En-tête du dossier */}
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
@@ -82,7 +223,9 @@ const MedicalDocument = () => {
             </div>
             <div>
               <h3 className="text-xl font-bold text-blue-800">Dossier Médical Électronique</h3>
-              <p className="text-sm text-gray-500">Accès sécurisé • {new Date().toLocaleDateString("fr-FR")}</p>
+              <p className="text-sm text-gray-500">
+                Patient: {medicalRecord.patientId?.firstName} {medicalRecord.patientId?.lastName}
+              </p>
             </div>
           </div>
           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center">
@@ -93,24 +236,25 @@ const MedicalDocument = () => {
 
         <Tabs defaultValue="general" className="w-full">
           <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="general" className="flex items-center justify-center">
+            <TabsTrigger value="general">
               <User className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Patient</span>
+              Patient
             </TabsTrigger>
-            <TabsTrigger value="medical" className="flex items-center justify-center">
+            <TabsTrigger value="medical">
               <Heart className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Médical</span>
+              Médical
             </TabsTrigger>
-            <TabsTrigger value="medications" className="flex items-center justify-center">
-              <Pill className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Médicaments</span>
+            <TabsTrigger value="documents">
+              <FileText className="h-4 w-4 mr-2" />
+              Documents
             </TabsTrigger>
-            <TabsTrigger value="emergency" className="flex items-center justify-center">
+            <TabsTrigger value="emergency">
               <Phone className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Urgence</span>
+              Urgence
             </TabsTrigger>
           </TabsList>
 
+          {/* Onglet Informations Patient */}
           <TabsContent value="general" className="space-y-4">
             <Card>
               <CardHeader className="pb-2">
@@ -143,16 +287,16 @@ const MedicalDocument = () => {
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center text-sm">
-                      <span className="font-medium text-gray-500 w-40">Numéro de dossier:</span>
-                      <span className="font-semibold">{medicalRecord._id || "Non spécifié"}</span>
+                      <span className="font-medium text-gray-500 w-40">Téléphone:</span>
+                      <span className="font-semibold">{medicalRecord.patientId?.phoneNumber || "Non spécifié"}</span>
                     </div>
                     <div className="flex items-center text-sm">
-                      <span className="font-medium text-gray-500 w-40">Date de création:</span>
-                      <span className="font-semibold">{formatDate(medicalRecord.createdAt)}</span>
+                      <span className="font-medium text-gray-500 w-40">Email:</span>
+                      <span className="font-semibold">{medicalRecord.patientId?.email || "Non spécifié"}</span>
                     </div>
                     <div className="flex items-center text-sm">
-                      <span className="font-medium text-gray-500 w-40">Dernière mise à jour:</span>
-                      <span className="font-semibold">{formatDate(medicalRecord.updatedAt)}</span>
+                      <span className="font-medium text-gray-500 w-40">Adresse:</span>
+                      <span className="font-semibold">{medicalRecord.patientId?.address || "Non spécifié"}</span>
                     </div>
                   </div>
                 </div>
@@ -160,6 +304,7 @@ const MedicalDocument = () => {
             </Card>
           </TabsContent>
 
+          {/* Onglet Informations Médicales */}
           <TabsContent value="medical" className="space-y-4">
             <Card>
               <CardHeader className="pb-2">
@@ -173,7 +318,7 @@ const MedicalDocument = () => {
                   <div className="space-y-4">
                     <div className="bg-blue-50 p-4 rounded-lg flex items-center">
                       <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                        <Activity className="h-5 w-5 text-blue-600" />
+                        <Droplet className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-gray-500">Groupe Sanguin</h4>
@@ -181,24 +326,6 @@ const MedicalDocument = () => {
                       </div>
                     </div>
 
-                    {medicalRecord.chronicConditions?.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
-                          <Stethoscope className="h-4 w-4 mr-1 text-blue-600" />
-                          Conditions Chroniques
-                        </h4>
-                        <div className="space-y-1">
-                          {medicalRecord.chronicConditions.map((condition, index) => (
-                            <div key={index} className="bg-gray-50 px-3 py-2 rounded text-sm">
-                              {condition}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-4">
                     {medicalRecord.knownAllergies?.length > 0 && (
                       <div>
                         <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
@@ -217,11 +344,22 @@ const MedicalDocument = () => {
                         </div>
                       </div>
                     )}
+                  </div>
 
-                    {medicalRecord.medicalNotes && (
+                  <div className="space-y-4">
+                    {medicalRecord.chronicConditions?.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500 mb-2">Notes Médicales</h4>
-                        <div className="bg-gray-50 p-3 rounded text-sm">{medicalRecord.medicalNotes}</div>
+                        <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                          <ActivityIcon className="h-4 w-4 mr-1 text-blue-600" />
+                          Conditions Chroniques
+                        </h4>
+                        <div className="space-y-1">
+                          {medicalRecord.chronicConditions.map((condition, index) => (
+                            <div key={index} className="bg-gray-50 px-3 py-2 rounded text-sm">
+                              {condition}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -230,66 +368,63 @@ const MedicalDocument = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="medications" className="space-y-4">
+          {/* Onglet Documents */}
+          <TabsContent value="documents" className="space-y-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
-                  <Pill className="h-5 w-5 mr-2 text-blue-600" />
-                  Médicaments Actuels
+                  <ClipboardList className="h-5 w-5 mr-2 text-blue-600" />
+                  Documents Médicaux
                 </CardTitle>
+                <CardDescription>
+                  {medicalRecord.patientFiles?.length || 0} document(s) disponible(s)
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                {medicalRecord.currentMedications?.length > 0 ? (
+                {medicalRecord.patientFiles?.length > 0 ? (
                   <div className="space-y-4">
-                    {medicalRecord.currentMedications.map((med, index) => (
-                      <div key={index} className="bg-white border rounded-lg p-4 shadow-sm">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-blue-700">{med.name}</h4>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            Actif
-                          </Badge>
-                        </div>
-                        <Separator className="my-2" />
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <span className="text-gray-500">Dosage:</span>{" "}
-                            <span className="font-medium">{med.dosage || "Non spécifié"}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Fréquence:</span>{" "}
-                            <span className="font-medium">{med.frequency || "Non spécifié"}</span>
-                          </div>
-                          {med.startDate && (
-                            <div>
-                              <span className="text-gray-500">Date de début:</span>{" "}
-                              <span className="font-medium">{formatDate(med.startDate)}</span>
+                    {medicalRecord.patientFiles.map((file) => (
+                      <Card key={file._id} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center">
+                              {getFileIcon(file.type)}
+                              <div className="ml-3">
+                                <CardTitle className="text-lg">{file.type}</CardTitle>
+                                <CardDescription className="flex items-center">
+                                  <Calendar className="h-4 w-4 mr-1" />
+                                  {formatDate(file.createdAt)}
+                                </CardDescription>
+                              </div>
                             </div>
-                          )}
-                          {med.endDate && (
-                            <div>
-                              <span className="text-gray-500">Date de fin:</span>{" "}
-                              <span className="font-medium">{formatDate(med.endDate)}</span>
-                            </div>
-                          )}
-                        </div>
-                        {med.notes && (
-                          <div className="mt-2 text-sm bg-gray-50 p-2 rounded">
-                            <span className="text-gray-500">Notes:</span> {med.notes}
+                            <Badge variant="outline" className="capitalize">
+                              {file.creator?.username || "Système"}
+                            </Badge>
                           </div>
-                        )}
-                      </div>
+                        </CardHeader>
+                        <Separator />
+                        <CardContent className="pt-4">
+                          {renderFileDetails(file)}
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-6 text-gray-500">
-                    <Pill className="h-10 w-10 mx-auto mb-2 text-gray-300" />
-                    <p>Aucun médicament actuel enregistré</p>
+                  <div className="text-center py-12 bg-white rounded-lg border border-dashed">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+                      <FilePlus className="h-8 w-8 text-slate-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-slate-900">Aucun document</h3>
+                    <p className="text-slate-500 mt-1 max-w-md mx-auto">
+                      Ce dossier médical ne contient pas encore de documents.
+                    </p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
+          {/* Onglet Urgence */}
           <TabsContent value="emergency" className="space-y-4">
             <Card>
               <CardHeader className="pb-2">
@@ -321,22 +456,8 @@ const MedicalDocument = () => {
                             {medicalRecord.emergencyContact.phone || "Non spécifié"}
                           </span>
                         </div>
-                        <div className="flex items-center text-sm">
-                          <span className="font-medium text-gray-500 w-32">Email:</span>
-                          <span className="font-semibold">
-                            {medicalRecord.emergencyContact.email || "Non spécifié"}
-                          </span>
-                        </div>
                       </div>
                     </div>
-                    {medicalRecord.emergencyContact.address && (
-                      <div className="mt-3 pt-3 border-t border-blue-200">
-                        <div className="flex items-start text-sm">
-                          <span className="font-medium text-gray-500 w-32">Adresse:</span>
-                          <span className="font-semibold">{medicalRecord.emergencyContact.address}</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ) : (
                   <div className="text-center py-6 text-gray-500">
