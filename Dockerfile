@@ -11,6 +11,11 @@ COPY ./backend/  ./backend
 RUN cd ./frontend && npm install --legacy-peer-deps
 RUN cd ./backend && npm install --legacy-peer-deps
 
+# Fix permissions for nodemon executable in backend (if exists)
+RUN if [ -f ./backend/node_modules/.bin/nodemon ]; then \
+      chmod +x ./backend/node_modules/.bin/nodemon; \
+    fi
+
 # Create a start script that launches both dev servers concurrently
 RUN echo '#!/bin/sh' > start.sh \
     && echo '(cd frontend && npm run dev) &' >> start.sh \
