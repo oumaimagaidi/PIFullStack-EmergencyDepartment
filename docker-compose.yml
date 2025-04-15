@@ -9,19 +9,39 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     ports:
-      - 27017:27017
+      - "27017:27017"
     volumes:
       - ./data/dump:/dump 
 
-  app:
-    build: .
-    image: 192.168.252.114:8083/nodemongoapp:5.0
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: 192.168.252.114:8083/nodemongoapp-backend:5.0
+    container_name: backend
     restart: always
-    container_name: back
     ports:
-      - '3000:3000'
+      - "8089:8089"
     depends_on:
       - db
+    # You can override or supplement environment variables from the .env file:
+    env_file:
+      - ./backend/.env
+    environment:
+      # Override MONGO_URI so that the backend points to the MongoDB container (named 'db')
+      MONGO_URI: mongodb://db:27017/emergency_db
+
+  app:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: 192.168.252.114:8083/nodemongoapp-frontend:5.0
+    container_name: front
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   mongo-data:
