@@ -22,4 +22,4 @@ RUN npm install -g serve
 EXPOSE 3000
 
 # Start the frontend using the build output
-CMD ["serve", "-s", "build"]
+CMD ["serve", "-s", "dist"]
