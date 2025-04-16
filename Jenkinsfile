@@ -54,7 +54,7 @@ pipeline {
                     steps {
                         dir('backend') {
                             // Uncomment if a build step is necessary
-                            // sh 'npm run build'
+                             sh 'npm run build'
                         }
                     }
                 }
