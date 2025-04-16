@@ -1,20 +1,23 @@
 version: '3.8'
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: 192.168.252.114:8083/nodemongoapp:5.0
-    container_name: nodemongoapp
+  backend:
+    image: 192.168.252.114:8083/nodemongoapp-backend:5.0
+    container_name: nodemongoapp-backend
     restart: always
     ports:
-      - "3000:3000"
       - "8089:8089"
     env_file:
       - ./backend/.env
     depends_on:
       - db
+
+  frontend:
+    image: 192.168.252.114:8083/nodemongoapp-frontend:5.0
+    container_name: nodemongoapp-frontend
+    restart: always
+    ports:
+      - "3000:3000"
 
   db:
     image: mongo:5.0
