@@ -4,61 +4,85 @@ pipeline {
     environment {
         registryCredentials = "nexus"
         registry = "192.168.252.114:8083"
+        backendImage = "${registry}/nodemongoapp-backend:5.0"
+        frontendImage = "${registry}/nodemongoapp-frontend:5.0"
     }
 
     stages {
         stage('Install Dependencies') {
-            steps {
-                script {
-                    // Install backend dependencies
-                    dir('backend') {
-                        sh 'npm install'
+            parallel {
+                stage('Backend Dependencies') {
+                    steps {
+                        dir('backend') {
+                            sh 'npm install'
+                        }
                     }
-
-                    // Install frontend dependencies
-                    dir('frontend') {
-                        sh 'npm install'
+                }
+                stage('Frontend Dependencies') {
+                    steps {
+                        dir('frontend') {
+                            sh 'npm install'
+                        }
                     }
                 }
             }
         }
 
         stage('Run Unit Tests') {
-            steps {
-                script {
-                    // Run backend unit tests
-                    dir('backend') {
-                        // sh 'npm test'
+            parallel {
+                stage('Backend Tests') {
+                    steps {
+                        dir('backend') {
+                            // Uncomment if you have tests for backend
+                            // sh 'npm test'
+                        }
                     }
-
-                    // Run frontend unit tests
-                    dir('frontend') {
-                        sh 'npm run test'
+                }
+                stage('Frontend Tests') {
+                    steps {
+                        dir('frontend') {
+                            sh 'npm run test'
+                        }
                     }
                 }
             }
         }
 
         stage('Build Application') {
-            steps {
-                script {
-                    // Build the backend (optional, depending on your project)
-                    dir('backend') {
-                        // sh 'npm run build'
+            parallel {
+                stage('Build Backend') {
+                    steps {
+                        dir('backend') {
+                            // Uncomment if a build step is necessary
+                            // sh 'npm run build'
+                        }
                     }
-
-                    // Build the frontend
-                    dir('frontend') {
-                        sh 'npm run build'
+                }
+                stage('Build Frontend') {
+                    steps {
+                        dir('frontend') {
+                            sh 'npm run build'
+                        }
                     }
                 }
             }
         }
 
-        stage('Building images (node and mongo)') {
-            steps {
-                script {
-                    sh('docker-compose build')
+        stage('Build Docker Images') {
+            parallel {
+                stage('Build Backend Image') {
+                    steps {
+                        dir('backend') {
+                            sh 'docker build -t ${backendImage} .'
+                        }
+                    }
+                }
+                stage('Build Frontend Image') {
+                    steps {
+                        dir('frontend') {
+                            sh 'docker build -t ${frontendImage} .'
+                        }
+                    }
                 }
             }
         }
@@ -66,9 +90,10 @@ pipeline {
         stage('Deploy to Nexus') { 
             steps {   
                 script { 
-                    docker.withRegistry("http://"+registry, registryCredentials) { 
-                        sh('docker push $registry/nodemongoapp:5.0') 
-                    } 
+                    docker.withRegistry("http://"+registry, registryCredentials) {
+                        sh 'docker push ${backendImage}'
+                        sh 'docker push ${frontendImage}'
+                    }
                 } 
             } 
         }
@@ -76,7 +101,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script { 
-                    sh 'node -v'
+                    // Run SonarScanner (this can be adjusted if needed to only cover specific sources)
                     def scannerHome = tool 'scanner'
                     withSonarQubeEnv {
                         sh "${scannerHome}/bin/sonar-scanner"
@@ -85,13 +110,15 @@ pipeline {
             } 
         }
 
-        stage('Run application') { 
+        stage('Run Application') { 
             steps {   
                 script { 
                     docker.withRegistry("http://"+registry, registryCredentials) { 
-                        sh('docker pull ${registry}/nodemongoapp:5.0') 
-                        sh('docker-compose up -d') 
-                    } 
+                        sh 'docker pull ${backendImage}'
+                        sh 'docker pull ${frontendImage}'
+                    }
+                    // You can update your docker-compose file accordingly to run both images
+                    sh 'docker-compose up -d'
                 } 
             } 
         }
