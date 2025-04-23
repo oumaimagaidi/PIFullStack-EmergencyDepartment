@@ -9,11 +9,10 @@ const ConfirmationEmergencyRegister = () => {
     const location = useLocation();
     const formData = location.state?.formData;
     const patientId = location.state?.patientId;
-    const patientCode = location.state?.patientCode; // Added missing variable
+    const patientCode = location.state?.patientCode;
     const predictedWaitTime = location.state?.predictedWaitTime;
     const assignedDoctor = location.state?.assignedDoctor;
 
-    // Declare state variables
     const [waitTime, setWaitTime] = useState(predictedWaitTime || null);
     const [doctorInfo, setDoctorInfo] = useState(assignedDoctor || null);
 
@@ -22,16 +21,13 @@ const ConfirmationEmergencyRegister = () => {
     React.useEffect(() => {
         if (!patientId) return;
 
-        // Simuler un temps d'attente estimé
         const timer = setTimeout(() => {
-            setWaitTime(Math.random() * 30 + 15); // 15-45 minutes
+            setWaitTime(Math.random() * 30 + 15);
         }, 1000);
 
-        // Si un médecin est assigné, récupérer ses infos
         if (assignedDoctor && typeof assignedDoctor === 'object') {
             setDoctorInfo(assignedDoctor);
         } else if (assignedDoctor) {
-            // Si c'est juste un ID, faire une requête pour récupérer les infos
             axios.get(`http://localhost:8089/api/users/${assignedDoctor}`)
                 .then(response => setDoctorInfo(response.data))
                 .catch(console.error);
@@ -42,22 +38,22 @@ const ConfirmationEmergencyRegister = () => {
 
     if (!formData || !patientId) {
         return (
-            <div className="container mx-auto py-12 px-4 md:px-6 text-center">
-                <Card className="max-w-md mx-auto">
-                    <CardHeader>
-                        <CardTitle className="text-red-500 flex items-center justify-center">
-                            <AlertTriangle className="mr-2" />
-                            Erreur de Confirmation
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+                <Card className="max-w-md w-full shadow-lg rounded-2xl border border-red-200 bg-white transition-all duration-300 hover:shadow-xl">
+                    <CardHeader className="bg-red-50 rounded-t-2xl py-6 px-6">
+                        <CardTitle className="text-red-700 flex items-center justify-center text-2xl font-semibold">
+                            <AlertTriangle className="mr-2 h-6 w-6" />
+                            Confirmation Error
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <p>Les informations de confirmation n'ont pas été trouvées.</p>
-                        <div className="space-x-2">
-                            <Button asChild variant="secondary">
-                                <Link to="/home">Retour à l'accueil</Link>
+                    <CardContent className="p-6 space-y-6">
+                        <p className="text-gray-600 text-center text-base">Confirmation information could not be found.</p>
+                        <div className="flex justify-center space-x-4">
+                            <Button asChild variant="outline" className="rounded-lg border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors duration-200 px-6 py-2">
+                                <Link to="/home">Back to Home</Link>
                             </Button>
-                            <Button asChild>
-                                <Link to="/emergency-register">Nouvelle demande</Link>
+                            <Button asChild className="bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors duration-200 px-6 py-2">
+                                <Link to="/emergency-register">New Request</Link>
                             </Button>
                         </div>
                     </CardContent>
@@ -77,78 +73,90 @@ const ConfirmationEmergencyRegister = () => {
     };
 
     return (
-        <div className="container mx-auto py-12 px-4 md:px-6">
-            <Card className="max-w-2xl mx-auto">
-                <CardHeader className="flex flex-col space-y-1">
-                    <CardTitle className="text-2xl font-bold">
-                        <CheckCircle className="mr-2 inline-block h-6 w-6 text-green-500 align-top" />
-                        Demande d'Urgence Enregistrée !
+        <div className="min-h-screen bg-gray-100 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+            <Card className="max-w-4xl mx-auto shadow-xl rounded-2xl border border-gray-200 bg-white overflow-hidden transition-all duration-300 hover:shadow-2xl">
+                <CardHeader className="bg-gradient-to-r from-sky-400 to-sky-600 text-white py-8 px-6">
+                    <CardTitle className="text-3xl font-bold flex items-center">
+                        <CheckCircle className="mr-3 h-8 w-8 text-green-300" />
+                        Emergency Request Registered
                     </CardTitle>
-                    <CardDescription>
-                        Votre demande a été soumise avec succès. Voici un résumé des informations que vous avez fournies :
+                    <CardDescription className="text-sky-100 text-lg mt-2">
+                        Your request has been successfully submitted. Here is a summary of the information provided.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-4">
-                    <div className="border rounded-md p-4">
-                        <h4 className="font-semibold mb-2">Informations Personnelles</h4>
-                        <p>Nom: {formData.firstName} {formData.lastName}</p>
-                        <p>Date de Naissance: {formData.dateOfBirth}</p>
-                        <p>Genre: {formData.gender}</p>
-                        <p>Téléphone: {formData.phoneNumber}</p>
-                        {formData.email && <p>Email: {formData.email}</p>}
-                        <p>Adresse: {formData.address}</p>
-                        <p>Contact d'Urgence: {formData.emergencyContact}</p>
+                <CardContent className="p-8 grid gap-8">
+                    <div className="bg-teal-50 rounded-xl p-6 shadow-md border border-teal-100 transition-all duration-200">
+                        <h4 className="text-lg font-semibold text-teal-900 mb-4">Personal Information</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
+                            <p><span className="font-medium">Name:</span> {formData.firstName} {formData.lastName}</p>
+                            <p><span className="font-medium">Date of Birth:</span> {formData.dateOfBirth}</p>
+                            <p><span className="font-medium">Gender:</span> {formData.gender}</p>
+                            <p><span className="font-medium">Phone:</span> {formData.phoneNumber}</p>
+                            {formData.email && <p><span className="font-medium">Email:</span> {formData.email}</p>}
+                            <p><span className="font-medium">Address:</span> {formData.address}</p>
+                            <p><span className="font-medium">Emergency Contact:</span> {formData.emergencyContact}</p>
+                        </div>
                     </div>
 
-                    <div className="border rounded-md p-4">
-                        <h4 className="font-semibold mb-2">Informations Médicales</h4>
-                        {formData.insuranceInfo && <p>Information d'Assurance: {formData.insuranceInfo}</p>}
-                        {formData.allergies && <p>Allergies: {formData.allergies}</p>}
-                        {formData.currentMedications && <p>Médications Actuelles: {formData.currentMedications}</p>}
-                        {formData.medicalHistory && <p>Historique Médical: {formData.medicalHistory}</p>}
-                        <p>Symptômes Actuels: {formData.currentSymptoms}</p>
-                        <p>Niveau de Douleur: {formData.painLevel}</p>
-                        <p>Niveau d'Urgence: {formData.emergencyLevel}</p>
+                    <div className="bg-amber-50 rounded-xl p-6 shadow-md border border-amber-100 transition-all duration-200">
+                        <h4 className="text-lg font-semibold text-amber-900 mb-4">Medical Information</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
+                            {formData.insuranceInfo && <p><span className="font-medium">Insurance:</span> {formData.insuranceInfo}</p>}
+                            {formData.allergies && <p><span className="font-medium">Allergies:</span> {formData.allergies}</p>}
+                            {formData.currentMedications && <p><span className="font-medium">Current Medications:</span> {formData.currentMedications}</p>}
+                            {formData.medicalHistory && <p><span className="font-medium">Medical History:</span> {formData.medicalHistory}</p>}
+                            <p><span className="font-medium">Current Symptoms:</span> {formData.currentSymptoms}</p>
+                            <p><span className="font-medium">Pain Level:</span> {formData.painLevel}</p>
+                            <p><span className="font-medium">Emergency Level:</span> {formData.emergencyLevel}</p>
+                        </div>
                     </div>
 
-                    <div className="border rounded-md p-4 bg-blue-50">
-                        <h4 className="font-semibold mb-2 flex items-center">
-                            <AlertTriangle className="mr-2 h-4 w-4 text-blue-600 align-baseline" /> Prochaines Étapes Importantes</h4>
-                        <p className="mb-2">
-                            <strong className="flex items-center">
-                                <Clock className="mr-2 inline-block h-4 w-4 text-blue-600 align-baseline" /> Temps d'attente estimé: {waitTime ? `${waitTime.toFixed(0)} minutes` : "Calcul en cours..."}
-                            </strong>
-                        </p>
-                        {doctorInfo ? (
-                            <p className="mb-2">
-                                <strong><User className="mr-2 inline-block h-4 w-4 text-green-600 align-baseline" />
-                                Médecin Attribué :</strong> {doctorInfo.username} (Spécialité : {doctorInfo.specialization}, Contact : {doctorInfo.email})
-                            </p>
-                        ) : (
-                            <p className="mb-2">
+                    <div className="bg-sky-100 rounded-xl p-6 shadow-md border border-sky-200 transition-all duration-200">
+                        <h4 className="text-lg font-semibold text-sky-800 mb-4 flex items-center">
+                            <AlertTriangle className="mr-2 h-5 w-5 text-sky-600" /> Next Steps
+                        </h4>
+                        <div className="space-y-4 text-gray-700">
+                            <p>
                                 <strong className="flex items-center">
-                                    <Clock className="mr-2 inline-block h-4 w-4 text-blue-600 align-baseline" /> Affectation du médecin en cours...
-                                </strong>
+                                    <Clock className="mr-2 h-5 w-5 text-sky-600" /> Estimated Wait Time:
+                                </strong> {waitTime ? `${waitTime.toFixed(0)} minutes` : "Calculating..."}
                             </p>
-                        )}
-                        <p className="mb-2">
-                            <strong className="flex items-center">
-                                <Clock className="mr-2 inline-block h-4 w-4 text-blue-600 align-baseline" /> Restez Disponible :</strong> Une équipe médicale va examiner votre demande sous peu et vous contactera au numéro de téléphone que vous avez fourni. Veuillez rester joignable.
-                        </p>
-                        <p className="mb-2">
-                            <strong>Préparation (si possible) :</strong> Rassemblez votre carte d'assurance, une liste de vos médicaments actuels et tout document médical pertinent qui pourrait aider l'équipe médicale.
-                        </p>
-                        <p>
-                            <strong>Ne Quittez Pas Votre Domicile (sauf indication contraire) :</strong> Sauf indication contraire de notre part, veuillez rester à votre adresse pour faciliter l'intervention des secours ou de l'ambulance si nécessaire.
-                        </p>
+                            {doctorInfo ? (
+                                <p>
+                                    <strong className="flex items-center">
+                                        <User className="mr-2 h-5 w-5 text-green-600" /> Assigned Doctor:
+                                    </strong> {doctorInfo.username} (Specialty: {doctorInfo.specialization}, Contact: {doctorInfo.email})
+                                </p>
+                            ) : (
+                                <p>
+                                    <strong className="flex items-center">
+                                        <Clock className="mr-2 h-5 w-5 text-sky-600" /> Doctor Assignment:
+                                    </strong> In progress...
+                                </p>
+                            )}
+                            <p>
+                                <strong className="flex items-center">
+                                    <Clock className="mr-2 h-5 w-5 text-sky-600" /> Stay Available:
+                                </strong> A medical team will contact you shortly. Please remain reachable.
+                            </p>
+                            <p>
+                                <strong>Preparation:</strong> Gather your insurance card, current medications, and any relevant medical documents.
+                            </p>
+                            <p>
+                                <strong>Stay at Your Location:</strong> Unless otherwise instructed, remain at your address to facilitate emergency or ambulance response if needed.
+                            </p>
+                        </div>
                     </div>
 
-                    <div className="flex justify-between">
-                        <Button asChild variant="secondary">
-                            <Link to="/home">Retour à l'Accueil</Link>
+                    <div className="flex justify-between mt-6">
+                        <Button asChild variant="outline" className="rounded-lg border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors duration-200 text-base px-6 py-2">
+                            <Link to="/home">Back to Home</Link>
                         </Button>
-                        <Button variant="outline" onClick={handleTrackStatusClick}>
-                            Suivre le Statut de ma Demande
+                        <Button 
+                            onClick={handleTrackStatusClick} 
+                            className="bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors duration-200 text-base px-6 py-2"
+                        >
+                            Track Request Status
                         </Button>
                     </div>
                 </CardContent>

@@ -65,8 +65,6 @@ const EmergencyRegister = () => {
         const handleScroll = () => {
             if (containerRef.current) {
                 const scrollPosition = window.scrollY;
-                // Ajuster la position de l'arrière-plan en fonction du défilement
-                // Déplacer l'image vers le haut à une vitesse plus lente (parallax effect)
                 const offset = scrollPosition * 0.3; // Ajuster la vitesse (0.3 pour un effet subtil)
                 containerRef.current.style.backgroundPositionY = `${50 - offset}px`;
             }
@@ -117,13 +115,13 @@ const EmergencyRegister = () => {
     return (
         <div
             ref={containerRef}
-            className="min-h-screen bg-gray-50 py-12 px-4 md:px-8 flex items-center justify-center"
+            className="min-h-screen bg-gray-50 py-12 px-4 md:px-8 flex items-center justify-center pt-[90px]" // Ajout de pt-[80px] pour l'espace sous le header
             style={{
                 backgroundImage: `url('/images/doctor-avatar.jpg')`,
                 backgroundPosition: 'right center',
                 backgroundRepeat: 'no-repeat',
                 backgroundSize: 'contain',
-                backgroundAttachment: 'fixed', // Fixe l'image pour l'effet de parallaxe
+                backgroundAttachment: 'fixed',
             }}
         >
             <div className="max-w-6xl w-full flex flex-col md:flex-row gap-8">
