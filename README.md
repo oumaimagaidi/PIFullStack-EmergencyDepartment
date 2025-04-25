@@ -67,7 +67,7 @@ A comprehensive system for managing emergency department operations including:
 
 | Member                | Role                          | Branch Link                                                                 |
 |-----------------------|-------------------------------|-----------------------------------------------------------------------------|
-| Dr. Emna Ouerghemmi   | EMR Specialist                | [integrations8](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/tree/integrations8) |
+|  Emna Ouerghemmi   | EMR Specialist                | [integrations8](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/tree/integrations8) |
 | Oumaima Gaidi         | Patient Flow Manager          | [profile](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/tree/profile) |
 | Ahmed N. A. Mejri     | Ambulance Coordinator         | [ambulance-check](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/tree/integrationS8) |
 
