@@ -1,11 +1,11 @@
 // src/pages/EmergencyRegister.jsx
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { AlertTriangle, Heart } from "lucide-react";
-
+import { AlertTriangle, Heart, Stethoscope, User, UserPlus } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,8 @@ import axios from 'axios';
 const emergencyFormSchema = z.object({
     firstName: z.string().min(2, { message: "First name must be at least 2 characters" }),
     lastName: z.string().min(2, { message: "Last name must be at least 2 characters" }),
-    dateOfBirth: z.string().min(1, { message: "Date of birth is required" }), // Keep as string for now, handle formatting later if needed
-    gender: z.enum(["male", "female", "other"], {
-        required_error: "Please select a gender"
-    }),
+    dateOfBirth: z.string().min(1, { message: "Date of birth is required" }),
+    gender: z.enum(["male", "female", "other"], { required_error: "Please select a gender" }),
     phoneNumber: z.string().min(8, { message: "Invalid phone number" }),
     email: z.string().email({ message: "Invalid email address" }).optional(),
     address: z.string().min(5, { message: "Address must be at least 5 characters" }),
@@ -32,15 +30,9 @@ const emergencyFormSchema = z.object({
     currentMedications: z.string().optional(),
     medicalHistory: z.string().optional(),
     currentSymptoms: z.string().min(5, { message: "Please describe your current symptoms" }),
-    painLevel: z.enum(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], {
-        required_error: "Please select your pain level"
-    }),
-    emergencyLevel: z.enum(["low", "medium", "high", "critical"], {
-        required_error: "Please select the emergency level"
-    }),
-    acceptTerms: z.boolean().refine(val => val === true, {
-        message: "You must accept the terms and conditions",
-    }),
+    painLevel: z.enum(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], { required_error: "Please select your pain level" }),
+    emergencyLevel: z.enum(["low", "medium", "high", "critical"], { required_error: "Please select the emergency level" }),
+    acceptTerms: z.boolean().refine(val => val === true, { message: "You must accept the terms and conditions" }),
 });
 
 const EmergencyRegister = () => {
@@ -50,7 +42,7 @@ const EmergencyRegister = () => {
             firstName: "",
             lastName: "",
             dateOfBirth: "",
-            gender: "", // Initialize gender
+            gender: "",
             phoneNumber: "",
             email: "",
             address: "",
@@ -60,307 +52,283 @@ const EmergencyRegister = () => {
             currentMedications: "",
             medicalHistory: "",
             currentSymptoms: "",
-            painLevel: "", // Initialize painLevel
-            emergencyLevel: "", // Initialize emergencyLevel
-            acceptTerms: false,
-        },
+            painLevel: "",
+            emergencyLevel: "",
+            acceptTerms: false
+        }
     });
+    const navigate = useNavigate();
+    const containerRef = useRef(null);
+
+    // Effet de parallaxe
+    useEffect(() => {
+        const handleScroll = () => {
+            if (containerRef.current) {
+                const scrollPosition = window.scrollY;
+                // Ajuster la position de l'arrière-plan en fonction du défilement
+                // Déplacer l'image vers le haut à une vitesse plus lente (parallax effect)
+                const offset = scrollPosition * 0.3; // Ajuster la vitesse (0.3 pour un effet subtil)
+                containerRef.current.style.backgroundPositionY = `${50 - offset}px`;
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
 
     async function onSubmit(data) {
         try {
-            // Correct URL for the backend endpoint
             const response = await axios.post('http://localhost:8089/api/emergency-patients', data);
-            console.log(response.data);
+            console.log("Full response:", response);
+            console.log("Patient data:", response.data);
+            if (!response.data || !response.data.patient || !response.data.patient._id) {
+                throw new Error("Invalid response format from server");
+            }
+            const patientData = response.data.patient;
+            const patientCode = response.data.patientCode;
             toast.success("Your emergency request has been registered", {
-                description: "A member of our medical team will contact you shortly.",
+                description: "A member of our medical team will contact you shortly."
             });
-            form.reset(); // Reset the form after successful submission
-
-        } catch (error) {
-            if (error.response) {
-                console.error("Server error:", error.response.data);
-                // Handle specific validation errors from the backend
-                if (error.response.data.message && Array.isArray(error.response.data.message)) {
-                    error.response.data.message.forEach(errorMessage => {
-                        toast.error("Validation Error", { description: errorMessage });
-                    });
-
-                } else {
-                    toast.error("Failed to register emergency request", {
-                        description: error.response.data.message || "An error occurred on the server.",
-                    });
+            form.reset();
+            navigate('/emergency-confirmation', {
+                state: {
+                    formData: data,
+                    patientId: patientData._id,
+                    patientCode: patientCode,
+                    assignedDoctor: patientData.assignedDoctor || null
                 }
-
-
-            } else if (error.request) {
-                console.error("No response received from server");
-                toast.error("Failed to register emergency request", {
-                    description: "No response received from the server. Please check your network connection.",
+            });
+        } catch (error) {
+            console.error("Registration error:", error);
+            if (error.response) {
+                toast.error("Registration failed", {
+                    description: error.response.data.message || "Server error occurred"
                 });
             } else {
-                console.error("Error setting up request:", error.message);
-                toast.error("Failed to register emergency request", {
-                    description: "An unexpected error occurred. Please try again later.",
+                toast.error("Registration failed", {
+                    description: error.message || "Network error occurred"
                 });
             }
         }
     }
 
-
     return (
-        <div className="container mx-auto py-6 px-4 md:px-6">
-            <Card className="w-full max-w-4xl mx-auto shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-400 text-white">
-                    <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-6 w-6" />
-                        <Heart className="h-6 w-6" />
-                    </div>
-                    <CardTitle className="text-2xl md:text-3xl font-bold">
-                        Patient Emergency Registration
-                    </CardTitle>
-                    <CardDescription className="text-base">
-                        Please fill out this form with your information and the issues you are currently experiencing.
-                    </CardDescription>
-                </CardHeader>
-
-                <CardContent className="pt-6">
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Personal Information Section */}
-                                <div className="space-y-6">
-                                    <h3 className="text-lg font-medium text-blue-600">Personal Information</h3>
-                                    <FormField
-                                        control={form.control}
-                                        name="firstName"
-                                        render={({ field }) => (
+        <div
+            ref={containerRef}
+            className="min-h-screen bg-gray-50 py-12 px-4 md:px-8 flex items-center justify-center"
+            style={{
+                backgroundImage: `url('/images/doctor-avatar.jpg')`,
+                backgroundPosition: 'right center',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: 'contain',
+                backgroundAttachment: 'fixed', // Fixe l'image pour l'effet de parallaxe
+            }}
+        >
+            <div className="max-w-6xl w-full flex flex-col md:flex-row gap-8">
+                {/* Left Section: Form */}
+                <Card className="w-full md:w-3/4 max-w-4xl shadow-2xl rounded-2xl overflow-hidden border border-blue-100 animate-in fade-in duration-500 bg-white">
+                    <CardHeader className="relative bg-gradient-to-r from-blue-600 to-teal-500 text-white py-8 px-8">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2 bg-white rounded-full shadow-md">
+                                <AlertTriangle className="h-8 w-8 text-yellow-400" />
+                            </div>
+                            <div className="p-2 bg-white rounded-full shadow-md">
+                                <Heart className="h-8 w-8 text-red-400 animate-pulse" />
+                            </div>
+                        </div>
+                        <CardTitle className="text-4xl font-bold mt-4 tracking-tight">Emergency Patient Registration</CardTitle>
+                        <CardDescription className="text-blue-100 text-lg mt-2">Our medical team is here to assist you. Please provide your details.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-12 bg-white">
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                    {/* Personal Information */}
+                                    <div className="space-y-8 relative">
+                                        <div className="flex items-center gap-3">
+                                            <UserPlus className="h-8 w-8 text-blue-600" />
+                                            <h3 className="text-2xl font-semibold text-blue-700">Personal Information</h3>
+                                        </div>
+                                        <FormField control={form.control} name="firstName" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">First Name</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <User className="h-4 w-4 text-blue-500" /> First Name
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="First Name" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <Input placeholder="John" {...field} className="rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 shadow-sm" />
                                                 </FormControl>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="lastName"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="lastName" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Last Name</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <User className="h-4 w-4 text-blue-500" /> Last Name
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Last Name" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <Input placeholder="Doe" {...field} className="rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 shadow-sm" />
                                                 </FormControl>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="dateOfBirth"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="dateOfBirth" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Date of Birth</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <User className="h-4 w-4 text-blue-500" /> Date of Birth
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Input type="date" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <Input type="date" {...field} className="rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 shadow-sm" />
                                                 </FormControl>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="gender"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="gender" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Gender</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <User className="h-4 w-4 text-blue-500" /> Gender
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <RadioGroup
-                                                        onValueChange={field.onChange}
-                                                        defaultValue={field.value}
-                                                        className="flex flex-col space-y-1"
-                                                    >
-                                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-3">
+                                                        <FormItem className="flex items-center space-x-3">
                                                             <FormControl>
                                                                 <RadioGroupItem value="male" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" />
                                                             </FormControl>
-                                                            <FormLabel className="font-normal text-blue-700">
-                                                                Male
-                                                            </FormLabel>
+                                                            <FormLabel className="font-normal text-gray-700">Male</FormLabel>
                                                         </FormItem>
-                                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                                        <FormItem className="flex items-center space-x-3">
                                                             <FormControl>
                                                                 <RadioGroupItem value="female" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" />
                                                             </FormControl>
-                                                            <FormLabel className="font-normal text-blue-700">
-                                                                Female
-                                                            </FormLabel>
+                                                            <FormLabel className="font-normal text-gray-700">Female</FormLabel>
                                                         </FormItem>
-                                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                                        <FormItem className="flex items-center space-x-3">
                                                             <FormControl>
                                                                 <RadioGroupItem value="other" className="border-blue-500 text-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white" />
                                                             </FormControl>
-                                                            <FormLabel className="font-normal text-blue-700">
-                                                                Other
-                                                            </FormLabel>
+                                                            <FormLabel className="font-normal text-gray-700">Other</FormLabel>
                                                         </FormItem>
                                                     </RadioGroup>
                                                 </FormControl>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="phoneNumber"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="phoneNumber" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Phone Number</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <User className="h-4 w-4 text-blue-500" /> Phone Number
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="+1 555-555-5555" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <Input placeholder="+1 555-555-5555" {...field} className="rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 shadow-sm" />
                                                 </FormControl>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="email"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="email" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Email (optional)</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <User className="h-4 w-4 text-blue-500" /> Email (optional)
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Input type="email" placeholder="email@example.com" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <Input type="email" placeholder="email@example.com" {...field} className="rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 shadow-sm" />
                                                 </FormControl>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="address"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="address" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Address</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <User className="h-4 w-4 text-blue-500" /> Address
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Textarea placeholder="Your full address" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <Textarea placeholder="Your full address" {...field} className="rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 shadow-sm" />
                                                 </FormControl>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="emergencyContact"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="emergencyContact" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Emergency Contact</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <User className="h-4 w-4 text-blue-500" /> Emergency Contact
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Name and phone number" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <Input placeholder="Name and phone number" {...field} className="rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 shadow-sm" />
                                                 </FormControl>
-                                                <FormDescription className="text-blue-600">
-                                                    Person to contact in case of emergency
-                                                </FormDescription>
+                                                <FormDescription className="text-gray-600 text-sm">Person to contact in case of emergency</FormDescription>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                {/* Medical Information Section */}
-                                <div className="space-y-6">
-                                    <h3 className="text-lg font-medium text-blue-600">Medical Information</h3>
-
-                                    <FormField
-                                        control={form.control}
-                                        name="insuranceInfo"
-                                        render={({ field }) => (
+                                        )} />
+                                    </div>
+                                    {/* Medical Information */}
+                                    <div className="space-y-8 relative">
+                                        <div className="flex items-center gap-3">
+                                            <Stethoscope className="h-8 w-8 text-teal-600" />
+                                            <h3 className="text-2xl font-semibold text-teal-700">Medical Information</h3>
+                                        </div>
+                                        <FormField control={form.control} name="insuranceInfo" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Insurance Information (optional)</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <Stethoscope className="h-4 w-4 text-teal-500" /> Insurance Information (optional)
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Insurance policy number" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <Input placeholder="Insurance policy number" {...field} className="rounded-xl border-gray-200 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 shadow-sm" />
                                                 </FormControl>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="allergies"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="allergies" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Allergies (optional)</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <Stethoscope className="h-4 w-4 text-teal-500" /> Allergies (optional)
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Textarea placeholder="List any known allergies" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <Textarea placeholder="List any known allergies" {...field} className="rounded-xl border-gray-200 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 shadow-sm" />
                                                 </FormControl>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="currentMedications"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="currentMedications" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Current Medications (optional)</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <Stethoscope className="h-4 w-4 text-teal-500" /> Current Medications (optional)
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Textarea placeholder="Medications you are currently taking" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <Textarea placeholder="Medications you are currently taking" {...field} className="rounded-xl border-gray-200 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 shadow-sm" />
                                                 </FormControl>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="medicalHistory"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="medicalHistory" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Medical History (optional)</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <Stethoscope className="h-4 w-4 text-teal-500" /> Medical History (optional)
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Textarea placeholder="Pre-existing medical conditions" {...field} className="border-blue-300 focus:ring-blue-500 focus:border-blue-500" />
+                                                    <Textarea placeholder="Pre-existing medical conditions" {...field} className="rounded-xl border-gray-200 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 shadow-sm" />
                                                 </FormControl>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="currentSymptoms"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="currentSymptoms" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Current Symptoms</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <Stethoscope className="h-4 w-4 text-teal-500" /> Current Symptoms
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Textarea
-                                                        placeholder="Describe in detail the symptoms you are experiencing"
-                                                        className="min-h-[120px] border-blue-300 focus:ring-blue-500 focus:border-blue-500"
-                                                        {...field}
-                                                    />
+                                                    <Textarea placeholder="Describe in detail the symptoms you are experiencing" className="min-h-[160px] rounded-xl border-gray-200 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 shadow-sm" {...field} />
                                                 </FormControl>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="painLevel"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="painLevel" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Pain Level (1-10)</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <Stethoscope className="h-4 w-4 text-teal-500" /> Pain Level (1-10)
+                                                </FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                     <FormControl>
-                                                        <SelectTrigger className="border-blue-300 focus:ring-blue-500 focus:border-blue-500">
+                                                        <SelectTrigger className="rounded-xl border-gray-200 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 shadow-sm">
                                                             <SelectValue placeholder="Select pain level" />
                                                         </SelectTrigger>
                                                     </FormControl>
@@ -379,18 +347,15 @@ const EmergencyRegister = () => {
                                                 </Select>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="emergencyLevel"
-                                        render={({ field }) => (
+                                        )} />
+                                        <FormField control={form.control} name="emergencyLevel" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-blue-800">Emergency Level</FormLabel>
+                                                <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                    <Stethoscope className="h-4 w-4 text-teal-500" /> Emergency Level
+                                                </FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                     <FormControl>
-                                                        <SelectTrigger className="border-blue-300 focus:ring-blue-500 focus:border-blue-500">
+                                                        <SelectTrigger className="rounded-xl border-gray-200 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 shadow-sm">
                                                             <SelectValue placeholder="Select emergency level" />
                                                         </SelectTrigger>
                                                     </FormControl>
@@ -403,48 +368,31 @@ const EmergencyRegister = () => {
                                                 </Select>
                                                 <FormMessage className="text-red-500" />
                                             </FormItem>
-                                        )}
-                                    />
+                                        )} />
+                                    </div>
                                 </div>
-                            </div>
-
-                            {/* Terms and Conditions Section */}
-                            <FormField
-                                control={form.control}
-                                name="acceptTerms"
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-blue-300 p-4 bg-blue-50">
+                                <FormField control={form.control} name="acceptTerms" render={({ field }) => (
+                                    <FormItem className="flex items-start space-x-4 rounded-xl border border-gray-200 p-6 bg-gray-50 shadow-sm">
                                         <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className="data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
-                                            />
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 h-5 w-5" />
                                         </FormControl>
-                                        <div className="space-y-1 leading-none">
-                                            <FormLabel className="text-blue-800">
-                                                I accept the terms and conditions and authorize the facility to process my medical data
+                                        <div className="space-y-2">
+                                            <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
+                                                <User className="h-4 w-4 text-blue-500" /> I accept the terms and conditions
                                             </FormLabel>
-                                            <FormDescription className="text-blue-600">
-                                                By checking this box, you agree to your information being used for your medical care.
-                                            </FormDescription>
+                                            <FormDescription className="text-gray-600 text-sm">By checking this box, you authorize the facility to process your medical data for your care.</FormDescription>
                                         </div>
                                         <FormMessage className="text-red-500" />
                                     </FormItem>
-                                )}
-                            />
-
-                            <Button
-                                type="submit"
-                                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-                                size="lg"
-                            >
-                                Submit Emergency Request
-                            </Button>
-                        </form>
-                    </Form>
-                </CardContent>
-            </Card>
+                                )} />
+                                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
+                                    <Heart className="h-5 w-5" /> Submit Emergency Request
+                                </Button>
+                            </form>
+                        </Form>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 };

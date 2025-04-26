@@ -1,55 +1,128 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { FaLocationArrow, FaPhone } from "react-icons/fa6";
-import { MdEmail } from "react-icons/md";
+import { Link } from "react-router-dom"
+import { FaLocationArrow, FaPhone, FaAmbulance, FaHospital, FaFirstAid } from "react-icons/fa"
+import { MdEmail, MdEmergency } from "react-icons/md"
+import { BsClockFill } from "react-icons/bs"
+import "./footer.css"
 
 const Footer = () => {
-  const hours = [
-    { id: 1, day: "Monday", time: "9:00 AM - 11:00 PM" },
-    { id: 2, day: "Tuesday", time: "12:00 PM - 12:00 AM" },
-    { id: 3, day: "Wednesday", time: "10:00 AM - 10:00 PM" },
-    { id: 4, day: "Thursday", time: "9:00 AM - 9:00 PM" },
-    { id: 5, day: "Friday", time: "3:00 PM - 9:00 PM" },
-    { id: 6, day: "Saturday", time: "9:00 AM - 3:00 PM" },
-  ];
+  const hours = [{ id: 1, day: "Monday-Saturday", time: "24/24" }]
 
   return (
     <footer className="footer_container">
+      {/* Emergency Banner */}
+      <div className="emergency-contact-banner">
+        <div className="emergency-contact-item">
+          <FaAmbulance className="emergency-icon pulse-icon" />
+          <div>
+            <h3>Emergency Hotline</h3>
+            <a href="tel:+21656800822">+216 56 800 822</a>
+          </div>
+        </div>
+        <div className="emergency-contact-item">
+          <MdEmergency className="emergency-icon" />
+          <div>
+            <h3>24/7 Emergency</h3>
+            <p>Always Available</p>
+          </div>
+        </div>
+        <div className="emergency-contact-item">
+          <FaFirstAid className="emergency-icon" />
+          <div>
+            <h3>Urgent Care</h3>
+            <Link to="/emergency-register">Register Now</Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Footer Content */}
       <div className="footer_content">
-        <div className="footer_logo">
-          <img src="./images/logo1.png" alt="logo" className="footer_logo-img"/>
+        <div className="footer_section footer_about">
+          <div className="footer_logo">
+            <img src="./images/logo1.png" alt="Emergency Department Logo" className="footer_logo-img" />
+            <div className="footer_logo-text">
+              <span className="footer_logo-title">EMERGENCY MANAGEMENT</span>
+              <span className="footer_logo-subtitle">Healthcare System</span>
+            </div>
+            <p className="footer_tagline">Providing immediate, life-saving care when every second counts.</p>
+          </div>
         </div>
 
-        <div className="footer_section">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><Link to={"/"}>Home</Link></li>
-            <li><Link to={"/appointment"}>Appointment</Link></li>
-            <li><Link to={"/about"}>About</Link></li>
+        <div className="footer_section footer_links-section">
+          <h4>
+            <FaHospital className="footer-icon" /> Quick Links
+          </h4>
+          <ul className="footer_links">
+            <li>
+              <Link to={"/"}>
+                <span>Home</span>
+              </Link>
+            </li>
+            <li>
+              <Link to={"/emergency-register"}>
+                <span>Emergency Services</span>
+              </Link>
+            </li>
+            <li>
+              <Link to={"/appointment"}>
+                <span>Appointment</span>
+              </Link>
+            </li>
+            <li>
+              <Link to={"/document"}>
+                <span>Medical Documents</span>
+              </Link>
+            </li>
+            <li>
+              <Link to={"/about"}>
+                <span>About Us</span>
+              </Link>
+            </li>
           </ul>
         </div>
 
-        <div className="footer_section">
-          <h4>Opening Hours</h4>
-          <ul>
-            {hours.map((element) => (
-              <li key={element.id}>
-                <span>{element.day}</span>
-                <span>{element.time}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <div className="footer_section footer_hours-section">
+          <h4>
+            <BsClockFill className="footer-icon" /> Hours & Contact
+          </h4>
+          <div className="footer_hours-container">
+            <div className="footer_hours-list">
+              {hours.slice(0, 3).map((element) => (
+                <div key={element.id} className="hour-item">
+                  <span className="day">{element.day}</span>
+                  <span className="time">{element.time}</span>
+                </div>
+              ))}
+            </div>
+            <div className="footer_contact">
+            <div className="contact-item">
+              <FaPhone className="contact-icon" />
+              <a href="tel:+21656800822">+216 56 800 822</a>
+            </div>
+            <div className="contact-item">
+              <MdEmail className="contact-icon" />
+              <a href="mailto:Edepartement@gmail.com">Edepartement@gmail.com</a>
+            </div>
+            <div className="contact-item">
+              <FaLocationArrow className="contact-icon" />
+              <address>Ariana, Tunisia</address>
+            </div>
+          </div>
 
-        <div className="footer_section">
-          <h4>Contact Us</h4>
-          <div><FaPhone /><span>+21656800822</span></div>
-          <div><MdEmail /><span>Edepartement@gmail.com</span></div>
-          <div><FaLocationArrow /><span>Karachi, Pakistan</span></div>
+          
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Bottom */}
+      <div className="footer_bottom">
+        <p>&copy; {new Date().getFullYear()} Emergency Department. All rights reserved.</p>
+        <div className="footer_bottom-links">
+          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/terms">Terms of Service</Link>
         </div>
       </div>
     </footer>
-  );
-};
+  )
+}
 
-export default Footer;
+export default Footer

@@ -1,0 +1,367 @@
+/* Emergency Department Footer Styles with #42A5FF, #6DDDCF, #FF4242 color scheme */
+.footer_container {
+  background: linear-gradient(135deg, #42a5ff 0%, #6dddcf 100%);
+  color: #ffffff;
+  padding-bottom: 20px;
+  margin-top: 50px;
+  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Emergency Contact Banner */
+.emergency-contact-banner {
+  background-color: #ff4242;
+  display: flex;
+  justify-content: space-around;
+  padding: 15px 20px;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.emergency-contact-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 15px;
+  transition: transform 0.2s ease;
+}
+
+.emergency-contact-item:hover {
+  transform: translateY(-3px);
+}
+
+.emergency-icon {
+  font-size: 24px;
+  margin-right: 12px;
+  color: white;
+}
+
+.pulse-icon {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.emergency-contact-item h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+}
+
+.emergency-contact-item a,
+.emergency-contact-item p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.emergency-contact-item a:hover {
+  text-decoration: underline;
+}
+
+/* Footer Content */
+.footer_content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 30px 40px 20px;
+  gap: 20px;
+}
+
+.footer_section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.footer_about {
+  flex: 1.2;
+}
+
+.footer_logo {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.footer_logo-img {
+  height: 50px;
+  background-color: white;
+  padding: 5px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.footer_logo-text {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.footer_logo-title {
+  font-weight: bold;
+  color: #003d80;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+.footer_logo-subtitle {
+  font-size: 12px;
+  color: #1E88E5;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.footer_tagline {
+  color: white;
+  margin-bottom: 15px;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.footer_social {
+  display: flex;
+  gap: 12px;
+}
+
+.footer_social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.footer_social a:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.footer_section h4 {
+  color: white;
+  font-size: 16px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  padding-bottom: 8px;
+}
+
+.footer-icon {
+  margin-right: 8px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Quick Links */
+.footer_links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.footer_links li {
+  margin-bottom: 8px;
+}
+
+.footer_links a {
+  color: white;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.footer_links a:hover {
+  color: #e6f4ff;
+  transform: translateX(3px);
+}
+
+.footer_links a:before {
+  content: "›";
+  margin-right: 6px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Opening Hours */
+.footer_hours-container {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.footer_hours-list {
+  flex: 1;
+}
+
+.hour-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding-bottom: 3px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+  font-size: 13px;
+}
+
+.day {
+  color: white;
+}
+
+.time {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.emergency-hours {
+  background-color: rgba(255, 66, 66, 0.2);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.emergency-hours .day {
+  font-weight: bold;
+}
+
+/* Contact Us */
+.footer_contact {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  transition: transform 0.2s ease;
+}
+
+.contact-item:hover {
+  transform: translateX(3px);
+}
+
+.contact-icon {
+  margin-right: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+.footer_contact a,
+.footer_contact address {
+  color: white;
+  text-decoration: none;
+  font-style: normal;
+  margin: 0;
+}
+
+.footer_contact a:hover {
+  text-decoration: underline;
+}
+
+/* Footer Bottom */
+.footer_bottom {
+  text-align: center;
+  padding-top: 15px;
+  margin-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 15px 40px 0;
+}
+
+.footer_bottom p {
+  margin: 0;
+  color: white;
+  font-size: 13px;
+}
+
+.footer_bottom-links {
+  display: flex;
+  gap: 15px;
+}
+
+.footer_bottom-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.2s ease;
+}
+
+.footer_bottom-links a:hover {
+  text-decoration: underline;
+  color: #e6f4ff;
+}
+
+/* Responsive Styles */
+@media (max-width: 992px) {
+  .footer_content {
+    gap: 30px;
+  }
+
+  .footer_section {
+    flex: 1 1 45%;
+  }
+
+  .footer_about {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer_content {
+    padding: 20px;
+  }
+
+  .footer_section {
+    flex: 1 1 100%;
+  }
+
+  .emergency-contact-banner {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .footer_bottom {
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px 20px 0;
+  }
+
+  .footer_bottom-links {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer_hours-container {
+    flex-direction: column;
+    gap: 5px;
+  }
+}
