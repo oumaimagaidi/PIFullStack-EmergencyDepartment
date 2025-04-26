@@ -1,27 +1,32 @@
 version: '3.8'
 
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 192.168.252.114:8083/nodemongoapp:5.0
+    container_name: nodemongoapp
+    restart: always
+    ports:
+      - "3000:3000"
+      - "8089:8089"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+
   db:
     image: mongo:5.0
-    container_name: db
+    container_name: mongo
     restart: always
+    ports:
+      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
-    ports:
-      - 27017:27017
     volumes:
-      - ./data/dump:/dump 
-
-  app:
-    build: .
-    image: 192.168.252.114:8083/nodemongoapp:5.0
-    restart: always
-    container_name: back
-    ports:
-      - '3000:3000'
-    depends_on:
-      - db
+      - ./data:/data/db
 
 volumes:
   mongo-data:

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Dossier Médical - {{patientName}}</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      line-height: 1.6; 
+      padding: 20px;
+      color: #333;
+    }
+    .header { 
+      text-align: center; 
+      margin-bottom: 30px; 
+      border-bottom: 2px solid #42A5FF; 
+      padding-bottom: 20px; 
+    }
+    .patient-info { 
+      margin-bottom: 30px; 
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    .file-section { 
+      margin-bottom: 30px; 
+      border: 1px solid #eee;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    .file-header {
+      background-color: #f0f7ff;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .logo { 
+      max-width: 150px;
+      height: auto;
+    }
+    h1 { color: #42A5FF; }
+    h2 { color: #42A5FF; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+    h3 { color: #6DDDCF; margin-bottom: 5px; }
+    h4 { color: #555; margin-bottom: 5px; margin-top: 15px; }
+    hr { border: 0.5px solid #eee; margin: 20px 0; }
+    .footer { 
+      text-align: center; 
+      margin-top: 30px; 
+      font-size: 0.8em; 
+      color: #777;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    .info-item {
+      margin-bottom: 10px;
+    }
+    .info-label {
+      font-weight: bold;
+      color: #555;
+      font-size: 0.9em;
+    }
+    .info-value {
+      margin-top: 3px;
+    }
+    .card {
+      border: 1px solid #eee;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #fff;
+    }
+    .card-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #42A5FF;
+    }
+    .card-subtitle {
+      font-size: 0.8em;
+      color: #777;
+      margin-bottom: 8px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+    .badge-primary {
+      background-color: #E6F3FF;
+      color: #42A5FF;
+    }
+    .badge-secondary {
+      background-color: #E6F9F7;
+      color: #6DDDCF;
+    }
+    .badge-warning {
+      background-color: #FFF5E6;
+      color: #FF9F42;
+    }
+    .badge-danger {
+      background-color: #FFEBEB;
+      color: #FF4242;
+    }
+    .vital-signs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .vital-sign-card {
+      border: 1px solid #eee;
+      border-radius: 5px;
+      padding: 10px;
+      background-color: #f8f9fa;
+    }
+    .vital-sign-title {
+      font-size: 0.8em;
+      color: #777;
+    }
+    .vital-sign-value {
+      font-weight: bold;
+      font-size: 1.1em;
+      color: #333;
+    }
+    .notes-section {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 15px;
+      font-style: italic;
+    }
+    .section-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #555;
+    }
+    .allergy-item, .condition-item, .medication-item {
+      padding: 8px;
+      margin-bottom: 5px;
+      border-radius: 5px;
+    }
+    .allergy-item {
+      background-color: #FFEBEB;
+      border-left: 3px solid #FF4242;
+    }
+    .condition-item {
+      background-color: #E6F9F7;
+      border-left: 3px solid #6DDDCF;
+    }
+    .medication-item {
+      background-color: #E6F3FF;
+      border-left: 3px solid #42A5FF;
+    }
+    .page-break {
+      page-break-after: always;
+    }
+    .confidential {
+      text-align: center;
+      font-size: 0.7em;
+      color: #FF4242;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="{{logo}}" class="logo" alt="Logo du site">
+    <div class="header-text">
+      <h1>Dossier Médical Électronique</h1>
+      <p>Code d'accès: <strong>{{accessCode}}</strong></p>
+      <p class="confidential">DOCUMENT CONFIDENTIEL</p>
+    </div>
+  </div>
+
+  <div class="patient-info">
+    <h2>Informations Patient</h2>
+    <div class="info-grid">
+      <div>
+        <div class="info-item">
+          <div class="info-label">Nom complet</div>
+          <div class="info-value"><strong>{{patientName}}</strong></div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Date de naissance</div>
+          <div class="info-value">{{birthDate}}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Sexe</div>
+          <div class="info-value">{{gender}}</div>
+        </div>
+      </div>
+      <div>
+        <div class="info-item">
+          <div class="info-label">Téléphone</div>
+          <div class="info-value">{{phoneNumber}}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Email</div>
+          <div class="info-value">{{email}}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Groupe sanguin</div>
+          <div class="info-value"><strong>{{bloodType}}</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="medical-info">
+    <h2>Informations Médicales</h2>
+    
+    {{#if allergies}}
+    <h4>Allergies connues :</h4>
+    <ul>
+      {{#each allergies}}
+        <li>{{@index}}. {{this.name}}</li>
+      {{/each}}
+    </ul>
+    {{/if}}
+    
+    {{#if chronicConditions}}
+    <h4>Conditions Chroniques</h4>
+    <div>
+      {{#each chronicConditions}}
+      <div class="condition-item">{{this}}</div>
+      {{/each}}
+    </div>
+    {{/if}}
+    
+    {{#if medications}}
+    <h4>Médicaments Actuels</h4>
+    <div>
+      {{#each medications}}
+      <div class="medication-item">
+        <div><strong>{{this.name}}</strong></div>
+        <div style="font-size: 0.9em;">{{this.dosage}}, {{this.frequency}}</div>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+  </div>
+
+  {{#if emergencyContact}}
+  <div class="emergency-info">
+    <h2>Contact d'Urgence</h2>
+    <div class="card" style="border-left: 4px solid #FF4242;">
+      <div class="info-grid">
+        {{#if emergencyContact.name}}
+        <div class="info-item">
+          <div class="info-label">Nom</div>
+          <div class="info-value"><strong>{{emergencyContact.name}}</strong></div>
+        </div>
+        {{/if}}
+        {{#if emergencyContact.relationship}}
+        <div class="info-item">
+          <div class="info-label">Relation</div>
+          <div class="info-value">{{emergencyContact.relationship}}</div>
+        </div>
+        {{/if}}
+        {{#if emergencyContact.phone}}
+        <div class="info-item">
+          <div class="info-label">Téléphone</div>
+          <div class="info-value">{{emergencyContact.phone}}</div>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+  {{/if}}
+
+  <div class="page-break"></div>
+
+  <h2>Documents Médicaux</h2>
+  {{#each files}}
+  <div class="file-section">
+    <div class="file-header">
+      <h3>{{this.type}}</h3>
+      <span>{{this.dateFormatted}}</span>
+    </div>
+
+    {{#if this.details.patientInfo}}
+    <!-- PatientInformation -->
+    <div>
+      <h4>Informations Personnelles</h4>
+      <div class="info-grid">
+        <div>
+          {{#if this.details.patientInfo.firstName}}
+          <div class="info-item">
+            <div class="info-label">Prénom</div>
+            <div class="info-value">{{this.details.patientInfo.firstName}}</div>
+          </div>
+          {{/if}}
+          {{#if this.details.patientInfo.lastName}}
+          <div class="info-item">
+            <div class="info-label">Nom</div>
+            <div class="info-value">{{this.details.patientInfo.lastName}}</div>
+          </div>
+          {{/if}}
+          {{#if this.details.patientInfo.dateOfBirth}}
+          <div class="info-item">
+            <div class="info-label">Date de naissance</div>
+            <div class="info-value">{{this.details.patientInfo.dateOfBirth}}</div>
+          </div>
+          {{/if}}
+        </div>
+        <div>
+          {{#if this.details.patientInfo.gender}}
+          <div class="info-item">
+            <div class="info-label">Genre</div>
+            <div class="info-value">{{this.details.patientInfo.gender}}</div>
+          </div>
+          {{/if}}
+          {{#if this.details.patientInfo.phoneNumber}}
+          <div class="info-item">
+            <div class="info-label">Téléphone</div>
+            <div class="info-value">{{this.details.patientInfo.phoneNumber}}</div>
+          </div>
+          {{/if}}
+          {{#if this.details.patientInfo.email}}
+          <div class="info-item">
+            <div class="info-label">Email</div>
+            <div class="info-value">{{this.details.patientInfo.email}}</div>
+          </div>
+          {{/if}}
+        </div>
+      </div>
+
+      {{#if this.details.patientInfo.medicalHistory}}
+      <h4>Antécédents Médicaux</h4>
+      <div class="card">
+        {{this.details.patientInfo.medicalHistory}}
+      </div>
+      {{/if}}
+
+      {{#if this.details.patientInfo.currentSymptoms}}
+      <h4>Symptômes Actuels</h4>
+      <div class="card">
+        {{this.details.patientInfo.currentSymptoms}}
+      </div>
+      {{/if}}
+
+      <div class="info-grid">
+        {{#if this.details.patientInfo.painLevel}}
+        <div class="info-item">
+          <div class="info-label">Niveau de douleur</div>
+          <div class="info-value"><strong>{{this.details.patientInfo.painLevel}}/10</strong></div>
+        </div>
+        {{/if}}
+        {{#if this.details.patientInfo.emergencyLevel}}
+        <div class="info-item">
+          <div class="info-label">Niveau d'urgence</div>
+          <div class="info-value"><strong>{{this.details.patientInfo.emergencyLevel}}</strong></div>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+    {{/if}}
+
+    {{#if this.details.diagnosis}}
+    <!-- Diagnostic -->
+    <div>
+      <h4>Diagnostic Principal</h4>
+      <div class="card">
+        {{this.details.diagnosis}}
+      </div>
+
+      {{#if this.details.diagnosticTests}}
+      <h4>Tests Diagnostiques</h4>
+      {{#each this.details.diagnosticTests}}
+      <div class="card">
+        <div class="card-title">{{this.testName}}</div>
+        <div class="card-subtitle">{{this.dateFormatted}}</div>
+        <div><strong>Résultat:</strong> {{this.result}}</div>
+      </div>
+      {{/each}}
+      {{/if}}
+    </div>
+    {{/if}}
+
+    {{#if this.details.procedures}}
+    <!-- Treatment -->
+    <div>
+      <h4>Procédures</h4>
+      {{#each this.details.procedures}}
+      <div class="card">
+        <div class="card-title">{{this.name}}</div>
+        <div class="card-subtitle">{{this.dateFormatted}}</div>
+        {{#if this.notes}}
+        <div><strong>Notes:</strong> {{this.notes}}</div>
+        {{/if}}
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+
+    {{#if this.details.vitalSigns}}
+    <!-- VitalSigns -->
+    <div>
+      <h4>Signes Vitaux</h4>
+      <div class="vital-signs-grid">
+        {{#if this.details.vitalSigns.temperature}}
+        <div class="vital-sign-card">
+          <div class="vital-sign-title">Température</div>
+          <div class="vital-sign-value">{{this.details.vitalSigns.temperature}} °C</div>
+        </div>
+        {{/if}}
+        
+        {{#if this.details.vitalSigns.bloodPressure}}
+        <div class="vital-sign-card">
+          <div class="vital-sign-title">Pression artérielle</div>
+          <div class="vital-sign-value">{{this.details.vitalSigns.bloodPressure.systolic}}/{{this.details.vitalSigns.bloodPressure.diastolic}} mmHg</div>
+        </div>
+        {{/if}}
+        
+        {{#if this.details.vitalSigns.heartRate}}
+        <div class="vital-sign-card">
+          <div class="vital-sign-title">Fréquence cardiaque</div>
+          <div class="vital-sign-value">{{this.details.vitalSigns.heartRate}} bpm</div>
+        </div>
+        {{/if}}
+        
+        {{#if this.details.vitalSigns.respiratoryRate}}
+        <div class="vital-sign-card">
+          <div class="vital-sign-title">Fréquence respiratoire</div>
+          <div class="vital-sign-value">{{this.details.vitalSigns.respiratoryRate}} resp/min</div>
+        </div>
+        {{/if}}
+        
+        {{#if this.details.vitalSigns.oxygenSaturation}}
+        <div class="vital-sign-card">
+          <div class="vital-sign-title">Saturation en oxygène</div>
+          <div class="vital-sign-value">{{this.details.vitalSigns.oxygenSaturation}}%</div>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+    {{/if}}
+
+    {{#if this.details.priorityLevel}}
+    <!-- Triage -->
+    <div>
+      <h4>Niveau de Priorité</h4>
+      <div class="card">
+        <div><strong>{{this.details.priorityLevel}}</strong></div>
+      </div>
+      
+      {{#if this.details.chiefComplaint}}
+      <h4>Plainte Principale</h4>
+      <div class="card">
+        {{this.details.chiefComplaint}}
+      </div>
+      {{/if}}
+    </div>
+    {{/if}}
+
+    {{#if this.details.dischargeInstructions}}
+    <!-- Discharge -->
+    <div>
+      <h4>Instructions de Sortie</h4>
+      <div class="card">
+        {{this.details.dischargeInstructions}}
+      </div>
+      
+      {{#if this.details.followUpDate}}
+      <h4>Rendez-vous de Suivi</h4>
+      <div class="card">
+        {{this.details.followUpDateFormatted}}
+      </div>
+      {{/if}}
+    </div>
+    {{/if}}
+
+    {{#if this.details.medications}}
+    <!-- Prescription or medications from other types -->
+    <div>
+      <h4>Médicaments</h4>
+      {{#each this.details.medications}}
+      <div class="card">
+        <div class="card-title">{{this.name}}</div>
+        <div><strong>Dosage:</strong> {{this.dosage}}</div>
+        <div><strong>Fréquence:</strong> {{this.frequency}}</div>
+        {{#if this.duration}}
+        <div><strong>Durée:</strong> {{this.duration}}</div>
+        {{/if}}
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+
+    {{#if this.notes}}
+    <div class="notes-section">
+      <div class="section-title">Notes</div>
+      {{this.notes}}
+    </div>
+    {{/if}}
+  </div>
+
+  {{#unless @last}}
+  <hr>
+  {{/unless}}
+  {{/each}}
+
+  <div class="footer">
+    <p>Document généré le {{currentDate}}</p>
+    <p>Ce document est strictement confidentiel et protégé par le secret médical.</p>
+  </div>
+</body>
+</html>

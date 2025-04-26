@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -25,7 +25,26 @@ const Register = () => {
     shift: "",
     profileImage: null,
   });
-
+  
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = [
+    {
+      url: "/images/logo0.png",
+      title: "Welcome to Our Platform",
+      description: "Your journey to amazing experiences starts here.",
+    },
+    {
+      url: "/images/imageurg.jpg",
+      title: "Discover New Possibilities",
+      description: "Unlock your potential with our innovative solutions.",
+    },
+    {
+      url: "/images/25291-removebg-preview.png",
+      title: "Connect With Others",
+      description: "Take your real time of waiting.",
+    },
+  ];
+  
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
@@ -35,9 +54,11 @@ const Register = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
   const handleFileChange = (e) => {
     setFormData({ ...formData, profileImage: e.target.files[0] });
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -49,25 +70,29 @@ const Register = () => {
       return;
     }
     
-
     try {
+      const formDataToSend = new FormData();
+      for (const key in formData) {
+        if (formData[key] !== null) {
+          formDataToSend.append(key, formData[key]);
+        }
+      }
+
       // Envoyer les données d'inscription au backend
       const response = await axios.post(
         "http://localhost:8089/api/auth/register",
-        formData,
+        formDataToSend,
         {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-          withCredentials: true, // Inclure les cookies
+          withCredentials: true,
         }
       );
 
-      // Si l'inscription réussit, afficher un message et activer l'OTP
       setMessage("Inscription réussie ! Veuillez vérifier votre email pour l'OTP.");
       setOtpSent(true);
     } catch (error) {
-      // Gérer les erreurs
       console.error("Erreur lors de l'inscription:", error);
       setMessage(
         error.response?.data?.message || "Erreur lors de l'inscription"
@@ -79,7 +104,6 @@ const Register = () => {
 
   const handleVerifyOtp = async () => {
     try {
-      // Vérifier l'OTP
       await axios.post(
         "http://localhost:8089/api/auth/verify-otp",
         {
@@ -87,49 +111,70 @@ const Register = () => {
           otp,
         },
         {
-          withCredentials: true, // Inclure les cookies
+          withCredentials: true,
         }
       );
 
-      // Si l'OTP est vérifié, rediriger vers la page de connexion
       setMessage("OTP vérifié avec succès. Vous pouvez maintenant vous connecter.");
       navigate("/login");
     } catch (error) {
-      // Gérer les erreurs de vérification de l'OTP
       setMessage(
         error.response?.data?.message || "Erreur lors de la vérification de l'OTP"
       );
     }
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [images.length]);
+
   return (
-    <div className="d-flex vh-100 bg-light">
-      {/* Left Side */}
-      <div
-        className="col-md-6 d-flex flex-column align-items-center justify-content-center text-white"
-        style={{ backgroundColor: "#6DDCCF" }}
-      >
-        <h1 className="mb-4">ED</h1>
-        <img
-          src="/images/image1.png"
-          alt="Project Logo"
-          className="mb-4 rounded shadow-lg img-fluid"
-          style={{ maxWidth: "300px" }}
-        />
-        <h2 className="mb-2">Emergency department</h2>
-        <p className="text-center">
-          Providing healthcare to different patient categories
-        </p>
-        <div className="d-flex justify-content-center gap-2 mt-3">
-          <button className="btn btn-outline-secondary rounded-circle">
-            <i className="fab fa-facebook"></i>
-          </button>
-          <button className="btn btn-outline-secondary rounded-circle">
-            <i className="fab fa-twitter"></i>
-          </button>
-          <button className="btn btn-outline-secondary rounded-circle">
-            <i className="fab fa-instagram"></i>
-          </button>
+    <div className="d-flex vh-100">
+      {/* Left Side - Logo and Carousel */}
+      <div className="d-none d-md-flex col-md-6 position-relative overflow-hidden bg-light">
+        {/* Carousel Images */}
+        {images.map((image, index) => (
+          <div
+            key={index}
+            className={`position-absolute w-100 h-100 transition-opacity ${
+              index === currentImageIndex ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ transition: "opacity 1s ease-in-out" }}
+          >
+            <img
+              src={image.url || "/placeholder.svg"}
+              alt={image.title}
+              className="w-100 h-100 object-fit-cover"
+              style={{ objectPosition: "center" }}
+            />
+            <div className="position-absolute bottom-0 p-4 text-white bg-dark bg-opacity-50 w-100">
+              <h3 className="mb-1 fs-4">{image.title}</h3>
+              <p className="mb-0 fs-6">{image.description}</p>
+            </div>
+          </div>
+        ))}
+
+        {/* Indicators */}
+        <div className="position-absolute bottom-4 start-50 translate-middle-x d-flex gap-2 mb-4">
+          {images.map((_, index) => (
+            <button
+              key={index}
+              className={`rounded-circle ${
+                index === currentImageIndex ? "bg-primary" : "bg-white opacity-75"
+              }`}
+              style={{ 
+                width: "12px", 
+                height: "12px", 
+                border: "none", 
+                cursor: "pointer" 
+              }}
+              onClick={() => setCurrentImageIndex(index)}
+              aria-label={`Slide ${index + 1}`}
+            ></button>
+          ))}
         </div>
       </div>
 
@@ -325,8 +370,8 @@ const Register = () => {
                 )}
               </div>
             </div>
-{/* Ajouter le champ pour l'upload d'image */}
-<div className="form-group">
+
+            <div className="form-group">
               <label htmlFor="profileImage">Image de profil</label>
               <input
                 type="file"
@@ -394,4 +439,4 @@ const Register = () => {
   );
 };
 
-export default Register;                                                  
+export default Register;

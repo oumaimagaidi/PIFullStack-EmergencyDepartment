@@ -1,28 +1,67 @@
-/* Updated Header Styles for a Professional Blue Look */
+/* Emergency Department Header Styles with #42A5FF color scheme */
 .header_container {
- 
-  /* Secondary Blue for background */
-  padding: 10px 20px ;
+  background-color: #42a5ff;
+  padding: 10px 20px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 1000;
- background-color: #edf4f8;
-  border-bottom: 1px solid #E0F2FE;
-  /* Match border color to background for subtle effect */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-bottom: 3px solid #0056b3; /* Darker blue border */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+
+/* Emergency indicator with pulsing effect */
+.emergency-indicator {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #ff4242; /* Red for emergency */
+  color: white;
+  padding: 4px 15px;
+  font-weight: bold;
+  font-size: 12px;
+  border-radius: 0 0 8px 0;
+  letter-spacing: 1px;
+}
+
+.pulse-ring {
+  width: 10px;
+  height: 10px;
+  background-color: white;
+  border-radius: 50%;
+  margin-right: 8px;
+  position: relative;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
 .header_logo {
-  /* Logo styles remain the same */
+  margin-left: 150px; /* Make space for emergency indicator */
 }
 
 .header_logo-img {
   height: 60px;
-  /* Slightly smaller logo for a cleaner look */
   vertical-align: middle;
+  background-color: white;
+  padding: 5px;
+  border-radius: 5px;
 }
 
 .header_navLinks {
@@ -36,49 +75,67 @@
 }
 
 .header_links a {
-  color: #3c7f77;
-  /* Dark Blue for links */
+  color: white;
   text-decoration: none;
   margin: 0 15px;
   font-weight: 500;
-  transition: color 0.2s ease-in-out;
-  /* Smooth color transition */
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 5px;
 }
 
 .header_links a:hover {
-  color: #C3DAFD;
-  /* Primary Blue on hover */
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.nav-icon {
+  margin-right: 6px;
+  font-size: 18px;
+}
+
+/* Special styling for emergency link */
+.emergency-link {
+  background-color: rgba(255, 66, 66, 0.2);
+  color: white !important;
+  font-weight: 600;
+  border-radius: 5px;
+}
+
+.emergency-link .nav-icon {
+  color: white;
+}
+
+.emergency-link:hover {
+  background-color: #ff424266;
 }
 
 .header_btn {
   padding: 8px 18px;
-  /* Adjusted button padding */
   border: none;
   border-radius: 5px;
-  /* Slightly rounded buttons */
-  background-color: #C4DBFF;
-  /* Primary Blue for button background */
+  background-color: #0056b3; /* Darker blue for button */
   color: white;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s ease-in-out;
-  /* Button hover transition */
 }
 
 .header_btn:hover {
-  background-color: #0056b3;
-  /* Darker shade of primary blue on hover */
+  background-color: #003d80;
 }
 
 .header_loginBtn {
-  /* Specific login button styles if needed */
+  /* Specific login button styles */
 }
 
 .header_hamburger {
   font-size: 24px;
   cursor: pointer;
-  color: #0D47A1;
-  /* Dark Blue for hamburger icon */
+  color: white;
+  display: none;
 }
 
 /* User Menu Styles */
@@ -92,21 +149,17 @@
 .header_user-info {
   display: flex;
   align-items: center;
-  background-color: white;
-  /* White background for user info area */
+  background-color: rgba(255, 255, 255, 0.2);
   padding: 6px 12px;
   border-radius: 5px;
-  border: 1px solid #E0F2FE;
-  /* Light border */
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease-in-out;
+  color: white;
 }
 
 .header_user-info:hover,
 .header_user-info:focus {
-  background-color: #F0F0F0;
-  /* Light Gray/Blue on hover/focus */
-  border-color: #007BFF;
-  /* Primary Blue border on hover/focus */
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .header_user-avatar {
@@ -115,17 +168,14 @@
   border-radius: 50%;
   margin-right: 8px;
   vertical-align: middle;
-  border: 1px solid #E0F2FE;
-  /* Light border for avatar */
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .header_user-icon {
   margin-left: 5px;
   font-size: 18px;
-  /* Slightly smaller icon */
   vertical-align: middle;
-  color: #0D47A1;
-  /* Dark Blue for user icon */
+  color: white;
 }
 
 .header_dropdown-menu {
@@ -133,14 +183,13 @@
   top: 100%;
   right: 0;
   background-color: white;
-  border: 1px solid #E0F2FE;
-  /* Light border for dropdown */
+  border: 1px solid #e0f2fe;
   border-radius: 5px;
   padding: 8px 0;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   z-index: 10;
   min-width: 160px;
-  /* Slightly wider dropdown */
+  margin-top: 5px;
 }
 
 .header_dropdown-menu a,
@@ -148,25 +197,45 @@
   display: block;
   padding: 8px 20px;
   text-decoration: none;
-  color: #0D47A1;
-  /* Dark Blue for dropdown items */
+  color: #42a5ff;
   text-align: left;
   border: none;
   background: none;
   width: 100%;
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
-  /* Dropdown item hover transition */
 }
 
 .header_dropdown-menu a:hover,
 .header_dropdown-menu button:hover {
-  background-color: #F0F0F0;
-  /* Light Gray/Blue on dropdown item hover */
+  background-color: #f0f0f0;
+  color: #0056b3;
 }
 
-/* Responsive Styles (Mobile) - Adjust as needed, but keeping it similar */
+/* Loading spinner */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-weight: bold;
+  color: #42a5ff;
+}
+
+/* Responsive Styles */
 @media (max-width: 768px) {
+  .header_logo {
+    margin-left: 0;
+  }
+
+  .emergency-indicator {
+    position: static;
+    margin-right: 10px;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 10px;
+  }
+
   .header_navLinks {
     display: none;
     flex-direction: column;
@@ -174,8 +243,7 @@
     top: 100%;
     left: 0;
     right: 0;
-    background-color: #E0F2FE;
-    /* Secondary Blue for mobile menu background */
+    background-color: #42a5ff;
     text-align: center;
     padding: 20px 0;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -192,7 +260,8 @@
 
   .header_links a {
     margin: 10px 0;
-    display: block;
+    display: flex;
+    justify-content: center;
   }
 
   .header_hamburger {
