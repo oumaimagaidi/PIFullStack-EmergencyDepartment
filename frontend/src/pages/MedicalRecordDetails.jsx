@@ -1,7 +1,12 @@
 "use client"
 
+import { Input } from "@/components/ui/input"
+
+import { Label } from "@/components/ui/label"
+
 import { useEffect, useState } from "react"
 import axios from "axios"
+import { Upload } from "lucide-react"
 import { useParams } from "react-router-dom"
 import Cookies from "js-cookie"
 import {
@@ -45,6 +50,7 @@ import AnnotationList from "./annotation/AnnotationList"
 import AnnotationMarker from "./annotation/AnnotationMarker"
 import ArchiveDialog from "./archive/ArchiveDialog"
 import ArchivedFilesList from "./archive/ArchivedFilesList"
+
 const MedicalRecordDetails = () => {
   const { id } = useParams()
   const [medicalRecord, setMedicalRecord] = useState(null)
@@ -67,6 +73,9 @@ const MedicalRecordDetails = () => {
   const [fileToAnnotate, setFileToAnnotate] = useState(null)
   const [fileToArchive, setFileToArchive] = useState(null)
   const [showArchivedFiles, setShowArchivedFiles] = useState(false)
+  const [ocrResult, setOcrResult] = useState(null)
+  const [ocrLoading, setOcrLoading] = useState(false)
+  const [ocrError, setOcrError] = useState(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -233,6 +242,46 @@ const MedicalRecordDetails = () => {
       setSelectedFile(null)
     }
   }
+
+  const handleOCRUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append("medicalImage", file); // Corrigez le nom du champ
+    formData.append("medicalRecordId", id);
+  
+    try {
+      setOcrLoading(true);
+      setOcrError(null);
+  
+      const token = Cookies.get("token");
+      const response = await axios.post(
+        "http://localhost:8089/api/ocr/process-image", // Corrigez l'endpoint
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+  
+      // Vérification des données extraites
+      if (!response.data.data?.extractedData?.patientName || 
+          !response.data.data?.extractedData?.diagnosis) {
+        throw new Error("Les informations essentielles n'ont pas pu être extraites de l'image");
+      }
+  
+      setOcrResult(response.data.data);
+    } catch (err) {
+      setOcrError(err.response?.data?.error || err.message || "Erreur lors du traitement OCR");
+      console.error("OCR Error:", err);
+    } finally {
+      setOcrLoading(false);
+      e.target.value = "";
+    }
+  };
 
   const renderFileDetails = (file) => {
     switch (file.type) {
@@ -746,7 +795,7 @@ const MedicalRecordDetails = () => {
               <div className="flex gap-2">
                 <Button onClick={() => window.history.back()} variant="outline" size="sm" className="sm:self-start">
                   Retour à la liste
-                </Button >
+                </Button>
                 <ShareMedicalRecordButton medicalRecordId={id} />
               </div>
             </div>
@@ -792,10 +841,31 @@ const MedicalRecordDetails = () => {
                 <Clipboard className="mr-2 h-5 w-5 text-slate-600" />
                 Documents Médicaux
               </h3>
-              <Button onClick={() => setShowAddModal(true)} className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300" >
-                <FilePlus className="mr-2 h-4 w-4" />
-                Add file document
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setShowAddModal(true)}
+                  className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300"
+                >
+                  <FilePlus className="mr-2 h-4 w-4" />
+                  Add file document
+                </Button>
+                <div className="flex gap-2">
+  <input
+    type="file"
+    id="ocr-upload"
+    accept="image/*"
+    onChange={handleOCRUpload}
+    className="hidden"
+  />
+  <label
+    htmlFor="ocr-upload"
+    className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300 cursor-pointer flex items-center"
+  >
+    <Upload className="mr-2 h-4 w-4" />
+    OCR Image
+  </label>
+</div>
+              </div>
             </div>
 
             {patientFiles.length === 0 ? (
@@ -817,22 +887,21 @@ const MedicalRecordDetails = () => {
                   </div>
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <div className="px-4 pt-2">
-                    <TabsList className="w-full gap-1">
-  <TabsTrigger value="all" className="text-xs px-2 py-1">
-    Tous
-  </TabsTrigger>
-  <TabsTrigger value="Prescription" className="text-xs px-2 py-1">
-    Prescriptions
-  </TabsTrigger>
-  <TabsTrigger value="Diagnostic" className="text-xs px-2 py-1">
-    Diagnostics
-  </TabsTrigger>
- 
-  <TabsTrigger value="archived" className="text-xs px-2 py-1">
-    Archivés
-  </TabsTrigger>
-</TabsList>
+                      <TabsList className="w-full gap-1">
+                        <TabsTrigger value="all" className="text-xs px-2 py-1">
+                          Tous
+                        </TabsTrigger>
+                        <TabsTrigger value="Prescription" className="text-xs px-2 py-1">
+                          Prescriptions
+                        </TabsTrigger>
+                        <TabsTrigger value="Diagnostic" className="text-xs px-2 py-1">
+                          Diagnostics
+                        </TabsTrigger>
 
+                        <TabsTrigger value="archived" className="text-xs px-2 py-1">
+                          Archivés
+                        </TabsTrigger>
+                      </TabsList>
                     </div>
                     <ScrollArea className="h-[400px] p-4">
                       <div className="space-y-2">
@@ -954,26 +1023,24 @@ const MedicalRecordDetails = () => {
           </CardContent>
         </Card>
       </div>
-
       <Tabs defaultValue="annotations" className="w-full">
-  <TabsList>
-    <TabsTrigger value="annotations">Annotations</TabsTrigger>
-    <TabsTrigger value="archived">Archived Files</TabsTrigger>
-  </TabsList>
+        <TabsList>
+          <TabsTrigger value="annotations">Annotations</TabsTrigger>
+          <TabsTrigger value="archived">Archived Files</TabsTrigger>
+        </TabsList>
 
-  <TabsContent value="annotations">
-    <AnnotationList
-      patientFileId={selectedFile?._id}
-      onAnnotationDeleted={handleAnnotationDeleted}
-      onAnnotationUpdated={handleAnnotationUpdated}
-    />
-  </TabsContent>
+        <TabsContent value="annotations">
+          <AnnotationList
+            patientFileId={selectedFile?._id}
+            onAnnotationDeleted={handleAnnotationDeleted}
+            onAnnotationUpdated={handleAnnotationUpdated}
+          />
+        </TabsContent>
 
-  <TabsContent value="archived">
-    <ArchivedFilesList medicalRecordId={id} />
-  </TabsContent>
-</Tabs>
-
+        <TabsContent value="archived">
+          <ArchivedFilesList medicalRecordId={id} />
+        </TabsContent>
+      </Tabs>
       {showAddModal && (
         <AddPatientFileModal
           medicalRecordId={id}
@@ -985,7 +1052,19 @@ const MedicalRecordDetails = () => {
           onSubmit={editFile ? handleUpdateFile : handleAddFile}
         />
       )}
-
+      {ocrLoading && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+    <div className="bg-white p-4 rounded-lg">
+      <p className="flex items-center gap-2">
+        <svg className="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Analyse de l'image en cours...
+      </p>
+    </div>
+  </div>
+)}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
@@ -1004,7 +1083,6 @@ const MedicalRecordDetails = () => {
           </div>
         </DialogContent>
       </Dialog>
-
       {showAnnotationDialog && (
         <AnnotationDialog
           isOpen={showAnnotationDialog}
@@ -1014,7 +1092,6 @@ const MedicalRecordDetails = () => {
           onAnnotationAdded={handleAnnotationAdded}
         />
       )}
-
       {showArchiveDialog && (
         <ArchiveDialog
           isOpen={showArchiveDialog}
@@ -1023,6 +1100,94 @@ const MedicalRecordDetails = () => {
           onFileArchived={handleFileArchived}
         />
       )}
+   
+   <Dialog open={!!ocrResult} onOpenChange={() => setOcrResult(null)}>
+  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle>Résultats OCR</DialogTitle>
+      <DialogDescription>
+        Vérifiez les informations extraites avant de créer le document médical
+      </DialogDescription>
+    </DialogHeader>
+
+    {ocrResult && (
+      <div className="space-y-6">
+        <div className="grid gap-4">
+          <div>
+            <Label htmlFor="patientName">Nom du patient</Label>
+            <Input 
+              id="patientName" 
+              value={ocrResult.extractedData.patientName} 
+              readOnly 
+              className="font-medium"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="diagnosis">Diagnostic</Label>
+            <Input 
+              id="diagnosis" 
+              value={ocrResult.extractedData.diagnosis} 
+              readOnly 
+              className="font-medium text-red-600"
+            />
+          </div>
+
+          {ocrResult.extractedData.tests?.length > 0 && (
+            <div>
+              <Label>Résultats d'examens</Label>
+              <div className="mt-2 space-y-2">
+                {ocrResult.extractedData.tests.map((test, index) => (
+                  <div key={index} className="p-3 border rounded-md bg-gray-50">
+                    <div className="font-medium">{test.testName}</div>
+                    <div className="text-sm mt-1">{test.result}</div>
+                    {test.date && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {new Date(test.date).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setOcrResult(null)}
+          >
+            Annuler
+          </Button>
+          <Button 
+            onClick={() => {
+              handleAddFile({
+                type: "Diagnostic",
+                notes: "Document généré automatiquement par OCR",
+                details: {
+                  diagnosis: ocrResult.extractedData.diagnosis,
+                  diagnosticTests: ocrResult.extractedData.tests.map(test => ({
+                    testName: test.testName,
+                    result: test.result,
+                    date: test.date || new Date()
+                  })),
+                  patientInfo: {
+                    firstName: ocrResult.extractedData.patientName.split(' ')[0],
+                    lastName: ocrResult.extractedData.patientName.split(' ').slice(1).join(' '),
+                  }
+                }
+              });
+              setOcrResult(null);
+            }}
+          >
+            Confirmer et créer
+          </Button>
+        </div>
+      </div>
+    )}
+  </DialogContent>
+</Dialog>
     </div>
   )
 }

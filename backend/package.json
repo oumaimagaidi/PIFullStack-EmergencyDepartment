@@ -12,14 +12,18 @@
   "type": "module",
   "description": "",
   "dependencies": {
+    "@huggingface/inference": "^3.9.2",
+    "@tensorflow/tfjs": "^4.22.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.0",
+    "canvas": "^3.1.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
     "dotenv": "^16.5.0",
     "express": "^4.21.2",
     "express-fileupload": "^1.5.1",
+    "fs-extra": "^11.3.0",
     "google-auth-library": "^9.15.1",
     "html-pdf-node": "^1.0.8",
     "joi": "^17.13.3",
@@ -30,10 +34,16 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.0",
     "otp-generator": "^4.0.1",
+    "p-queue": "^8.1.0",
+    "pdf-lib": "^1.17.1",
+    "pdf2pic": "^3.1.4",
+    "pdfjs-dist": "^3.11.174",
     "puppeteer": "^24.6.1",
+    "sharp": "^0.34.1",
     "socket.io": "^4.8.1",
-    "tesseract.js": "^6.0.1",
-    "twilio": "^5.4.5"
+    "tesseract.js": "^4.1.1",
+    "twilio": "^5.4.5",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

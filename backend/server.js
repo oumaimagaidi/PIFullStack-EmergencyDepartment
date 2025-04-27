@@ -6,11 +6,9 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
-
+import ocrRoutes from "./routes/ocr.js";
 import { Server as SocketIOServer } from "socket.io";
-
 import connectDB from "./db.js";
-
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import profileRoutes from "./routes/profile.js";
@@ -19,26 +17,20 @@ import ambulanceRoutes from "./routes/ambulance.js";
 import medicalRecordRoutes from "./routes/medicalRecords.js";
 import patientFileRoutes from "./routes/patientFile.js";
 import alertsRoutes from "./routes/alerts.js";
-import SharedMedicalRecord from "./models/SharedMedicalRecord.js"; // Add new model
-import AuditLog from "./models/AuditLog.js"; // Add audit log model
+import annotationsRoutes from "./routes/annotation.js";
+import archiveRoutes from "./routes/archive.js";
 import { User } from "./models/User.js";
 import Ambulance from "./models/Ambulance.js";
 import Alert from "./models/Alert.js";
-import annotationsRoutes from "./routes/annotation.js"
-import archiveRoutes from "./routes/archive.js"
-
-// Helpers
+import fs from 'fs-extra';
 dotenv.config();
 connectDB();
 
 const app = express();
 const server = http.createServer(app);
-
-// Get __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Socket.IO server
 const io = new SocketIOServer(server, {
   cors: {
     origin: "http://localhost:3000",
@@ -47,12 +39,21 @@ const io = new SocketIOServer(server, {
   },
 });
 
-// User-socket mapping
 const userSockets = new Map();
 global.io = io;
 global.userSockets = userSockets;
+const createDirectories = async () => {
+  const uploadsDir = path.join(__dirname, 'uploads');
+  await fs.ensureDir(path.join(uploadsDir, 'pdfs'));
+  await fs.ensureDir(path.join(uploadsDir, 'images'));
+  await fs.ensureDir(path.join(__dirname, 'tessdata')); // Tessdata au même niveau que server.js
+};
 
-// Middleware
+createDirectories().then(() => {
+  console.log('✅ Upload directories verified');
+}).catch(err => {
+  console.error('❌ Directory creation error:', err);
+});
 app.use(cors({
   origin: "http://localhost:3000",
   credentials: true,
@@ -61,39 +62,36 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
-
-// Serve static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-// REST API routes
+app.use("/api/ocr", ocrRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api", profileRoutes);
+app.use("/api/profile", profileRoutes);
 app.use("/api/emergency-patients", emergencyPatientRoutes);
 app.use("/api/ambulance", ambulanceRoutes);
 app.use("/api/medical-records", medicalRecordRoutes);
 app.use("/api/patient-files", patientFileRoutes);
 app.use("/api/alerts", alertsRoutes);
-app.use("/api/annotations", annotationsRoutes)
-app.use("/api/archive", archiveRoutes)
-// Socket.IO logic
+app.use("/api/annotations", annotationsRoutes);
+app.use("/api/archive", archiveRoutes);
+
 io.on("connection", (socket) => {
   console.log(`⚡ Socket connected: ${socket.id}`);
-
-  // Associate userId with socket
   const userId = socket.handshake.query.userId;
-  if (userId && userId !== 'undefined' && userId !== 'null') {
+  if (userId && userId !== "undefined" && userId !== "null") {
     userSockets.set(userId.toString(), socket.id);
-    User.findById(userId).select("role").then(user => {
-      if (user?.role) {
-        const roomName = `${user.role.toLowerCase()}-room`;
-        socket.join(roomName);
-        console.log(`🚪 Socket ${socket.id} joined room: ${roomName}`);
-      }
-    }).catch(err => console.error("❌ Error fetching user role:", err));
+    User.findById(userId)
+      .select("role")
+      .then((user) => {
+        if (user?.role) {
+          const roomName = `${user.role.toLowerCase()}-room`;
+          socket.join(roomName);
+          console.log(`🚪 Socket ${socket.id} joined room: ${roomName}`);
+        }
+      })
+      .catch((err) => console.error("❌ Error fetching user role:", err));
   }
 
-  // Ambulance location update
   socket.on("locationUpdate", async (data) => {
     try {
       await Ambulance.findByIdAndUpdate(data.id, {
@@ -107,10 +105,9 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Ambulance destination update
   socket.on("destinationUpdate", async (data) => {
     try {
-      const destination = `${data.destinationLatitude},${data.destinationLongitude}`;
+      const destination = `<span class="math-inline">\{data\.destinationLatitude\},</span>{data.destinationLongitude}`;
       await Ambulance.findByIdAndUpdate(data.id, {
         destination,
         lastUpdated: Date.now(),
@@ -121,7 +118,8 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Ambulance alert
+ 
+
   socket.on("alert", async ({ message, source }) => {
     try {
       const alert = await Alert.create({ message, source });
@@ -136,7 +134,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Ping-pong test
   socket.on("ping_server", (data) => {
     socket.emit("pong_client", {
       message: "Pong from server!",
@@ -155,7 +152,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// Server listen
 const PORT = process.env.PORT || 8089;
 server.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);

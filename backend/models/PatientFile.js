@@ -7,7 +7,14 @@ const patientFileSchema = new mongoose.Schema(
       ref: "MedicalRecord",
       required: true,
     },
-
+    ocrResults: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'OcrResult'
+    },
+    isOCRProcessed: {
+      type: Boolean,
+      default: false
+    },
     type: {
       type: String,
       required: true,
@@ -35,6 +42,13 @@ const patientFileSchema = new mongoose.Schema(
         type: String,
         enum: ["Resuscitation", "Emergency", "Urgent", "Semi-urgent", "Non-urgent"],
       },
+      treatments: [{
+        name: String,
+        dosage: String,
+        frequency: String,
+        startDate: Date,
+        endDate: Date
+      }],
       chiefComplaint: String,
 
       diagnosis: String,
