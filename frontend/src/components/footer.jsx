@@ -8,9 +8,9 @@ const Footer = () => {
   const hours = [{ id: 1, day: "Monday-Saturday", time: "24/24" }]
 
   return (
-    <footer className="footer_container">
+    <footer className="footer_container bg-gray-800 text-white py-4 relative z-20">
       {/* Emergency Banner */}
-      <div className="emergency-contact-banner">
+      <div className="emergency-contact-banner ">
         <div className="emergency-contact-item">
           <FaAmbulance className="emergency-icon pulse-icon" />
           <div>

@@ -1,0 +1,51 @@
+.hex-grid {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: #1a1a1a;
+    overflow: hidden;
+  }
+  
+  .hexagon {
+    position: absolute;
+    width: 100px;
+    height: 115.47px; /* 100 * √3 */
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+  }
+  
+  .hexagon-inner {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #3498db;
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    transition: 
+      transform 0.3s ease,
+      background 0.3s ease;
+  }
+  
+  .hexagon.animating .hexagon-inner {
+    animation: wave 0.5s ease-out var(--delay) forwards;
+  }
+  
+  @keyframes wave {
+    0% {
+      transform: scale(1);
+      background: #3498db;
+    }
+    50% {
+      transform: scale(1.3);
+      background: #e74c3c;
+    }
+    100% {
+      transform: scale(1);
+      background: #2ecc71;
+    }
+  }
+  
+  .hexagon:hover .hexagon-inner {
+    transform: scale(1.1);
+    background: #2980b9;
+  }

@@ -27,6 +27,8 @@ import AmbulanceDashboard from "./pages/AmbulanceDashboard";
 import AmbulanceNurseDashboard from "./pages/AmbulanceNurseDashboard";
 import MedicalRecordDetails from './pages/MedicalRecordDetails';
 import MedicalDocument from './pages/MedicalDocument';
+import  HexGrid  from "./components/HexGrid";
+import ParticlesComponent from "./components/ParticlesComponent";
 function App() {
   const user = JSON.parse(sessionStorage.getItem("user"));
   
@@ -43,13 +45,14 @@ function App() {
         <Route path="/emergency-status" element={<MainLayout><EmergencyStatus /> </MainLayout>} />
         <Route path="/register" element={<PublicLayout><Register /></PublicLayout>} />
         <Route path="/forgotpassword" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
-
+<Route path="/hexa" element={<HexGrid/>}/>
         {/* Routes Main avec header/footer */}
         <Route path="/home" element={<MainLayout><Home /></MainLayout>} />
         <Route path="/document" element={<MainLayout><MedicalDocument /></MainLayout>} />
         <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
         <Route path="/emergency-register" element={<MainLayout><EmergencyRegister /></MainLayout>} />
         <Route path="/emergency-confirmation" element={<MainLayout><ConfirmationEmergencyRegister /></MainLayout>} />
+        
 
         {/* Routes Dashboard avec sidebar */}
         <Route path="/dashboard" element={
