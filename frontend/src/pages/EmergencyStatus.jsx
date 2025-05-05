@@ -1,278 +1,429 @@
-import React, { useState, useEffect } from 'react';
+// frontend/src/pages/EmergencyStatus.jsx
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
+// --- Chatbot Imports ---
+import ChatBot from 'react-simple-chatbot';
+import { ThemeProvider } from 'styled-components';
+// --- Fin Chatbot Imports ---
+// --- UI Imports ---
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, User, Calendar, Stethoscope, Clipboard } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert"; // Importer AlertDescription
+import { Clock, Stethoscope, Calendar, AlertTriangle, Loader2, MessageSquare, Clipboard, User } from "lucide-react"; // Ajouter Clipboard, User
+// --- Fin UI Imports ---
+
+
+// --- Thème Chatbot ---
+const chatbotTheme = {
+    background: '#f5f8fb',
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    headerBgColor: '#1d4ed8',
+    headerFontColor: '#ffffff',
+    headerFontSize: '15px',
+    botBubbleColor: '#1d4ed8',
+    botFontColor: '#ffffff',
+    userBubbleColor: '#ffffff',
+    userFontColor: '#4a4a4a',
+};
+// --- Fin Thème ---
 
 const EmergencyStatus = () => {
     const location = useLocation();
     const patientId = location.state?.patientId;
+    const initialDoctorInfo = location.state?.doctorInfo; // Récupérer l'info initiale du docteur
 
-    console.log("[EmergencyStatus] Page Loaded. Patient ID from state:", patientId); // Log 1: Check ID
+    console.log("[EmergencyStatus] Page Loaded. Patient ID from state:", patientId);
 
+    // --- États ---
     const [patientDetails, setPatientDetails] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true); // Pour le chargement initial
     const [error, setError] = useState(null);
-    const [estimatedWaitTime, setEstimatedWaitTime] = useState('Calculating...'); // Initial state
-    const [medicalAccess, setMedicalAccess] = useState({
-        code: null,
-        shouldDisplay: false,
-        loading: false,
-        error: null
-    });
-
-    // --- updateWaitTime Function (with logging) ---
-    const updateWaitTime = (status) => {
-        // Log 2: Check the exact status value and type received by this function
-        console.log(`[updateWaitTime] Checking status: "${status}" (Type: ${typeof status})`);
-
-        let newWaitTime; // Use a temporary variable
-
-        switch (status) {
-            // Use the EXACT French strings from your backend
-            case 'Demande Enregistrée':
-                newWaitTime = "10-20 minutes (En attente d'assignation/examen)";
-                break;
-            case 'En Cours d\'Examen':
-                 newWaitTime = "5-15 minutes (En cours d'examen)";
-                 break;
-            case 'Médecin Assigné':
-                newWaitTime = "5-10 minutes (Médecin notifié)";
-                break;
-            case 'Médecin En Route':
-                newWaitTime = "Dès que possible (Médecin en route)";
-                break;
-            case 'Traité':
-                newWaitTime = "Traitement terminé";
-                break;
-            case 'Annulé':
-                newWaitTime = "Demande annulée";
-                break;
-            default:
-                // Log 3: If no case matched
-                console.warn(`[updateWaitTime] Status "${status}" did NOT match any expected case.`);
-                newWaitTime = "Indisponible"; // Set default to "Indisponible"
-                break;
-        }
-        // Log 4: Show what value is about to be set
-        console.log("[updateWaitTime] Setting estimatedWaitTime state to:", newWaitTime);
-        setEstimatedWaitTime(newWaitTime);
-    };
-    // --- End updateWaitTime ---
+    const [estimatedWaitTime, setEstimatedWaitTime] = useState('Calcul en cours...');
+    const [loadingWaitTime, setLoadingWaitTime] = useState(false); // Pour le rafraîchissement de l'attente
+    const [errorWaitTime, setErrorWaitTime] = useState(null);
+    const [doctorInfo, setDoctorInfo] = useState(initialDoctorInfo || null); // État local pour le docteur
+    const [medicalAccess, setMedicalAccess] = useState({ code: null, shouldDisplay: false, loading: false, error: null });
+    const [showChatbot, setShowChatbot] = useState(false);
+    // --- Fin États ---
 
 
-    // --- fetchPatientDetails Function (with logging) ---
-    const fetchPatientDetails = async () => {
+    // --- Fonction pour récupérer les détails et le temps d'attente ---
+    const fetchPatientAndWaitTime = async (isInitialLoad = false) => {
         if (!patientId) {
-            setError("Missing patient ID.");
-            setLoading(false);
+            setError("ID Patient manquant.");
+            if (isInitialLoad) setLoading(false); // Arrêter le chargement initial si pas d'ID
+            setLoadingWaitTime(false);
             return;
         }
 
-        // Only set loading true on the initial fetch, not subsequent intervals
-        // setLoading(true); // Moved initial setLoading outside interval
+        // Ne pas afficher l'erreur précédente pendant le rafraîchissement
+        setError(null);
+        setErrorWaitTime(null);
+        setLoadingWaitTime(true); // Indiquer le chargement pour le temps d'attente
 
         try {
-            const response = await axios.get(
-                `http://localhost:8089/api/emergency-patients/${patientId}/details`,
-                { withCredentials: true }
-            );
+            console.log("[Fetch] Calling APIs for details and wait time...");
+            const [detailsResponse, waitTimeResponse] = await Promise.all([
+                axios.get(`http://localhost:8089/api/emergency-patients/${patientId}/details`, { withCredentials: true }),
+                axios.get(`http://localhost:8089/api/emergency-patients/${patientId}/estimated-wait-time`, { withCredentials: true })
+            ]);
 
-            // Log 5: Log the entire response data
-            console.log("[fetchPatientDetails] API Response Data:", response.data);
+            // --- Traitement Réponse Détails ---
+            const detailsData = detailsResponse.data;
+            console.log("[Fetch] Details Response:", detailsData);
+            if (detailsData && typeof detailsData === 'object') {
+                setPatientDetails(detailsData);
 
-            if (response.data && typeof response.data === 'object') {
-                setPatientDetails(response.data);
-                setError(null);
-
-                // Check if status field exists before calling updateWaitTime
-                if (response.data.hasOwnProperty('status')) {
-                    updateWaitTime(response.data.status); // Call updateWaitTime with the received status
-                } else {
-                    console.error("[fetchPatientDetails] API response is missing the 'status' field.");
-                    updateWaitTime(undefined); // Trigger default wait time if status is missing
+                // Mise à jour Médecin (si différent ou si initialement null)
+                const assignedDoctorData = detailsData.assignedDoctor;
+                if (assignedDoctorData && (!doctorInfo || doctorInfo._id !== assignedDoctorData._id)) {
+                    if (typeof assignedDoctorData === 'object' && assignedDoctorData !== null) {
+                       console.log("[Fetch] Updating doctor info with object:", assignedDoctorData);
+                       setDoctorInfo(assignedDoctorData);
+                    }
+                    // Optionnel: Gérer le cas où c'est juste un ID (nécessiterait un autre fetch)
+                } else if (!assignedDoctorData && doctorInfo) {
+                    console.log("[Fetch] Clearing doctor info.");
+                    setDoctorInfo(null); // Retirer l'info si plus assigné
                 }
             } else {
-                console.error("[fetchPatientDetails] Received invalid data format from API:", response.data);
-                setError("Invalid data received from server.");
-                setPatientDetails(null);
-                updateWaitTime(undefined); // Trigger default wait time
+                 console.error("[Fetch] Invalid details data format:", detailsData);
+                 // Garder l'erreur précédente si elle existe, sinon en définir une nouvelle
+                 if(!error) setError("Format de données patient invalide reçu.");
             }
+
+            // --- Traitement Réponse Temps d'Attente ---
+            const waitTimeData = waitTimeResponse.data;
+            console.log("[Fetch] Wait Time Response:", waitTimeData);
+             if (waitTimeData && typeof waitTimeData.estimatedWaitTime === 'string') {
+                 setEstimatedWaitTime(waitTimeData.estimatedWaitTime);
+             } else {
+                 console.warn("[Fetch] Invalid wait time format:", waitTimeData);
+                 setEstimatedWaitTime("Indisponible");
+             }
 
         } catch (err) {
-            console.error("[fetchPatientDetails] Error fetching details:", err);
-             if (err.response) {
-                setError(`Error ${err.response.status}: ${err.response.data?.message || 'Failed to load details'}`);
-            } else {
-                setError("Network error or server unreachable.");
-            }
-            setPatientDetails(null);
-            updateWaitTime(undefined); // Trigger default wait time on error
+            console.error("[Fetch] Error fetching status/time:", err);
+            // Gérer les erreurs de manière plus granulaire si possible
+            if (!patientDetails && isInitialLoad) setError("Impossible de récupérer les détails initiaux.");
+            setErrorWaitTime("Impossible de mettre à jour l'estimation.");
+            // Ne pas effacer les données existantes lors d'une erreur de rafraîchissement
+            // setPatientDetails(null);
+            // setEstimatedWaitTime("Estimation indisponible");
         } finally {
-             // setLoading(false); // Removed setLoading false here, only set on initial load
+            if (isInitialLoad) setLoading(false); // Arrêter le chargement initial
+            setLoadingWaitTime(false); // Arrêter le chargement de l'attente
+            console.log("[Fetch] Fetch cycle finished.");
         }
     };
-    // --- End fetchPatientDetails ---
+    // --- Fin Fonction Fetch ---
 
 
-    // --- fetchMedicalAccessCode Function ---
+    // --- Fonction pour récupérer le code d'accès médical ---
     const fetchMedicalAccessCode = async () => {
-       // ... (keep existing implementation) ...
-        if (!patientId) return;
-        if (!patientDetails || !['Médecin En Route', 'Traité'].includes(patientDetails.status)) { // Match French status
+        if (!patientId || !patientDetails || !patientDetails.status) return;
+
+        // Statuts exacts (en français) où le code pourrait être pertinent
+        const relevantStatuses = ['Médecin En Route', 'Traité'];
+
+        if (!relevantStatuses.includes(patientDetails.status)) {
+             setMedicalAccess({ code: null, shouldDisplay: false, loading: false, error: null }); // Réinitialiser si non pertinent
             return;
         }
+
+        console.log("[MedicalCode] Fetching access code...");
         setMedicalAccess(prev => ({ ...prev, loading: true, error: null }));
         try {
-            const response = await axios.get( /* ... */ );
-            setMedicalAccess({ code: response.data.accessCode, shouldDisplay: response.data.shouldDisplay, loading: false, error: null});
+             // Assurez-vous que cette route backend existe et fonctionne
+            const response = await axios.get(
+                `http://localhost:8089/api/emergency-patients/${patientId}/medical-access-code`,
+                { withCredentials: true }
+            );
+            console.log("[MedicalCode] Response:", response.data);
+            setMedicalAccess({
+                code: response.data.accessCode,
+                shouldDisplay: response.data.shouldDisplay ?? false, // Fournir une valeur par défaut
+                loading: false,
+                error: null
+            });
         } catch (err) {
-             console.error("Error fetching access code:", err);
-             setMedicalAccess(prev => ({ ...prev, loading: false, error: "Unable to retrieve medical access code" }));
+             console.error("[MedicalCode] Error fetching access code:", err);
+             setMedicalAccess(prev => ({
+                 ...prev,
+                 loading: false,
+                 error: "Impossible de récupérer le code d'accès médical"
+             }));
         }
     };
-    // --- End fetchMedicalAccessCode ---
+    // --- Fin Fonction Code Médical ---
 
-    // Initial Fetch and Interval Setup
+
+    // --- useEffect pour le chargement initial et l'intervalle ---
     useEffect(() => {
         if (patientId) {
-            console.log("[Effect] patientId found, performing initial fetch.");
-            setLoading(true); // Set loading true only for the first fetch
-            fetchPatientDetails().finally(() => {
-                 console.log("[Effect] Initial fetch complete.");
-                 setLoading(false); // Set loading false after initial fetch completes
-            });
+            console.log("[Effect Init] patientId found, performing initial fetch.");
+            fetchPatientAndWaitTime(true); // Marquer comme chargement initial
 
             const intervalId = setInterval(() => {
-                 console.log("[Interval] Fetching details...");
-                 fetchPatientDetails();
-             }, 15000); // Refresh every 15 seconds
+                console.log("[Interval] Refreshing data...");
+                fetchPatientAndWaitTime(false); // Marquer comme rafraîchissement
+            }, 30000); // Rafraîchir toutes les 30 secondes
 
+            // Nettoyage de l'intervalle au démontage du composant
             return () => {
-                console.log("[Effect] Cleaning up interval.");
+                console.log("[Effect Init] Cleaning up interval.");
                 clearInterval(intervalId);
             };
         } else {
-            setError("No patient ID provided.");
-            setLoading(false);
+            setError("Aucun ID patient fourni pour suivre le statut.");
+            setLoading(false); // Arrêter le chargement s'il n'y a pas d'ID
         }
-    }, [patientId]); // Re-run only if patientId changes
+    }, [patientId]); // Dépendance unique: patientId
+    // --- Fin useEffect Initial/Intervalle ---
 
-    // Fetch access code when status changes
+
+    // --- useEffect pour déclencher la récupération du code médical ---
     useEffect(() => {
+        // Cet effet se déclenche quand patientDetails (et donc son status) change
         if (patientDetails && patientDetails.status) {
-            console.log("[Effect] Status changed or patientDetails loaded, checking for medical code fetch. Status:", patientDetails.status);
-             if (['Médecin En Route', 'Traité'].includes(patientDetails.status)) { // Match French Status
-                 fetchMedicalAccessCode();
-             } else {
-                 setMedicalAccess({ code: null, shouldDisplay: false, loading: false, error: null });
-             }
+            console.log("[Effect Status] Status changed or loaded:", patientDetails.status, "Checking for medical code.");
+            fetchMedicalAccessCode();
         }
-    }, [patientDetails?.status]); // Depend only on status
+    }, [patientDetails?.status]); // Dépend de patientDetails.status
+    // --- Fin useEffect Code Médical ---
 
 
-    // --- Render Functions (renderDoctorInfo, renderMedicalAccessCode) ---
+    // --- Fonctions de Rendu ---
     const renderDoctorInfo = () => {
-        // ... (keep existing implementation)
+        if (!doctorInfo) {
+            return <p className="text-sm text-orange-600 italic">Assignation du médecin en cours...</p>;
+        }
+        return (
+            <div className="border rounded-md p-4 bg-green-50 text-sm shadow-sm">
+                <h4 className="font-semibold mb-2 flex items-center text-green-800">
+                    <Stethoscope className="mr-2 h-4 w-4" /> Médecin Assigné
+                </h4>
+                <p><strong>Nom:</strong> {doctorInfo.username || 'N/A'}</p>
+                <p><strong>Spécialisation:</strong> {doctorInfo.specialization || 'N/A'}</p>
+                 {/* Ajouter email si disponible */}
+                 {doctorInfo.email && <p><strong>Contact:</strong> {doctorInfo.email}</p>}
+            </div>
+        );
     };
 
     const renderMedicalAccessCode = () => {
-       // ... (keep existing implementation)
+        if (medicalAccess.loading) {
+            return <p className="text-sm text-gray-500 italic mt-4">Chargement du code d'accès...</p>;
+        }
+        if (medicalAccess.error) {
+            return <p className="text-sm text-red-500 mt-4">{medicalAccess.error}</p>;
+        }
+        // Afficher seulement si shouldDisplay est true ET qu'il y a un code
+        if (!medicalAccess.shouldDisplay || !medicalAccess.code) {
+            return null; // Ne rien afficher si non applicable
+        }
+        return (
+            <div className="border rounded-md p-4 bg-purple-50 mt-4 shadow-sm">
+                <h4 className="font-semibold mb-2 flex items-center text-purple-800">
+                    <Clipboard className="mr-2 h-4 w-4" /> Code d'Accès Médical
+                </h4>
+                <div className="bg-white p-3 rounded-md border border-purple-200 text-center">
+                    <p className="text-xl font-bold text-purple-900 tracking-wider">
+                        {medicalAccess.code}
+                    </p>
+                     <p className="text-xs text-gray-500 mt-1">
+                        Conservez ce code pour accéder à vos dossiers.
+                    </p>
+                </div>
+                 {/* Optionnel: Ajouter des explications sur l'utilisation du code */}
+            </div>
+        );
     };
-    // --- End Render Functions ---
+    // --- Fin Fonctions de Rendu ---
 
 
-    // --- Main Return JSX ---
+    // --- Logique Chatbot ---
+    const ChatbotAPIStep = (props) => {
+        const [loadingApi, setLoadingApi] = useState(true);
+        const [result, setResult] = useState('');
+        const { previousStep, triggerNextStep } = props; // Extraire triggerNextStep
+
+        useEffect(() => {
+            const userQuery = previousStep.value;
+             console.log("[Chatbot Step] Received query:", userQuery);
+
+            if (!userQuery || !patientId) {
+                setResult("Désolé, besoin de votre question et ID patient.");
+                setLoadingApi(false);
+                if (triggerNextStep) { // Vérifier si triggerNextStep existe
+                    triggerNextStep({ value: 'error', trigger: 'user-input-again' });
+                }
+                return;
+            }
+
+            const callApi = async () => {
+                try {
+                    const response = await axios.post('http://localhost:8089/api/chatbot/query', {
+                        patientId: patientId,
+                        queryText: userQuery
+                    }, { withCredentials: true });
+                     setResult(response.data.response || "Je n'ai pas de réponse pour cela.");
+                 } catch (apiError) {
+                     console.error("Erreur API Chatbot:", apiError);
+                     setResult("Désolé, erreur de communication avec l'assistant.");
+                 } finally {
+                     setLoadingApi(false);
+                     if (triggerNextStep) { // Vérifier si triggerNextStep existe
+                         triggerNextStep({ value: userQuery, trigger: 'user-input-again' });
+                     }
+                 }
+             };
+             callApi();
+         }, [previousStep, patientId, triggerNextStep]); // Ajouter triggerNextStep aux dépendances
+
+        return (
+            <div>{loadingApi ? <Loader2 className="h-4 w-4 animate-spin inline-block" /> : result}</div>
+        );
+    };
+    // --- Fin Logique Chatbot ---
+
+
+    // --- Rendu JSX Principal ---
     return (
-        <div className="min-h-screen bg-gray-100 pt-24 pb-12 px-4 md:px-6">
-            <Card className="max-w-2xl mx-auto shadow-lg">
-                {/* CardHeader */}
-                <CardHeader className="flex flex-col space-y-1 bg-blue-50 p-6 rounded-t-lg">
-                    {/* ... */}
-                     <CardTitle className="text-2xl font-bold text-blue-800 flex items-center">
-                        <Clock className="mr-2 h-6 w-6 text-blue-600" />
-                        Status of Your Emergency Request
-                    </CardTitle>
-                    <CardDescription className="text-blue-700">
-                        Track the progress of your request in real time. (Refreshes automatically)
-                    </CardDescription>
-                </CardHeader>
-
-                {/* CardContent */}
-                <CardContent className="space-y-6 p-6">
-                    {/* Loading State */}
-                    {loading && (
-                        <div className="text-center p-4">
-                            <p className="text-gray-600 animate-pulse">Loading information...</p>
-                        </div>
-                    )}
-
-                    {/* Error State */}
-                    {error && (
-                         <div className="text-center p-4 bg-red-100 text-red-700 rounded-md">
-                            <p>{error}</p>
-                            {!patientId && <p>Please go back and resubmit the form.</p>}
-                        </div>
-                    )}
-
-                    {/* Success State */}
-                    {!loading && !error && patientDetails && (
-                        <>
-                            {/* Current Status */}
-                            <div className="border rounded-md p-6 bg-gray-100">
-                                <h4 className="font-semibold mb-2 text-gray-800">Current Status:</h4>
-                                <p className="text-xl font-bold text-blue-700">{patientDetails.status || 'N/A'}</p>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    Last updated: {patientDetails.updatedAt ? new Date(patientDetails.updatedAt).toLocaleString() : 'N/A'}
-                                </p>
+        <ThemeProvider theme={chatbotTheme}>
+             <div className="min-h-screen bg-gray-100 pt-24 pb-20 px-4 md:px-6 relative"> {/* Augmenter pb */}
+                <Card className="max-w-2xl mx-auto shadow-lg rounded-lg overflow-hidden border border-gray-200">
+                    <CardHeader className="bg-blue-50 p-6 border-b">
+                        <CardTitle className="text-2xl font-bold text-blue-800 flex items-center">
+                            <Clock className="mr-2 h-6 w-6 text-blue-600" />
+                             Statut de Votre Demande d'Urgence
+                        </CardTitle>
+                        <CardDescription className="text-blue-700">
+                            Suivi en temps réel (rafraîchissement auto).
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-5 p-6">
+                        {/* 1. État de Chargement Initial */}
+                        {loading ? (
+                            <div className="text-center p-6">
+                                <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-3" />
+                                <p className="text-gray-600">Chargement des informations...</p>
                             </div>
+                        ) :
+                        /* 2. État d'Erreur Initiale */
+                        error ? (
+                            <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800">
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                        ) :
+                        /* 3. État avec Données Chargées */
+                        patientDetails ? (
+                            <>
+                                <div className="border rounded-lg p-4 bg-gray-50 shadow-sm">
+                                    <h4 className="font-semibold mb-1 text-gray-700">Statut Actuel :</h4>
+                                    <p className="text-xl font-bold text-blue-700">{patientDetails.status || 'N/A'}</p>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Dernière mise à jour : {patientDetails.updatedAt ? new Date(patientDetails.updatedAt).toLocaleString('fr-FR') : 'N/A'}
+                                    </p>
+                                </div>
 
-                             {/* Doctor Info */}
-                             {renderDoctorInfo()}
+                                {renderDoctorInfo()}
 
-                             {/* Medical Access Code */}
-                            {renderMedicalAccessCode()}
+                                <div className="border rounded-lg p-4 bg-blue-50 shadow-sm">
+                                    <h4 className="font-semibold mb-1 text-blue-800 flex items-center">
+                                        <Clock className="mr-2 h-4 w-4 text-blue-700" /> Temps d'Attente Estimé / Prochaine Étape
+                                    </h4>
+                                    <div className="flex items-center">
+                                        <p className={`text-blue-900 font-semibold ${loadingWaitTime ? 'italic text-gray-500' : ''}`}>
+                                            {estimatedWaitTime} {/* Affichage direct */}
+                                        </p>
+                                        {loadingWaitTime && <Loader2 className="h-4 w-4 animate-spin text-blue-600 ml-2" />}
+                                    </div>
+                                    {errorWaitTime && <p className="text-red-500 text-xs mt-1">{errorWaitTime}</p>}
+                                </div>
 
-                            {/* Estimated Wait Time */}
-                            <div className="border rounded-md p-6 bg-blue-100">
-                                <h4 className="font-semibold mb-2 text-blue-800 flex items-center">
-                                    <Clock className="mr-2 h-4 w-4 text-blue-700" /> Estimated Wait Time / Next Step
-                                </h4>
-                                <p className="text-blue-900">
-                                    {/* Display the state variable */}
-                                    <span className="font-semibold">{estimatedWaitTime}</span>.
-                                </p>
-                            </div>
+                                {renderMedicalAccessCode()}
 
-                             {/* Action Buttons */}
-                             <div className="flex flex-col sm:flex-row justify-between gap-4 mt-6">
-                                {/* ... Buttons ... */}
-                                 <Button asChild variant="outline" className="border-blue-600 text-blue-700 hover:bg-blue-50">
-                                    <Link to="/home">Back to Home</Link>
-                                </Button>
-                                {patientDetails.status !== 'Traité' && patientDetails.status !== 'Annulé' && ( // Match French status
-                                    <Button asChild variant="default" className="bg-blue-600 hover:bg-blue-700 text-white">
-                                        <Link to="/calendar">
-                                            <Calendar className="mr-2 h-4 w-4" /> Schedule a Follow-Up Appointment
-                                        </Link>
+                                <div className="text-xs text-gray-600 bg-gray-100 p-3 rounded-md border border-gray-200">
+                                    <p className="font-medium mb-1">Que se passe-t-il maintenant ?</p>
+                                    <ul className="list-disc pl-4 space-y-0.5">
+                                        {patientDetails.status === "Demande Enregistrée" && <li>Notre équipe examine votre demande pour assigner le bon professionnel.</li>}
+                                        {patientDetails.status === "En Cours d'Examen" && <li>Un professionnel évalue votre situation plus en détail.</li>}
+                                        {patientDetails.status === "Médecin Assigné" && <li>Dr. {doctorInfo?.username || 'le médecin'} a été notifié.</li>}
+                                        {patientDetails.status === "Médecin En Route" && <li>Le médecin est en chemin. Restez où vous êtes.</li>}
+                                        {patientDetails.status === "Traité" && <li>Prise en charge terminée. N'oubliez pas de suivre les instructions de sortie.</li>}
+                                        {patientDetails.status === "Annulé" && <li>Demande annulée. Contactez-nous si votre situation change.</li>}
+                                        <li>Restez joignable par téléphone.</li>
+                                    </ul>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
+                                    <Button asChild variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-100">
+                                        <Link to="/home">Retour à l'Accueil</Link>
                                     </Button>
-                                )}
+                                     {/* Ne pas montrer le bouton calendrier si traité ou annulé */}
+                                     {!['Traité', 'Annulé'].includes(patientDetails.status) && (
+                                         <Button asChild variant="default" className="bg-blue-600 hover:bg-blue-700 text-white">
+                                             <Link to="/calendar">
+                                                 <Calendar className="mr-2 h-4 w-4" /> Planifier un RDV de suivi
+                                             </Link>
+                                         </Button>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            /* 4. État où l'ID est manquant (après le chargement initial) */
+                             <div className="text-center p-6 text-gray-600">
+                                 Impossible d'afficher le statut. ID Patient manquant.
                              </div>
-                        </>
-                    )}
+                         )}
+                    </CardContent>
+                </Card>
 
-                    {/* Fallback if no data and no error */}
-                     {!loading && !error && !patientDetails && (
-                        <div className="text-center p-4 text-gray-600">
-                            {!patientId ? "No patient ID provided." : "Could not load patient details."}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-        </div>
+                {/* --- Section Chatbot --- */}
+                {!loading && patientId && ( // Afficher seulement si chargement initial terminé et ID existe
+                    <>
+                        {!showChatbot && (
+                            <Button
+                                className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-blue-600 hover:bg-blue-700 text-white z-50 flex items-center justify-center p-0" // Ajustement taille/padding
+                                onClick={() => setShowChatbot(true)}
+                                aria-label="Ouvrir l'assistant virtuel"
+                                title="Assistant Virtuel"
+                            >
+                                <MessageSquare size={24} />
+                            </Button>
+                        )}
+
+                        {showChatbot && (
+                            <div className="fixed bottom-6 right-6 z-50 shadow-xl rounded-lg overflow-hidden border border-gray-300">
+                                <ChatBot
+                                    headerTitle="Assistant Virtuel"
+                                    steps={[
+                                        { id: 'welcome', message: 'Bonjour ! Question sur statut, attente, médecin ?', trigger: 'user-input' },
+                                        { id: 'user-input', user: true, trigger: 'api-call' },
+                                        { id: 'api-call', component: <ChatbotAPIStep />, waitAction: true, asMessage: true },
+                                        { id: 'user-input-again', message: 'Autre question simple ?', trigger: 'user-input' },
+                                        { id: 'fallback', message: 'Erreur. Autre question ?', trigger: 'user-input' }
+                                    ]}
+                                    floating={false}
+                                    opened={true}
+                                    toggleFloating={() => setShowChatbot(false)}
+                                    width="330px" // Largeur ajustée
+                                    // Style pour la bulle de chargement si possible (via CSS ou props)
+                                    botDelay={500} // Petit délai pour simuler la réponse
+                                    userDelay={0}
+                                />
+                            </div>
+                        )}
+                    </>
+                )}
+                 {/* --- Fin Section Chatbot --- */}
+
+            </div>
+        </ThemeProvider>
     );
-    // --- End Main Return ---
 };
 
 export default EmergencyStatus;

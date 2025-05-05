@@ -15,6 +15,7 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import profileRoutes from "./routes/profile.js";
 import emergencyPatientRoutes from "./routes/emergencyPatients.js";
+import aiRoutes from './routes/ai.js';
 import ambulanceRoutes from "./routes/ambulance.js";
 import medicalRecordRoutes from "./routes/medicalRecords.js";
 import patientFileRoutes from "./routes/patientFile.js";
@@ -82,6 +83,7 @@ app.use("/api/ambulance", ambulanceRoutes);
 app.use("/api/medical-records", medicalRecordRoutes);
 app.use("/api/patient-files", patientFileRoutes);
 app.use("/api/alerts", alertsRoutes);
+app.use('/api/ai', aiRoutes);
 
 // --- ✨ Socket.IO Authentication Middleware ---
 io.use((socket, next) => {
@@ -116,10 +118,10 @@ io.on("connection", (socket) => {
     userSockets.set(socket.userId.toString(), socket.id);
     console.log(`🗺️ User ${socket.userId} mapped to socket ${socket.id}`);
   } else {
-     console.warn(`⚠️ Socket ${socket.id} connected without a valid userId after authentication.`);
-     // Optionally disconnect if userId is absolutely required
-     // socket.disconnect(true);
-     // return;
+    console.warn(`⚠️ Socket ${socket.id} connected without a valid userId after authentication.`);
+    // Optionally disconnect if userId is absolutely required
+    // socket.disconnect(true);
+    // return;
   }
 
   // --- ✨ Join Role-Based Rooms ---
@@ -139,8 +141,8 @@ io.on("connection", (socket) => {
   socket.on("locationUpdate", async (data) => {
     console.log("Received locationUpdate:", data); // Debug log
     if (!data || !data.id || data.latitude == null || data.longitude == null) {
-        console.error("Invalid locationUpdate data received:", data);
-        return; // Prevent processing invalid data
+      console.error("Invalid locationUpdate data received:", data);
+      return; // Prevent processing invalid data
     }
     try {
       await Ambulance.findByIdAndUpdate(data.id, {
@@ -158,9 +160,9 @@ io.on("connection", (socket) => {
   // Ambulance destination update
   socket.on("destinationUpdate", async (data) => {
     console.log("Received destinationUpdate:", data); // Debug log
-     if (!data || !data.id || data.destinationLatitude == null || data.destinationLongitude == null) {
-        console.error("Invalid destinationUpdate data received:", data);
-        return; // Prevent processing invalid data
+    if (!data || !data.id || data.destinationLatitude == null || data.destinationLongitude == null) {
+      console.error("Invalid destinationUpdate data received:", data);
+      return; // Prevent processing invalid data
     }
     try {
       const destination = `${data.destinationLatitude},${data.destinationLongitude}`;
@@ -168,7 +170,7 @@ io.on("connection", (socket) => {
         destination,
         lastUpdated: Date.now(),
       });
-       // Emit back to all clients (consider specific room/client if needed)
+      // Emit back to all clients (consider specific room/client if needed)
       io.emit("destinationUpdate", data);
     } catch (err) {
       console.error("❌ Error saving destination:", err);
@@ -178,10 +180,10 @@ io.on("connection", (socket) => {
   // Ambulance alert
   socket.on("alert", async ({ message, source }) => {
     console.log("Received alert:", { message, source }); // Debug log
-     if (!message || !source) {
-         console.error("Invalid alert data received:", { message, source });
-         return; // Prevent processing invalid data
-     }
+    if (!message || !source) {
+      console.error("Invalid alert data received:", { message, source });
+      return; // Prevent processing invalid data
+    }
     try {
       const alert = await Alert.create({ message, source });
       // Emit back to all clients (consider specific room/client if needed)
@@ -212,8 +214,8 @@ io.on("connection", (socket) => {
     if (socket.userId) {
       // Check if the disconnected socket ID matches the stored ID for that user
       if (userSockets.get(socket.userId.toString()) === socket.id) {
-         userSockets.delete(socket.userId.toString());
-         console.log(`🗺️ User ${socket.userId} removed from socket map.`);
+        userSockets.delete(socket.userId.toString());
+        console.log(`🗺️ User ${socket.userId} removed from socket map.`);
       }
     }
     // Fallback: Clean up any socket ID entry just in case mapping got skewed
