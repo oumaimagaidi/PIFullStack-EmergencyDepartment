@@ -67,16 +67,8 @@ const Emergency = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-red-50 to-white p-8">
       <header className="flex items-center justify-between mb-10">
-        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Gestion des Urgences</h1>
-        <Button
-  className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300"
-  onClick={() => {/* Ajouter logique de déclaration d'urgence */}}
->
-  <div className="flex items-center gap-2">
-   
-    <span>Déclarer une Urgence</span>
-  </div>
-</Button>
+      <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{ color: '#42A5FF' }}>Gestion des Urgences</h1>
+       
       </header>
 
       <div className="flex gap-4 mb-10">
@@ -89,13 +81,7 @@ const Emergency = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Button
-          variant="outline"
-          className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 shadow-sm"
-        >
-          <Filter className="w-4 h-4 mr-2" />
-          Filtrer
-        </Button>
+       
       </div>
 
       {loading ? (

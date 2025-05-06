@@ -115,8 +115,8 @@ const Dashboard = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-blue-900">Dashboard</h1>
+            <div className="flex items-center justify-between ">
+            <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{ color: '#42A5FF' }}> Dashboard</h1>
                 <div className="text-sm text-muted-foreground">
                     {new Date().toLocaleDateString("en-US", {
                         weekday: "long",

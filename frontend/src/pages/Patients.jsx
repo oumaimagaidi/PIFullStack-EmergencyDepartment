@@ -5,7 +5,23 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Search, UserPlus, Calendar, Phone, User, Mail, Heart, Filter, Pencil, Trash2 } from "lucide-react"
+import {
+  Search,
+  UserPlus,
+  Calendar,
+  Phone,
+  User,
+  Mail,
+  Heart,
+  Filter,
+  Pencil,
+  Trash2,
+  Users,
+  RefreshCw,
+  Activity,
+  FileText,
+  ClipboardList,
+} from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -32,6 +48,7 @@ const Patients = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [formErrors, setFormErrors] = useState({})
   const [previewImage, setPreviewImage] = useState(null)
+  const [refreshing, setRefreshing] = useState(false)
   const [newPatient, setNewPatient] = useState({
     name: "",
     email: "",
@@ -45,21 +62,30 @@ const Patients = () => {
   })
 
   const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+  const conditions = ["Stable", "Critical", "Recovering", "Under Observation", "Chronic", "Acute"]
+
+  const fetchPatients = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await axios.get("http://localhost:8089/api/users/patients", { withCredentials: true })
+      const fetchedPatients = response.data || []
+      setPatients(fetchedPatients)
+      setTotalPages(Math.ceil(fetchedPatients.length / patientsPerPage))
+    } catch (err) {
+      setError("Impossible de récupérer les patients.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const refreshData = async () => {
+    setRefreshing(true)
+    await fetchPatients()
+    setTimeout(() => setRefreshing(false), 800)
+  }
 
   useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const response = await axios.get("http://localhost:8089/api/users/patients", { withCredentials: true })
-        const fetchedPatients = response.data || []
-        setPatients(fetchedPatients)
-        setTotalPages(Math.ceil(fetchedPatients.length / patientsPerPage))
-      } catch (err) {
-        setError("Impossible de récupérer les patients.")
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchPatients()
   }, [])
 
@@ -393,8 +419,7 @@ const Patients = () => {
         )}
       </div>
       <div className="relative">
-        <Input
-          placeholder="Condition Médicale"
+        <select
           value={isEditing ? editingPatient.condition : newPatient.condition}
           onChange={(e) =>
             isEditing
@@ -402,7 +427,14 @@ const Patients = () => {
               : setNewPatient({ ...newPatient, condition: e.target.value })
           }
           className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 transition-all duration-300 shadow-sm"
-        />
+        >
+          <option value="">Sélectionner la condition médicale</option>
+          {conditions.map((condition) => (
+            <option key={condition} value={condition}>
+              {condition}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="relative">
         <Input
@@ -412,16 +444,23 @@ const Patients = () => {
           className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 transition-all duration-300 shadow-sm"
         />
         {previewImage && (
-          <img
-            src={previewImage || "/placeholder.svg"}
-            alt="Preview"
-            className="mt-4 w-32 h-32 object-cover rounded-full border-2 border-gray-200 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 hover:scale-105 mx-auto"
-          />
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="mt-4 flex justify-center"
+          >
+            <img
+              src={previewImage || "/placeholder.svg"}
+              alt="Preview"
+              className="w-32 h-32 object-cover rounded-full border-2 border-gray-200 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 hover:scale-105"
+            />
+          </motion.div>
         )}
       </div>
       <Button
         type="submit"
-       className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300"
+        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 transition-all duration-300 shadow-md rounded-lg py-3"
         disabled={loading}
       >
         {loading ? <span className="mr-2 animate-spin">⏳</span> : null}
@@ -446,7 +485,7 @@ const Patients = () => {
         <Button
           disabled={currentPage === 1}
           onClick={() => setCurrentPage(currentPage - 1)}
-          className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-all duration-300 rounded-lg px-4 py-2 disabled:opacity-50"
+          className="bg-blue-100 text-blue-700 hover:bg-blue-200 transition-all duration-300 rounded-lg px-4 py-2 disabled:opacity-50"
         >
           Précédent
         </Button>
@@ -455,7 +494,7 @@ const Patients = () => {
             key={page}
             onClick={() => setCurrentPage(page)}
             className={`${
-              currentPage === page ? "bg-indigo-600 text-white" : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+              currentPage === page ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-700 hover:bg-blue-200"
             } transition-all duration-300 rounded-lg px-4 py-2`}
           >
             {page}
@@ -464,7 +503,7 @@ const Patients = () => {
         <Button
           disabled={currentPage === totalPages}
           onClick={() => setCurrentPage(currentPage + 1)}
-          className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-all duration-300 rounded-lg px-4 py-2 disabled:opacity-50"
+          className="bg-blue-100 text-blue-700 hover:bg-blue-200 transition-all duration-300 rounded-lg px-4 py-2 disabled:opacity-50"
         >
           Suivant
         </Button>
@@ -472,193 +511,259 @@ const Patients = () => {
     )
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-white p-8">
-      <header className="flex items-center justify-between mb-10">
-        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Gestion des Patients</h1>
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetTrigger asChild>
-            <Button
-className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300"              disabled={loading}
-              onClick={() => {
-                setEditingPatient(null)
-                setPreviewImage(null)
-                setNewPatient({
-                  name: "",
-                  email: "",
-                  password: "",
-                  phoneNumber: "",
-                  dateOfBirth: "",
-                  bloodType: "",
-                  condition: "",
-                  age: "",
-                  profileImage: null,
-                })
-                setFormErrors({})
-                setIsSheetOpen(true)
-              }}
-            >
-              <UserPlus className="w-4 h-4 mr-2" />
-              Ajouter Patient
-              <span className="absolute bottom-10 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
-                Ajouter un nouveau patient
-              </span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-lg shadow-2xl">
-            <SheetHeader>
-              <SheetTitle className="text-2xl font-semibold text-gray-900">
-                {editingPatient ? "Modifier le Patient" : "Ajouter un Nouveau Patient"}
-              </SheetTitle>
-            </SheetHeader>
-            <PatientForm isEditing={!!editingPatient} />
-          </SheetContent>
-        </Sheet>
-      </header>
+  const getConditionColor = (condition) => {
+    switch (condition?.toLowerCase()) {
+      case "critical":
+        return "text-red-600 bg-red-50 border-red-200"
+      case "stable":
+        return "text-green-600 bg-green-50 border-green-200"
+      case "recovering":
+        return "text-emerald-600 bg-emerald-50 border-emerald-200"
+      case "under observation":
+        return "text-amber-600 bg-amber-50 border-amber-200"
+      case "chronic":
+        return "text-purple-600 bg-purple-50 border-purple-200"
+      case "acute":
+        return "text-orange-600 bg-orange-50 border-orange-200"
+      default:
+        return "text-gray-600 bg-gray-50 border-gray-200"
+    }
+  }
 
-      <div className="flex gap-4 mb-10">
-        <div className="relative flex-1">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-white p-8">
+      {/* Enhanced Header with Stats */}
+      <div className="mb-12">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-8"
+        >
+<h1 className="text-5xl font-extrabold tracking-tight mb-2" style={{ color: '#42A5FF' }}>            Gestion des Patients
+          </h1>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Système de gestion complet pour suivre et gérer les informations des patients
+          </p>
+        </motion.div>
+        <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay: 0.2 }}
+    className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 justify-center mx-auto max-w-6xl"
+  >
+    <Card className="bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 border border-indigo-100 max-w-md w-full">
+      <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Total Patients</p>
+                  <h3 className="text-3xl font-bold text-gray-900 mt-1">{patients.length}</h3>
+                </div>
+                <div className="bg-blue-100 p-3 rounded-full">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+         
+
+          <Card className="bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-100">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Dernière Mise à Jour</p>
+                  <h3 className="text-lg font-bold text-gray-900 mt-1">{new Date().toLocaleDateString()}</h3>
+                </div>
+                <div className="bg-green-100 p-3 rounded-full">
+                  <RefreshCw
+                    className={`h-6 w-6 text-green-600 ${refreshing ? "animate-spin" : "cursor-pointer"}`}
+                    onClick={refreshData}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+        <div className="flex-1 relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher des patients..."
-            className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 transition-all duration-300 shadow-sm"
+            placeholder="Rechercher des patients par nom..."
+            className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all duration-300 shadow-sm"
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             disabled={loading}
             aria-label="Rechercher des patients"
           />
         </div>
-        <Button
-          variant="outline"
-          className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 transition-all duration-300 shadow-sm"
-        >
-          <Filter className="w-4 h-4 mr-2" />
-          Filtrer
-        </Button>
+       
       </div>
 
       {loading && patients.length === 0 ? (
-        <div className="flex justify-center">
-          <span className="text-indigo-600 text-2xl animate-pulse">⏳ Chargement...</span>
+        <div className="flex justify-center items-center h-64">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+          >
+            <RefreshCw className="w-12 h-12 text-blue-600" />
+          </motion.div>
+          <span className="ml-4 text-blue-600 text-xl">Chargement des patients...</span>
         </div>
       ) : error ? (
-        <div className="text-center">
-          <p className="text-red-500">{error}</p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center bg-red-50 p-8 rounded-xl border border-red-200"
+        >
+          <p className="text-red-500 text-lg mb-4">{error}</p>
           <Button
             onClick={() => window.location.reload()}
-            className="mt-4 bg-indigo-600 text-white hover:bg-indigo-700 transition-all duration-300 rounded-lg px-6 py-2"
+            className="bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 rounded-lg px-6 py-2"
           >
+            <RefreshCw className="w-4 h-4 mr-2" />
             Réessayer
           </Button>
-        </div>
+        </motion.div>
       ) : paginatedPatients.length === 0 ? (
-        <p className="text-center text-gray-500 text-lg" role="alert">
-          Aucun patient trouvé.
-        </p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center bg-gray-50 p-12 rounded-xl border border-gray-200"
+        >
+          <p className="text-gray-500 text-xl mb-4" role="alert">
+            Aucun patient trouvé correspondant à votre recherche.
+          </p>
+          {searchQuery && (
+            <Button
+              onClick={() => {
+                setSearchQuery("")
+                fetchPatients()
+              }}
+              className="bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 rounded-lg px-6 py-2"
+            >
+              Effacer la recherche
+            </Button>
+          )}
+        </motion.div>
       ) : (
         <>
-          <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {paginatedPatients.map((patient) => (
-              <Card
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+          >
+            {paginatedPatients.map((patient, index) => (
+              <motion.div
                 key={patient._id}
-                className="relative bg-white/90 backdrop-blur-sm shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 rounded-2xl overflow-hidden border border-gray-200 hover:border-indigo-400"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
               >
-                <CardContent className="p-6 text-center">
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-500"></div>
-                    <img
-                      src={
-                        patient.profileImage
-                          ? `http://localhost:8089${patient.profileImage.startsWith("/") ? patient.profileImage : "/" + patient.profileImage}`
-                          : "https://via.placeholder.com/150?text=Patient"
-                      }
-                      alt={patient.name}
-                      className="w-40 h-40 mx-auto object-cover rounded-full border-4 border-gray-100 group-hover:border-indigo-300 transition-all duration-500 group-hover:scale-110"
-                    />
-                    {patient.bloodType && (
-                      <span className="absolute top-2 left-2 bg-indigo-50 text-indigo-700 text-sm font-medium px-3 py-1 rounded-full shadow-md border border-indigo-200 group-hover:bg-indigo-100 transition-all duration-300">
-                        ❤️ {patient.bloodType}
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-800 mt-6 truncate">
-                    {patient.name || "Nom non disponible"}
-                  </h2>
-                  <div className="mt-6 space-y-4 text-gray-600 text-sm">
-                    {patient.age && (
-                      <p className="flex items-center justify-center gap-2">
-                        <span className="text-indigo-500">🎂</span> Âge: {patient.age} ans
-                      </p>
-                    )}
-                    {patient.condition && (
-                      <p className="flex items-center justify-center gap-2">
-                        <span className="text-green-500">🏥</span> Condition: {patient.condition}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-center gap-2 group relative">
-                      <Mail className="h-4 w-4 text-indigo-400" />
-                      <span className="group-hover:text-indigo-600 transition-colors duration-300">
-                        {patient.email || "Email non disponible"}
-                      </span>
-                      <div className="absolute bottom-8 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
-                        Envoyer un email
+                <Card className="relative bg-white/90 backdrop-blur-sm shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 rounded-2xl overflow-hidden border border-gray-200 hover:border-blue-400">
+                  <CardContent className="p-6 text-center">
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-500"></div>
+                      <img
+                        src={
+                          patient.profileImage
+                            ? `http://localhost:8089${patient.profileImage.startsWith("/") ? patient.profileImage : "/" + patient.profileImage}`
+                            : "https://via.placeholder.com/150?text=Patient"
+                        }
+                        alt={patient.name}
+                        className="w-40 h-40 mx-auto object-cover rounded-full border-4 border-gray-100 group-hover:border-blue-300 transition-all duration-500 group-hover:scale-110"
+                      />
+                      {patient.bloodType && (
+                        <motion.span
+                          initial={{ x: -20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 0.2 }}
+                          className="absolute top-2 left-2 bg-red-50 text-red-700 text-sm font-medium px-3 py-1 rounded-full shadow-md border border-red-200 group-hover:bg-red-100 transition-all duration-300"
+                        >
+                          <Heart className="w-3 h-3 inline mr-1" /> {patient.bloodType}
+                        </motion.span>
+                      )}
+                      {patient.condition && (
+                        <motion.span
+                          initial={{ x: 20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 0.3 }}
+                          className={`absolute top-2 right-2 text-sm font-medium px-3 py-1 rounded-full shadow-md border transition-all duration-300 ${getConditionColor(
+                            patient.condition,
+                          )}`}
+                        >
+                          <Activity className="w-3 h-3 inline mr-1" /> {patient.condition}
+                        </motion.span>
+                      )}
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-800 mt-6 truncate">
+                      {patient.name || "Nom non disponible"}
+                    </h2>
+                    <div className="mt-6 space-y-4 text-gray-600 text-sm">
+                      {patient.age && (
+                        <p className="flex items-center justify-center gap-2">
+                          <Calendar className="w-4 h-4 text-blue-500" /> Âge: {patient.age} ans
+                        </p>
+                      )}
+                      <div className="flex items-center justify-center gap-2 group relative">
+                        <Mail className="h-4 w-4 text-blue-400" />
+                        <span className="group-hover:text-blue-600 transition-colors duration-300">
+                          {patient.email || "Email non disponible"}
+                        </span>
+                        <div className="absolute bottom-8 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
+                          Envoyer un email
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-center gap-2 group relative">
+                        <Phone className="h-4 w-4 text-green-400" />
+                        <span className="group-hover:text-green-600 transition-colors duration-300">
+                          {patient.phoneNumber || "Numéro non disponible"}
+                        </span>
+                        <div className="absolute bottom-8 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
+                          Appeler
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center justify-center gap-2 group relative">
-                      <Phone className="h-4 w-4 text-green-400" />
-                      <span className="group-hover:text-green-600 transition-colors duration-300">
-                        {patient.phoneNumber || "Numéro non disponible"}
-                      </span>
-                      <div className="absolute bottom-8 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
-                        Appeler
-                      </div>
+                    <div className="flex justify-center mt-8 gap-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="relative group bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300 hover:shadow-lg transition-all duration-300"
+                        onClick={() => handleEditClick(patient)}
+                        disabled={loading}
+                      >
+                        <Pencil className="h-4 w-4 mr-1" /> 
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="relative group bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:border-red-300 hover:shadow-lg transition-all duration-300"
+                        onClick={() => handleDelete(patient._id)}
+                        disabled={loading}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" /> 
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="relative group bg-cyan-50 text-cyan-600 border-cyan-200 hover:bg-cyan-100 hover:border-cyan-300 hover:shadow-lg transition-all duration-300"
+                        onClick={() => {
+                          setSelectedPatient(patient)
+                          setIsDetailsOpen(true)
+                        }}
+                        disabled={loading}
+                      >
+                        <ClipboardList className="h-4 w-4 mr-1" /> 
+                      </Button>
                     </div>
-                  </div>
-                  <div className="flex justify-center mt-8 gap-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="relative group bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 hover:border-indigo-300 hover:shadow-lg transition-all duration-300"
-                      onClick={() => handleEditClick(patient)}
-                      disabled={loading}
-                    >
-                      <Pencil className="h-4 w-4 mr-1" />
-                      <span className="absolute bottom-10 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
-                        Modifier ce patient
-                      </span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="relative group bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:border-red-300 hover:shadow-lg transition-all duration-300"
-                      onClick={() => handleDelete(patient._id)}
-                      disabled={loading}
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" /> 
-                      <span className="absolute bottom-10 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
-                        Supprimer ce patient
-                      </span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="relative group bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300 hover:shadow-lg transition-all duration-300"
-                      onClick={() => {
-                        setSelectedPatient(patient)
-                        setIsDetailsOpen(true)
-                      }}
-                      disabled={loading}
-                    >
-                      Détails
-                      <span className="absolute bottom-10 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
-                        Voir les détails du patient
-                      </span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
           {totalPages > 1 && <Pagination />}
         </>
       )}
@@ -689,44 +794,44 @@ className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py
                           : "https://via.placeholder.com/100?text=Patient"
                       }
                       alt={selectedPatient.name}
-                      className="w-24 h-24 rounded-full object-cover border-4 border-indigo-200 shadow-md"
+                      className="w-24 h-24 rounded-full object-cover border-4 border-blue-200 shadow-md"
                       onError={(e) => (e.target.src = "https://via.placeholder.com/100?text=Patient")}
                     />
                   </div>
                   <p className="text-gray-700">
                     <strong className="flex items-center gap-2">
-                      <User className="inline w-4 h-4 text-indigo-600" /> Nom:
+                      <User className="inline w-4 h-4 text-blue-600" /> Nom:
                     </strong>{" "}
                     {selectedPatient.name}
                   </p>
                   <p className="text-gray-700">
                     <strong className="flex items-center gap-2">
-                      <Mail className="inline w-4 h-4 text-indigo-600" /> Email:
+                      <Mail className="inline w-4 h-4 text-blue-600" /> Email:
                     </strong>{" "}
                     {selectedPatient.email || "N/A"}
                   </p>
                   <p className="text-gray-700">
                     <strong className="flex items-center gap-2">
-                      <Phone className="inline w-4 h-4 text-indigo-600" /> Téléphone:
+                      <Phone className="inline w-4 h-4 text-blue-600" /> Téléphone:
                     </strong>{" "}
                     {selectedPatient.phoneNumber || "N/A"}
                   </p>
                   <p className="text-gray-700">
                     <strong className="flex items-center gap-2">
-                      <Calendar className="inline w-4 h-4 text-indigo-600" /> Date de Naissance:
+                      <Calendar className="inline w-4 h-4 text-blue-600" /> Date de Naissance:
                     </strong>{" "}
                     {selectedPatient.dateOfBirth ? new Date(selectedPatient.dateOfBirth).toLocaleDateString() : "N/A"}
                   </p>
                   <p className="text-gray-700">
                     <strong className="flex items-center gap-2">
-                      <Heart className="inline w-4 h-4 text-indigo-600" /> Groupe Sanguin:
+                      <Heart className="inline w-4 h-4 text-blue-600" /> Groupe Sanguin:
                     </strong>{" "}
                     {selectedPatient.bloodType || "N/A"}
                   </p>
                   {selectedPatient.condition && (
                     <p className="text-gray-700">
                       <strong className="flex items-center gap-2">
-                        <span className="text-indigo-600">🏥</span> Condition:
+                        <Activity className="inline w-4 h-4 text-blue-600" /> Condition:
                       </strong>{" "}
                       {selectedPatient.condition}
                     </p>
@@ -734,7 +839,7 @@ className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py
                   {selectedPatient.age && (
                     <p className="text-gray-700">
                       <strong className="flex items-center gap-2">
-                        <span className="text-indigo-600">🎂</span> Âge:
+                        <FileText className="inline w-4 h-4 text-blue-600" /> Âge:
                       </strong>{" "}
                       {selectedPatient.age} ans
                     </p>
@@ -742,7 +847,7 @@ className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py
                 </div>
                 <DialogFooter>
                   <DialogClose asChild>
-                    <Button className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 w-full">
+                    <Button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transition-all duration-300 w-full">
                       Fermer
                     </Button>
                   </DialogClose>
