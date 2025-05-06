@@ -29,6 +29,7 @@ import MedicalRecordDetails from './pages/MedicalRecordDetails';
 import MedicalDocument from './pages/MedicalDocument';
 import  HexGrid  from "./components/HexGrid";
 import ParticlesComponent from "./components/ParticlesComponent";
+import ResourcesPage from "./pages/ResourcesPage";
 function App() {
   const user = JSON.parse(sessionStorage.getItem("user"));
   
@@ -69,6 +70,7 @@ function App() {
         <Route path="/emergency" element={<DashboardLayout><Emergency /></DashboardLayout>} />
         <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
         <Route path="/forum" element={<DashboardLayout><Forum /></DashboardLayout>} />
+        <Route path="/resources" element={<DashboardLayout><ResourcesPage /></DashboardLayout>} />
         {user?.role === 'Administrator' ? (
           <Route path="/ambulance" element={<DashboardLayout><AmbulanceDashboard /></DashboardLayout>} />
         ) : (

@@ -1,4 +1,3 @@
-// AmbulanceDashboard.jsx
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
@@ -24,6 +23,9 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
+
+// Ensure Leaflet CSS is included
+import "leaflet/dist/leaflet.css";
 
 // Haversine formula for ETA estimation
 const computeDistance = (lat1, lon1, lat2, lon2) => {
@@ -51,13 +53,11 @@ const parseDestination = (dest) => {
 // OSRM route fetch
 const fetchRoute = async (origin, destination) => {
   try {
-    const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+    const url = `http://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
     const res = await fetch(url);
     const data = await res.json();
     if (data.routes?.length) {
-      return data.routes[0].geometry.coordinates.map(
-        ([lng, lat]) => [lat, lng]
-      );
+      return data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
     }
   } catch (err) {
     console.error(err);
@@ -68,9 +68,7 @@ const fetchRoute = async (origin, destination) => {
 // Nominatim search to fetch place coordinates
 const fetchPlaceCoordinates = async (query) => {
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-      query
-    )}`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
     const resp = await fetch(url);
     const data = await resp.json();
     if (data.length) {
@@ -81,6 +79,9 @@ const fetchPlaceCoordinates = async (query) => {
   }
   return null;
 };
+
+// Helper component to wrap Fragment and prevent invalid props
+const FragmentWrapper = ({ children }) => <React.Fragment>{children}</React.Fragment>;
 
 // Helper component that uses the useMap hook to provide the map instance
 const SetMapInstance = ({ setMapInstance }) => {
@@ -204,7 +205,7 @@ const AmbulanceDashboard = () => {
       }
     );
 
-    // **destination updates**
+    // destination updates
     socketRef.current.on(
       "destinationUpdate",
       ({ id, destinationLatitude, destinationLongitude }) => {
@@ -303,7 +304,9 @@ const AmbulanceDashboard = () => {
   // Delete an ambulance
   const handleDeleteAmbulance = (id) => {
     axios
-      .delete(`http://localhost:8089/api/ambulance/${id}`, { withCredentials: true })
+      .delete(`http://localhost:8089/api/ambulance/${id}`, {
+        withCredentials: true,
+      })
       .then(() => setAmbulances((prev) => prev.filter((a) => a._id !== id)))
       .catch(console.error);
   };
@@ -430,7 +433,7 @@ const AmbulanceDashboard = () => {
               const routeCoords = routes[a._id];
               const destinationCoords = parseDestination(a.destination);
               return (
-                <React.Fragment key={a._id}>
+                <FragmentWrapper key={a._id}>
                   <Marker position={[a.latitude, a.longitude]}>
                     <Popup>
                       {a.name} - {a.status}
@@ -455,7 +458,7 @@ const AmbulanceDashboard = () => {
                     </Popup>
                   </Marker>
                   {routeCoords && <Polyline positions={routeCoords} />}
-                </React.Fragment>
+                </FragmentWrapper>
               );
             })}
         </MapContainer>

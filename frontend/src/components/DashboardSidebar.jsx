@@ -50,6 +50,7 @@ const DashboardSidebar = () => {
     { title: "Records", icon: ClipboardList, path: "/records" },
     { title: "Emergency", icon: Hospital, path: "/emergency" },
     { title: "Ambulance", icon: Ambulance, path: "/ambulance" },
+    { title: "Resources", icon: ClipboardList, path: "/resources" },
   ];
 
   const managementMenuItems = [

@@ -20,10 +20,13 @@ import ambulanceRoutes from "./routes/ambulance.js";
 import medicalRecordRoutes from "./routes/medicalRecords.js";
 import patientFileRoutes from "./routes/patientFile.js";
 import alertsRoutes from "./routes/alerts.js";
+import annotationsRoutes from "./routes/annotation.js";
+import archiveRoutes from "./routes/archive.js";
 
 // --- Model Imports ---
 import { User } from "./models/User.js";
 import Ambulance from "./models/Ambulance.js";
+import Resource from "./routes/resource.js";
 import Alert from "./models/Alert.js";
 
 // --- Helpers ---
@@ -83,6 +86,14 @@ app.use("/api/ambulance", ambulanceRoutes);
 app.use("/api/medical-records", medicalRecordRoutes);
 app.use("/api/patient-files", patientFileRoutes);
 app.use("/api/alerts", alertsRoutes);
+app.use("/api/annotations", annotationsRoutes);
+app.use("/api/archive", archiveRoutes);
+app.use("/api/resources",Resource );
+
+app.use('/api/ai', aiRoutes);
+
+app.use('/api/ai', aiRoutes);
+
 app.use('/api/ai', aiRoutes);
 
 // --- ✨ Socket.IO Authentication Middleware ---
