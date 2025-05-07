@@ -1,5 +1,4 @@
-"use client"
-
+import { motion } from "framer-motion"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
@@ -32,6 +31,9 @@ import {
   Dna,
   Folder,
   PlusCircle,
+  Syringe,
+  Bandage,
+  Microscope,
 } from "lucide-react"
 import Footer from "../components/footer"
 
@@ -44,6 +46,68 @@ const colors = {
   secondaryLight: "#cffafe",
   alertLight: "#fee2e2",
   bgAccent: "#e0f7fa", // Light cyan for background
+}
+
+// Animated Medical Icons Component
+const AnimatedMedicalIcons = () => {
+  const medicalIcons = [Stethoscope, Heart, Pill, Syringe, Bandage, Microscope, Dna, Thermometer]
+  const iconCount = 50 // Réduire le nombre pour plus de clarté
+
+  const darkColors = {
+    primary: "#1e3a8a",
+    secondary: "#0c4a6e",
+    accent: "#7f1d1d"
+  }
+
+  const getRandomPosition = () => ({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+  })
+
+  const getRandomAnimation = () => ({
+    rotate: [0, 360], // Rotation complète
+    scale: [0.8, 1.2], // Variation de taille
+    opacity: [0.3, 0.6], // Variation d'opacité
+    transition: {
+      duration: 4 + Math.random() * 4,
+      repeat: Infinity,
+      repeatType: "loop",
+      ease: "easeInOut",
+    },
+  })
+
+  return (
+    <div className="fixed inset-0 z-5 pointer-events-none">
+      {Array.from({ length: iconCount }).map((_, index) => {
+        const Icon = medicalIcons[Math.floor(Math.random() * medicalIcons.length)]
+        return (
+          <motion.div
+            key={index}
+            className="absolute"
+            initial={{ 
+              ...getRandomPosition(),
+              scale: 0.8 
+            }}
+            animate={getRandomAnimation()}
+            whileHover={{
+              scale: 1.5,
+              transition: { duration: 0.3 }
+            }}
+          >
+            <Icon 
+              className="h-14 w-14" // Taille augmentée
+              style={{ 
+                color: Object.values(darkColors)[
+                  Math.floor(Math.random() * Object.values(darkColors).length)
+                ],
+                filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))"
+              }}
+            />
+          </motion.div>
+        )
+      })}
+    </div>
+  )
 }
 
 const MedicalDocument = () => {
@@ -1123,11 +1187,11 @@ const MedicalDocument = () => {
             Check another record
           </Button>
           <div className="flex gap-2">
-            <Button onClick={handleDownloadPDF} className="font-medium" disabled={loading}>
-              <FileText className="mr-2 h-4 w-4" />
+            <Button onClick={handleDownloadPDF} className="font-medium text-white" disabled={loading}>
+              <FileText className="mr-2 h-4 w-4 text-white" />
               Download PDF
             </Button>
-            <Button onClick={() => navigate("/home")} className="font-medium bg-red-600 hover:bg-red-700">
+            <Button onClick={() => navigate("/home")} className="font-medium bg-red-600 hover:bg-red-700 text-white">
               Back to Home
             </Button>
           </div>
@@ -1137,23 +1201,25 @@ const MedicalDocument = () => {
   }
 
   return (
-    <div className=" z-20 relative min-h-screen  flex flex-col bg-gradient-to-br from-blue-50 to-cyan-50 font-sans ">      {/* Nouvel arrière-plan avec particules */}
+    <div className="relative z-20 min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-cyan-50 font-sans">
+      {/* Background Layers */}
       <div className="fixed inset-0 z-0">
-        <ParticlesComponent 
+        <ParticlesComponent
           id="medical-particles"
           style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            backgroundColor: '#E8F4F8' // Couleur de fond médicale
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#E8F4F8",
           }}
         />
       </div>
+      <AnimatedMedicalIcons />
 
       {/* Main Content */}
-      <main className="flex-2 max-w-5xl mx-auto py-20 px-4 relative z-10">
+      <main className="flex-2 max-w-5xl mx-auto py-20 px-4 relative z-10 mt-10">
         {!isValid ? (
-          <div className="grid md:grid-cols-5  gap-0 rounded-xl overflow-hidden shadow-2xl bg-white">
+          <div className="grid md:grid-cols-5 gap-0 rounded-xl overflow-hidden shadow-2xl bg-white">
             <div className="md:col-span-2 hidden md:flex flex-col justify-center items-center p-8 bg-gradient-to-br from-blue-600 to-cyan-600 text-white">
               <div className="text-center">
                 <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-white/20 mb-6">
@@ -1162,23 +1228,38 @@ const MedicalDocument = () => {
                 <h2 className="text-2xl font-bold mb-4">Electronic Medical Record</h2>
                 <p className="mb-8 text-white/80">Secure access to your medical information</p>
                 <div className="space-y-4 text-left">
-                  <div className="flex items-center bg-white/10 p-3 rounded-lg">
-                    <Shield className="h-5 w-5 mr-3" />
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="flex items-center bg-white/10 p-3 rounded-lg transition-all duration-300 hover:bg-white/20"
+                  >
+                    <div className="animate-bounce">
+                      <Shield className="h-5 w-5 mr-3" />
+                    </div>
                     <span className="text-sm">Secure and confidential access</span>
-                  </div>
-                  <div className="flex items-center bg-white/10 p-3 rounded-lg">
-                    <CheckCircle className="h-5 w-5 mr-3" />
+                  </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="flex items-center bg-white/10 p-3 rounded-lg transition-all duration-300 hover:bg-white/20"
+                  >
+                    <div className="animate-pulse">
+                      <CheckCircle className="h-5 w-5 mr-3" />
+                    </div>
                     <span className="text-sm">Up-to-date medical information</span>
-                  </div>
-                  <div className="flex items-center bg-white/10 p-3 rounded-lg">
-                    <User className="h-5 w-5 mr-3" />
+                  </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="flex items-center bg-white/10 p-3 rounded-lg transition-all duration-300 hover:bg-white/20"
+                  >
+                    <div className="animate-float">
+                      <User className="h-5 w-5 mr-3" />
+                    </div>
                     <span className="text-sm">Emergency contacts available</span>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
             </div>
-            <Card className="md:col-span-3 border-0 transition-all duration-300 hover:shadow-lg">
-              <CardHeader className="py-8">
+            <Card className="mt-8 md:col-span-3 border-0 transition-all duration-300 hover:shadow-lg">
+              <CardHeader className="py-8 pt-12 pb-8">
                 <CardTitle className="text-2xl font-bold text-center md:text-left" style={{ color: colors.primary }}>
                   Medical Record Access
                 </CardTitle>
@@ -1192,7 +1273,7 @@ const MedicalDocument = () => {
                     <label htmlFor="accessCode" className="text-sm ml-2 font-medium text-gray-700">
                       Access Code
                     </label>
-                    <div className="relative ">
+                    <div className="relative">
                       <Input
                         id="accessCode"
                         type="text"
@@ -1218,14 +1299,18 @@ const MedicalDocument = () => {
                       <AlertDescription style={{ color: colors.alert }}>{error}</AlertDescription>
                     </Alert>
                   )}
-                  <Button type="submit" className="w-full font-medium" disabled={loading}>
+                  <Button
+                    type="submit"
+                    className="w-full font-medium text-white"
+                    disabled={loading}
+                  >
                     {loading ? (
                       <div className="flex items-center justify-center">
                         <span className="animate-pulse mr-2">⏳</span> Loading...
                       </div>
                     ) : (
                       <div className="flex items-center justify-center">
-                        Access Record <CheckCircle className="ml-2 h-5 w-5" />
+                        Access Record <CheckCircle className="ml-2 h-5 w-5 text-white" />
                       </div>
                     )}
                   </Button>
@@ -1236,10 +1321,8 @@ const MedicalDocument = () => {
         ) : (
           <Card className="shadow-xl">{renderMedicalRecord()}</Card>
         )}
-        
       </main>
       <div className="h-[60px]"></div>
-
     </div>
   )
 }

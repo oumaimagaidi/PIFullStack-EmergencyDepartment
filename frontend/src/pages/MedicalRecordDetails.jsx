@@ -785,8 +785,7 @@ const MedicalRecordDetails = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <CardTitle className="text-2xl font-bold flex items-center text-slate-800">
-                  <FileText className="mr-2 h-6 w-6 text-slate-600" />
-                  Dossier Médical
+                  <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{ color: '#42A5FF' }}>Dossier Médical</h1>
                 </CardTitle>
                 <CardDescription className="text-slate-500 mt-1">
                   {medicalRecord.patientId?.firstName} {medicalRecord.patientId?.lastName}
@@ -862,7 +861,7 @@ const MedicalRecordDetails = () => {
     className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300 cursor-pointer flex items-center"
   >
     <Upload className="mr-2 h-4 w-4" />
-    OCR Image
+    OCR upload
   </label>
 </div>
               </div>

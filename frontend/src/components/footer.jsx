@@ -107,15 +107,13 @@ const Footer = () => {
               <address>Ariana, Tunisia</address>
             </div>
           </div>
-
-          
           </div>
         </div>
       </div>
 
       {/* Footer Bottom */}
-      <div className="footer_bottom">
-        <p>&copy; {new Date().getFullYear()} Emergency Department. All rights reserved.</p>
+      <div className="footer_bottom bg-transparent">
+        <p>© {new Date().getFullYear()} Emergency Department. All rights reserved.</p>
         <div className="footer_bottom-links">
           <Link to="/privacy">Privacy Policy</Link>
           <Link to="/terms">Terms of Service</Link>

@@ -26,7 +26,7 @@ import EmergencyStatus from "./pages/EmergencyStatus"; // Importez le composant 
 import AmbulanceDashboard from "./pages/AmbulanceDashboard";
 import AmbulanceNurseDashboard from "./pages/AmbulanceNurseDashboard";
 import MedicalRecordDetails from './pages/MedicalRecordDetails';
-import MedicalDocument from './pages/MedicalDocument';
+import MedicalDocument from "./pages/MedicalDocument";
 import  HexGrid  from "./components/HexGrid";
 import ParticlesComponent from "./components/ParticlesComponent";
 import ResourcesPage from "./pages/ResourcesPage";

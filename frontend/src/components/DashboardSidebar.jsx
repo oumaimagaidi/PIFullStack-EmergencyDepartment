@@ -88,7 +88,15 @@ const DashboardSidebar = () => {
           </div>
         </div>
       </SidebarHeader>
-
+      <div className="fixed top-4 right-4 z-50">
+  <Button 
+    onClick={() => navigate("/home")}
+    className="rounded-full p-3 shadow-lg hover:shadow-xl transition-all bg-white/90 backdrop-blur-sm"
+    variant="ghost"
+  >
+    <Home className="h-6 w-6 text-blue-600 hover:text-blue-700" />
+  </Button>
+</div>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-sidebar-foreground/70 dark:text-sidebar-foreground/70">
@@ -123,27 +131,7 @@ const DashboardSidebar = () => {
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-sidebar-border dark:border-sidebar-border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-medium">
-              AD
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium dark:text-sidebar-foreground">Admin User</span>
-              <span className="text-xs text-sidebar-foreground/70 dark:text-sidebar-foreground/70">Administrator</span>
-            </div>
-          </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            className="rounded-full h-9 w-9 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground"
-            aria-label="Toggle theme"
-          >
-            {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-          </Button>
-        </div>
+       
       </SidebarFooter>
     </Sidebar>
   );

@@ -4,7 +4,7 @@
   color: #ffffff;
   padding-bottom: 20px;
   margin-top: 50px;
-  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -55px 15px rgba(0, 0, 0, 0.1);
 }
 
 /* Emergency Contact Banner */
@@ -293,6 +293,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   padding: 15px 40px 0;
+  background-color: transparent;
 }
 
 .footer_bottom p {
