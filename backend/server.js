@@ -27,6 +27,7 @@ import { User } from "./models/User.js";
 import Ambulance from "./models/Ambulance.js";
 import Resource from "./routes/resource.js";
 import Alert from "./models/Alert.js";
+import patientRoutes from "./routes/patient.js"; // Ensure this is imported correctly
 import ocrRouter from './routes/ocr.js'; // Adjust the path as needed
 // --- Helpers ---
 dotenv.config();
@@ -89,6 +90,7 @@ app.use("/api/annotations", annotationsRoutes);
 app.use("/api/archive", archiveRoutes);
 app.use("/api/resources",Resource );
 app.use('/api/ocr', ocrRouter); // Mount the router under /api/ocr
+app.use('/api/patients',patientRoutes );
 
 app.use('/api/ai', aiRoutes);
 
