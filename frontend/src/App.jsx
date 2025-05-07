@@ -6,7 +6,7 @@ import Records from "./pages/Records";
 import PublicLayout from "./Layouts/PublicLayout";
 import './index.css'
 
-import Home from "./components/Home";
+import Home from "./components/home";
 import Profile from "./components/Profile";
 import Login from "./pages/Login";
 import Register from "./components/Register";
