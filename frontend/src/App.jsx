@@ -9,7 +9,7 @@ import './index.css'
 import Home from "./components/home";
 import Profile from "./components/Profile";
 import Login from "./pages/Login";
-import Register from "./components/Register";
+import Register from "./components/register";
 import ForgotPassword from "./components/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import Patients from "./pages/Patients";
