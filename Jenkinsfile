@@ -12,12 +12,12 @@ pipeline {
                 script {
                     // Install backend dependencies
                     dir('backend') {
-                        sh 'npm install'
+                        sh 'npm install --legacy-peer-deps'
                     }
 
                     // Install frontend dependencies
                     dir('frontend') {
-                        sh 'npm install'
+                        sh 'npm install --legacy-peer-deps'
                     }
                 }
             }
