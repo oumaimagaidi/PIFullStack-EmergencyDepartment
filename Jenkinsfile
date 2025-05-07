@@ -17,7 +17,7 @@ pipeline {
 
                     // Install frontend dependencies
                     dir('frontend') {
-                        sh 'npm install --legacy-peer-deps && npm install @testing-library/dom --save-dev'
+                        sh 'npm install --legacy-peer-deps && npm install @testing-library/dom --save-dev --legacy-peer-deps'
                     }
                 }
             }
