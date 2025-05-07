@@ -7,7 +7,7 @@ import PublicLayout from "./Layouts/PublicLayout";
 import './index.css'
 
 import Home from "./components/home";
-import Profile from "./components/Profile";
+import Profile from "./components/profile";
 import Login from "./pages/Login";
 import Register from "./components/register";
 import ForgotPassword from "./components/ForgotPassword";
