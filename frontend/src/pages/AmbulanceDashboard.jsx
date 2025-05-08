@@ -353,13 +353,13 @@ const AmbulanceDashboard = () => {
     <div className="flex h-screen">
       {/* Sidebar */}
       <div className="w-1/3 p-6 overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-4">Ambulance Tracking</h1>
+      <h1 className="text-2xl font-extrabold tracking-tight mb-2" style={{ color: '#42A5FF' }}>Ambulance Tracking</h1>
         <Button
           onClick={() => {
             setCurrentAmbulance(null);
             setSheetOpen(true);
           }}
-          className="mb-4"
+          className="mb-4 text-white"
         >
           Add Ambulance
         </Button>
@@ -391,7 +391,7 @@ const AmbulanceDashboard = () => {
                   )}
                 </p>
               )}
-              <Button onClick={() => viewOnMap(a)}>View on Map</Button>
+              <Button className="text-white" onClick={() => viewOnMap(a)}>View on Map</Button>
               <Button
                 variant="outline"
                 size="sm"

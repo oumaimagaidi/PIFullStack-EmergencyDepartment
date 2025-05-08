@@ -49,7 +49,7 @@ export default function ResourcesPage() {
       try {
         const [resR, resP] = await Promise.all([
           axios.get("http://localhost:8089/api/resources", { withCredentials: true }),
-          axios.get("http://localhost:8089/api/users/patients", { withCredentials: true }),
+          axios.get("http://localhost:8089/api/emergency-patients", { withCredentials: true }),
         ]);
         setResources(resR.data);
         setPatients(resP.data);
@@ -272,14 +272,15 @@ export default function ResourcesPage() {
   
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-blue-900">Resources Management</h1>
-          <button
-            onClick={toggleForm}
-            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg"
-          >
-            <PlusCircle className="w-6 h-6" />
-            {editingId ? 'Edit Resource' : 'Add Resource'}
-          </button>
+        <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{ color: '#42A5FF' }}>Resources Management</h1>
+        <button
+  onClick={toggleForm}
+  className="flex items-center gap-2 px-4 py-2  rounded-lg"
+  style={{ backgroundColor: '#D1DEEB' }}
+>
+  <PlusCircle className="w-6 h-6" />
+  {editingId ? 'Edit Resource' : 'Add Resource'}
+</button>
         </div>
   
         {/* Add/Edit Form */}
@@ -427,8 +428,8 @@ export default function ResourcesPage() {
               </div>
               <button
                 onClick={() => recommendAllocate(p._id)}
-                className="px-2 py-1 bg-purple-600 text-white rounded-lg text-sm w-full"
-              >
+                className="flex items-center gap-2 px-4 py-2  rounded-lg"
+                style={{ backgroundColor: '#D1DEEB' }}              >
                 Recommend & Allocate
               </button>
             </div>

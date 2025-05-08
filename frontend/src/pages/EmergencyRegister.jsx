@@ -72,7 +72,7 @@ const EmergencyRegister = () => {
     const handleAnalyzeSymptoms = async () => {
         const symptomText = form.getValues('currentSymptoms');
         if (!symptomText || symptomText.trim().length < 10) {
-            setAnalysisError("Veuillez décrire vos symptômes plus en détail (au moins 10 caractères) avant d'analyser.");
+            setAnalysisError("Please describe your symptoms in more detail (at least 10 characters) before analyzing.");
             setAiSuggestions({ keywords: [], suggestedQuestions: [] });
             return;
         }
@@ -82,18 +82,18 @@ const EmergencyRegister = () => {
         setAiSuggestions({ keywords: [], suggestedQuestions: [] });
 
         try {
-            console.log("[Frontend] Envoi pour analyse:", symptomText);
+            console.log("[Frontend] Sending for analysis:", symptomText);
             const response = await axios.post('http://localhost:8089/api/ai/analyze-symptoms', { symptomText });
-            console.log("[Frontend] Suggestions reçues:", response.data);
+            console.log("[Frontend] Suggestions received:", response.data);
             setAiSuggestions(response.data);
             if (response.data.error) {
                 setAnalysisError(response.data.error);
             }
         } catch (error) {
-            console.error("[Frontend] Erreur d'analyse:", error);
-            const message = error.response?.data?.message || "L'analyse des symptômes a échoué. Vérifiez la connexion au serveur ou réessayez.";
+            console.error("[Frontend] Analysis error:", error);
+            const message = error.response?.data?.message || "Symptom analysis failed. Check server connection or try again.";
             setAnalysisError(message);
-            toast.error("Erreur d'analyse", { description: message });
+            toast.error("Analysis Error", { description: message });
         } finally {
             setIsAnalyzing(false);
         }
@@ -101,7 +101,7 @@ const EmergencyRegister = () => {
 
     const addSuggestedQuestionToSymptoms = (question) => {
         const currentSymptoms = form.getValues('currentSymptoms');
-        const newSymptoms = `${currentSymptoms}\n\nQuestion suggérée: ${question}\n- `;
+        const newSymptoms = `${currentSymptoms}\n\nSuggested Question: ${question}\n- `;
         form.setValue('currentSymptoms', newSymptoms, { shouldValidate: true });
         const textarea = document.querySelector('textarea[name="currentSymptoms"]');
         if (textarea) {
@@ -115,18 +115,18 @@ const EmergencyRegister = () => {
             ...data,
             email: data.email === "" ? undefined : data.email,
         };
-        console.log("Soumission des données:", submitData);
+        console.log("Submitting data:", submitData);
 
         try {
             const response = await axios.post('http://localhost:8089/api/emergency-patients', submitData, { withCredentials: true });
-            console.log("Réponse complète:", response);
+            console.log("Full response:", response);
 
             const responseData = response.data;
             const patientData = responseData?.patient;
 
             if (!patientData) {
-                console.error("Objet 'patient' manquant dans la réponse:", responseData);
-                throw new Error("Format de réponse inattendu du serveur (patient manquant).");
+                console.error("Patient object missing in response:", responseData);
+                throw new Error("Unexpected server response format (patient missing).");
             }
 
             const patientId = patientData._id;
@@ -134,14 +134,14 @@ const EmergencyRegister = () => {
             const assignedDoctor = patientData?.assignedDoctor;
 
             if (!patientId) {
-                console.error("ID Patient (_id) manquant dans l'objet patient:", patientData);
-                throw new Error("Format de réponse invalide après enregistrement (ID manquant).");
+                console.error("Patient ID (_id) missing in patient object:", patientData);
+                throw new Error("Invalid response format after submission (ID missing).");
             }
 
-            console.log("Enregistrement réussi. Patient ID:", patientId);
+            console.log("Submission successful. Patient ID:", patientId);
 
-            toast.success("Votre demande d'urgence a été enregistrée.", {
-                description: "Notre équipe vous contactera sous peu.",
+            toast.success("Your emergency request has been registered.", {
+                description: "Our team will contact you shortly.",
             });
             form.reset();
 
@@ -155,41 +155,41 @@ const EmergencyRegister = () => {
             });
 
         } catch (error) {
-            console.error("Erreur d'enregistrement:", error);
-            let errorDescription = "Une erreur inattendue s'est produite. Veuillez réessayer.";
+            console.error("Submission error:", error);
+            let errorDescription = "An unexpected error occurred. Please try again.";
 
             if (axios.isAxiosError(error)) {
                 if (error.response) {
-                    console.error("Détails Erreur Axios (Response):", {
+                    console.error("Axios Error Details (Response):", {
                         data: error.response.data,
                         status: error.response.status,
                         headers: error.response.headers
                     });
-                    errorDescription = error.response.data?.message || `Erreur serveur: ${error.response.status}`;
+                    errorDescription = error.response.data?.message || `Server error: ${error.response.status}`;
                     if (error.response.data?.details) {
-                        errorDescription += ` Détails: ${JSON.stringify(error.response.data.details)}`;
+                        errorDescription += ` Details: ${JSON.stringify(error.response.data.details)}`;
                     }
                 } else if (error.request) {
-                    console.error("Détails Erreur Axios (Request):", error.request);
-                    errorDescription = "Aucune réponse du serveur. Vérifiez la connexion.";
+                    console.error("Axios Error Details (Request):", error.request);
+                    errorDescription = "No response from server. Check your connection.";
                 } else {
-                    console.error("Détails Erreur Axios (Setup):", error.message);
+                    console.error("Axios Error Details (Setup):", error.message);
                     errorDescription = error.message;
                 }
-            } else if (error instanceof Error && error.message.includes("Format de réponse invalide")) {
+            } else if (error instanceof Error && error.message.includes("Invalid response format")) {
                 errorDescription = error.message;
             } else if (error instanceof Error) {
                 errorDescription = error.message;
             }
 
-            toast.error("Échec de l'enregistrement", { description: errorDescription });
+            toast.error("Submission Failed", { description: errorDescription });
         }
     }
 
     return (
         <div className="relativeflex-2 max-w-5xl mx-auto py-20 px-4 relative z-10 flex flex-col bg-gradient-to-br from-blue-50 to-cyan-50 font-sans">
             <div className="fixed inset-0 z-0">
-                <ParticlesComponent 
+                <ParticlesComponent
                     id="emergency-particles"
                     style={{
                         position: 'absolute',
@@ -211,8 +211,8 @@ const EmergencyRegister = () => {
                                 <Heart className="h-8 w-8 text-blue-500 animate-pulse" />
                             </div>
                         </div>
-                        <CardTitle className="text-4xl font-bold tracking-tight text-gray-900">Enregistrement Urgence Patient</CardTitle>
-                        <CardDescription className="text-gray-600 text-lg mt-2">Notre équipe est là pour vous aider. Veuillez fournir vos détails.</CardDescription>
+                        <CardTitle className="text-4xl font-bold tracking-tight text-gray-900">Emergency Patient Registration</CardTitle>
+                        <CardDescription className="text-gray-600 text-lg mt-2">Our team is here to assist you. Please provide your details.</CardDescription>
                     </CardHeader>
 
                     <CardContent>
@@ -222,36 +222,36 @@ const EmergencyRegister = () => {
                                     <div className="space-y-6 border-r lg:border-r-gray-200 lg:pr-8">
                                         <div className="flex items-center gap-3 border-b pb-3 border-blue-200">
                                             <UserPlus className="h-6 w-6 text-blue-600" />
-                                            <h3 className="text-xl font-semibold text-blue-800">Informations Personnelles</h3>
+                                            <h3 className="text-xl font-semibold text-blue-800">Personal Information</h3>
                                         </div>
-                                        <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem><FormLabel>Prénom *</FormLabel><FormControl><Input placeholder="Ex: Jean" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
-                                        <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem><FormLabel>Nom *</FormLabel><FormControl><Input placeholder="Ex: Dupont" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
-                                        <FormField control={form.control} name="dateOfBirth" render={({ field }) => ( <FormItem><FormLabel>Date de Naissance *</FormLabel><FormControl><Input type="date" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
-                                        <FormField control={form.control} name="gender" render={({ field }) => ( <FormItem><FormLabel>Genre *</FormLabel><FormControl><RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center gap-4 pt-1"><FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="male" /></FormControl><FormLabel className="font-normal">Homme</FormLabel></FormItem><FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="female" /></FormControl><FormLabel className="font-normal">Femme</FormLabel></FormItem><FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="other" /></FormControl><FormLabel className="font-normal">Autre</FormLabel></FormItem></RadioGroup></FormControl><FormMessage className="text-xs" /></FormItem> )} />
-                                        <FormField control={form.control} name="phoneNumber" render={({ field }) => ( <FormItem><FormLabel>Téléphone *</FormLabel><FormControl><Input placeholder="Ex: 55 123 456" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
-                                        <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email (Optionnel)</FormLabel><FormControl><Input type="email" placeholder="email@exemple.com" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
-                                        <FormField control={form.control} name="address" render={({ field }) => ( <FormItem><FormLabel>Adresse *</FormLabel><FormControl><Textarea placeholder="Votre adresse complète" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
-                                        <FormField control={form.control} name="emergencyContact" render={({ field }) => ( <FormItem><FormLabel>Contact d'Urgence *</FormLabel><FormControl><Input placeholder="Nom et numéro de téléphone" {...field} className="rounded-lg" /></FormControl><FormDescription className="text-xs">Personne à contacter en cas d'urgence.</FormDescription><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem><FormLabel>First Name *</FormLabel><FormControl><Input placeholder="" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem><FormLabel>Last Name *</FormLabel><FormControl><Input placeholder="" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="dateOfBirth" render={({ field }) => ( <FormItem><FormLabel>Date of Birth *</FormLabel><FormControl><Input type="date" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="gender" render={({ field }) => ( <FormItem><FormLabel>Gender *</FormLabel><FormControl><RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center gap-4 pt-1"><FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="male" /></FormControl><FormLabel className="font-normal">Male</FormLabel></FormItem><FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="female" /></FormControl><FormLabel className="font-normal">Female</FormLabel></FormItem><FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="other" /></FormControl><FormLabel className="font-normal">Other</FormLabel></FormItem></RadioGroup></FormControl><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="phoneNumber" render={({ field }) => ( <FormItem><FormLabel>Phone Number *</FormLabel><FormControl><Input placeholder="Ex: +1234567890" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email (Optional)</FormLabel><FormControl><Input type="email" placeholder="email@example.com" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="address" render={({ field }) => ( <FormItem><FormLabel>Address *</FormLabel><FormControl><Textarea placeholder="Your full address" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="emergencyContact" render={({ field }) => ( <FormItem><FormLabel>Emergency Contact *</FormLabel><FormControl><Input placeholder="Name and phone number" {...field} className="rounded-lg" /></FormControl><FormDescription className="text-xs">Person to contact in case of emergency.</FormDescription><FormMessage className="text-xs" /></FormItem> )} />
                                     </div>
 
                                     <div className="space-y-6">
                                         <div className="flex items-center gap-3 border-b pb-3 border-teal-200">
                                             <Stethoscope className="h-6 w-6 text-teal-600" />
-                                            <h3 className="text-xl font-semibold text-teal-800">Informations Médicales</h3>
+                                            <h3 className="text-xl font-semibold text-teal-800">Medical Information</h3>
                                         </div>
-                                        <FormField control={form.control} name="insuranceInfo" render={({ field }) => ( <FormItem><FormLabel>Assurance (Optionnel)</FormLabel><FormControl><Input placeholder="Numéro de police d'assurance" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
-                                        <FormField control={form.control} name="allergies" render={({ field }) => ( <FormItem><FormLabel>Allergies (Optionnel)</FormLabel><FormControl><Textarea placeholder="Listez vos allergies connues" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
-                                        <FormField control={form.control} name="currentMedications" render={({ field }) => ( <FormItem><FormLabel>Médicaments Actuels (Optionnel)</FormLabel><FormControl><Textarea placeholder="Médicaments que vous prenez actuellement" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
-                                        <FormField control={form.control} name="medicalHistory" render={({ field }) => ( <FormItem><FormLabel>Antécédents Médicaux (Optionnel)</FormLabel><FormControl><Textarea placeholder="Conditions médicales préexistantes" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="insuranceInfo" render={({ field }) => ( <FormItem><FormLabel>Insurance (Optional)</FormLabel><FormControl><Input placeholder="Insurance policy number" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="allergies" render={({ field }) => ( <FormItem><FormLabel>Allergies (Optional)</FormLabel><FormControl><Textarea placeholder="List known allergies" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="currentMedications" render={({ field }) => ( <FormItem><FormLabel>Current Medications (Optional)</FormLabel><FormControl><Textarea placeholder="Medications you are currently taking" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="medicalHistory" render={({ field }) => ( <FormItem><FormLabel>Medical History (Optional)</FormLabel><FormControl><Textarea placeholder="Pre-existing medical conditions" {...field} className="rounded-lg" /></FormControl><FormMessage className="text-xs" /></FormItem> )} />
 
                                         <FormField control={form.control} name="currentSymptoms" render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className="text-gray-800 font-medium flex items-center gap-2">
-                                                    Symptômes Actuels *
+                                                    Current Symptoms *
                                                 </FormLabel>
                                                 <FormControl>
                                                     <Textarea
-                                                        placeholder="Décrivez en détail les symptômes..."
+                                                        placeholder="Describe your symptoms in detail..."
                                                         className="min-h-[120px] rounded-lg"
                                                         {...field}
                                                     />
@@ -271,13 +271,13 @@ const EmergencyRegister = () => {
                                                         ) : (
                                                             <Sparkles className="h-3.5 w-3.5" />
                                                         )}
-                                                        Analyser symptômes (IA)
+                                                        Analyze Symptoms (AI)
                                                     </Button>
 
                                                     {analysisError && (
                                                         <Alert variant="destructive" className="text-xs p-2">
                                                             <AlertTriangle className="h-4 w-4" />
-                                                            <AlertTitle>Erreur</AlertTitle>
+                                                            <AlertTitle>Error</AlertTitle>
                                                             <AlertDescription>{analysisError}</AlertDescription>
                                                         </Alert>
                                                     )}
@@ -286,17 +286,17 @@ const EmergencyRegister = () => {
                                                         <Card className="bg-blue-50 border border-blue-100 p-3 mt-2 rounded-lg shadow-sm">
                                                             <CardHeader className="p-0 mb-2">
                                                                 <CardTitle className="text-xs font-semibold text-blue-800 flex items-center gap-1.5">
-                                                                    <Sparkles className="h-3.5 w-3.5 text-blue-600" /> Suggestions IA
+                                                                    <Sparkles className="h-3.5 w-3.5 text-blue-600" /> AI Suggestions
                                                                 </CardTitle>
                                                                 <CardDescription className="text-xs text-blue-600 mt-1 flex items-start gap-1">
                                                                     <Info size={12} className="flex-shrink-0 mt-0.5" />
-                                                                    <span>NON médical. Aide à la description.</span>
+                                                                    <span>Non-medical. Assists with description.</span>
                                                                 </CardDescription>
                                                             </CardHeader>
                                                             <CardContent className="p-0 space-y-2 text-xs">
                                                                 {aiSuggestions.keywords.length > 0 && (
                                                                     <div>
-                                                                        <h4 className="font-medium text-blue-700 mb-1 text-[11px]">Mots-clés :</h4>
+                                                                        <h4 className="font-medium text-blue-700 mb-1 text-[11px]">Keywords:</h4>
                                                                         <div className="flex flex-wrap gap-1">
                                                                             {aiSuggestions.keywords.map((keyword, index) => (
                                                                                 <Badge key={index} variant="secondary" className="bg-white text-blue-800 border border-blue-200 text-[10px] px-1.5 py-0.5">{keyword}</Badge>
@@ -306,7 +306,7 @@ const EmergencyRegister = () => {
                                                                 )}
                                                                 {aiSuggestions.suggestedQuestions.length > 0 && (
                                                                     <div>
-                                                                        <h4 className="font-medium text-blue-700 mb-1 text-[11px]">Questions suggérées :</h4>
+                                                                        <h4 className="font-medium text-blue-700 mb-1 text-[11px]">Suggested Questions:</h4>
                                                                         <ul className="space-y-1 list-disc pl-4 text-blue-900">
                                                                             {aiSuggestions.suggestedQuestions.map((question, index) => (
                                                                                 <li key={index} className="flex items-start gap-1.5">
@@ -317,9 +317,9 @@ const EmergencyRegister = () => {
                                                                                         variant="ghost"
                                                                                         className="h-auto px-1 py-0 text-[10px] text-blue-600 hover:bg-blue-100"
                                                                                         onClick={() => addSuggestedQuestionToSymptoms(question)}
-                                                                                        title="Ajouter à la description"
+                                                                                        title="Add to description"
                                                                                     >
-                                                                                        Ajouter
+                                                                                        Add
                                                                                     </Button>
                                                                                 </li>
                                                                             ))}
@@ -332,8 +332,8 @@ const EmergencyRegister = () => {
                                                 </div>
                                             </FormItem>
                                         )} />
-                                        <FormField control={form.control} name="painLevel" render={({ field }) => ( <FormItem><FormLabel>Niveau de Douleur (1-10) *</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger className="rounded-lg"><SelectValue placeholder="Sélectionner niveau" /></SelectTrigger></FormControl><SelectContent>{[...Array(10)].map((_, i) => <SelectItem key={i + 1} value={(i + 1).toString()}>{i + 1}{i + 1 === 1 ? ' - Très légère': ''}{i + 1 === 5 ? ' - Modérée': ''}{i + 1 === 10 ? ' - Insupportable': ''}</SelectItem>)}</SelectContent></Select><FormMessage className="text-xs" /></FormItem> )} />
-                                        <FormField control={form.control} name="emergencyLevel" render={({ field }) => ( <FormItem><FormLabel>Niveau d'Urgence *</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger className="rounded-lg"><SelectValue placeholder="Sélectionner niveau" /></SelectTrigger></FormControl><SelectContent><SelectItem value="low">Bas - Je peux attendre</SelectItem><SelectItem value="medium">Moyen - Besoin de voir un médecin aujourd'hui</SelectItem><SelectItem value="high">Élevé - Besoin de soins rapides</SelectItem><SelectItem value="critical">Critique - Urgence vitale</SelectItem></SelectContent></Select><FormDescription className="text-xs">Évaluez la gravité de votre situation.</FormDescription><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="painLevel" render={({ field }) => ( <FormItem><FormLabel>Pain Level (1-10) *</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger className="rounded-lg"><SelectValue placeholder="Select level" /></SelectTrigger></FormControl><SelectContent>{[...Array(10)].map((_, i) => <SelectItem key={i + 1} value={(i + 1).toString()}>{i + 1}{i + 1 === 1 ? ' - Very mild': ''}{i + 1 === 5 ? ' - Moderate': ''}{i + 1 === 10 ? ' - Unbearable': ''}</SelectItem>)}</SelectContent></Select><FormMessage className="text-xs" /></FormItem> )} />
+                                        <FormField control={form.control} name="emergencyLevel" render={({ field }) => ( <FormItem><FormLabel>Emergency Level *</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger className="rounded-lg"><SelectValue placeholder="Select level" /></SelectTrigger></FormControl><SelectContent><SelectItem value="low">Low - I can wait</SelectItem><SelectItem value="medium">Medium - Need to see a doctor today</SelectItem><SelectItem value="high">High - Need prompt care</SelectItem><SelectItem value="critical">Critical - Life-threatening</SelectItem></SelectContent></Select><FormDescription className="text-xs">Assess the severity of your situation.</FormDescription><FormMessage className="text-xs" /></FormItem> )} />
                                     </div>
                                 </div>
 
@@ -344,9 +344,9 @@ const EmergencyRegister = () => {
                                                 <Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-1 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 h-5 w-5 border-gray-400" />
                                             </FormControl>
                                             <div className="space-y-1 leading-none">
-                                                <FormLabel className="font-medium text-gray-800">J'accepte les termes et conditions *</FormLabel>
+                                                <FormLabel className="font-medium text-gray-800">I accept the terms and conditions *</FormLabel>
                                                 <FormDescription className="text-sm text-gray-600">
-                                                    En cochant cette case, vous autorisez l'établissement à traiter vos données médicales pour votre prise en charge.
+                                                    By checking this box, you authorize the facility to process your medical data for your care.
                                                 </FormDescription>
                                                 <FormMessage className="text-red-600 text-xs" />
                                             </div>
@@ -357,7 +357,7 @@ const EmergencyRegister = () => {
                                         <Alert className="border-yellow-300 bg-yellow-50 text-yellow-800 p-3 rounded-lg flex items-center gap-2 flex-1">
                                             <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
                                             <AlertDescription className="text-xs">
-                                                Pour les urgences vitales immédiates, composez le numéro d'urgence local (ex: 190 ou 198).
+                                                For immediate life-threatening emergencies, call the local emergency number (e.g., 911).
                                             </AlertDescription>
                                         </Alert>
                                         <Button type="submit" className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2" disabled={form.formState.isSubmitting}>
@@ -366,7 +366,7 @@ const EmergencyRegister = () => {
                                             ) : (
                                                 <Heart className="h-5 w-5" />
                                             )}
-                                            {form.formState.isSubmitting ? 'Envoi en cours...' : "Soumettre la Demande d'Urgence"}
+                                            {form.formState.isSubmitting ? 'Submitting...' : "Submit Emergency Request"}
                                         </Button>
                                     </div>
                                 </div>
