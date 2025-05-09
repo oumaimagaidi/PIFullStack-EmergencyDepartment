@@ -1,6 +1,6 @@
 "use client"
-
-import { useState, useEffect } from "react"
+import ReCAPTCHA from "react-google-recaptcha";
+import { useState, useEffect, useRef } from "react"
 import axios from "axios"
 import { Link, useNavigate } from "react-router-dom"
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google"
@@ -30,10 +30,21 @@ const Login = () => {
   const [message, setMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
 
   const navigate = useNavigate()
-
+const recaptchaRef = useRef(null);
   useEffect(() => {
+     const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+    console.log("reCAPTCHA site key:", siteKey);
+    if (!siteKey) {
+      console.error("reCAPTCHA site key is not defined in .env file");
+      setMessage("Erreur de configuration reCAPTCHA. Veuillez contacter l'administrateur.");
+      setRecaptchaLoaded(false);
+    } else {
+      setRecaptchaLoaded(true);
+    }
+
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length)
     }, 3000)
@@ -74,7 +85,36 @@ const Login = () => {
       setMessage("Erreur lors de l'authentification Google")
     }
   }
+const handleRecaptchaChange = (token) => {
+    console.log("reCAPTCHA token received:", token);
+    if (token) {
+      setNotBot(true);
+      setMessage("");
+    } else {
+      setNotBot(false);
+      setMessage("Vérification reCAPTCHA expirée. Veuillez réessayer.");
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+      }
+    }
+  };
+  const handleRecaptchaError = () => {
+    console.error("reCAPTCHA error occurred");
+    setNotBot(false);
+    setMessage("Erreur de chargement de reCAPTCHA. Vérifiez votre connexion ou contactez l'administrateur.");
+    if (recaptchaRef.current) {
+      recaptchaRef.current.reset();
+    }
+  };
 
+  const handleRecaptchaExpired = () => {
+    console.log("reCAPTCHA expired");
+    setNotBot(false);
+    setMessage("Vérification reCAPTCHA expirée. Veuillez réessayer.");
+    if (recaptchaRef.current) {
+      recaptchaRef.current.reset();
+    }
+  };
   const handleGoogleLoginFailure = () => setMessage("Échec de l'authentification Google")
 
   return (
@@ -175,6 +215,22 @@ const Login = () => {
                 </label>
               </div>
             </div>
+            <div className="mb-3 flex justify-center">
+            {recaptchaLoaded ? (
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                onChange={handleRecaptchaChange}
+                onErrored={handleRecaptchaError}
+                onExpired={handleRecaptchaExpired}
+                className="transform scale-90"
+              />
+            ) : (
+              <div className="alert alert-danger">
+                Impossible de charger reCAPTCHA. Vérifiez votre connexion ou contactez l'administrateur.
+              </div>
+            )}
+          </div>
             <button
               type="submit"
               className="btn btn-lg w-100 fw-medium"

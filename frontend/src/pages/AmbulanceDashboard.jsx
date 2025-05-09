@@ -99,6 +99,8 @@ const AmbulanceForm = ({ ambulance, onSave, onSearchPlace }) => {
   const [latitude, setLatitude] = useState(ambulance?.latitude || 0);
   const [longitude, setLongitude] = useState(ambulance?.longitude || 0);
   const [destination, setDestination] = useState(ambulance?.destination || "");
+  const [drivers, setDrivers] = useState(ambulance?.drivers?.join(",") || "");
+  const [mobile, setMobile] = useState(ambulance?.mobile || "");
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = async () => {
@@ -107,7 +109,16 @@ const AmbulanceForm = ({ ambulance, onSave, onSearchPlace }) => {
   };
 
   const handleSubmit = () => {
-    onSave({ name, status, lastUpdated, latitude, longitude, destination });
+    onSave({ 
+      name, 
+      status, 
+      lastUpdated, 
+      latitude, 
+      longitude, 
+      destination, 
+      drivers: drivers.split(",").map(d => d.trim()), 
+      mobile 
+    });
   };
 
   return (
@@ -143,6 +154,16 @@ const AmbulanceForm = ({ ambulance, onSave, onSearchPlace }) => {
         placeholder='Destination ("lat,lng")'
         value={destination}
         onChange={(e) => setDestination(e.target.value)}
+      />
+      <Input
+        placeholder="Driver IDs (comma-separated)"
+        value={drivers}
+        onChange={(e) => setDrivers(e.target.value)}
+      />
+      <Input
+        placeholder="Mobile Number"
+        value={mobile}
+        onChange={(e) => setMobile(e.target.value)}
       />
       <div className="flex space-x-2">
         <Input
@@ -353,7 +374,7 @@ const AmbulanceDashboard = () => {
     <div className="flex h-screen">
       {/* Sidebar */}
       <div className="w-1/3 p-6 overflow-y-auto">
-      <h1 className="text-2xl font-extrabold tracking-tight mb-2" style={{ color: '#42A5FF' }}>Ambulance Tracking</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight mb-2" style={{ color: '#42A5FF' }}>Ambulance Tracking</h1>
         <Button
           onClick={() => {
             setCurrentAmbulance(null);
@@ -371,6 +392,8 @@ const AmbulanceDashboard = () => {
             <CardContent>
               <p>Status: {a.status}</p>
               <p>Last Updated: {a.lastUpdated || "N/A"}</p>
+              <p>Drivers: {a.drivers?.length ? a.drivers.join(", ") : "N/A"}</p>
+              <p>Mobile: {a.mobile || "N/A"}</p>
               {a.destination && parseDestination(a.destination) && (
                 <p>
                   Destination: {a.destination}{" "}
@@ -437,6 +460,10 @@ const AmbulanceDashboard = () => {
                   <Marker position={[a.latitude, a.longitude]}>
                     <Popup>
                       {a.name} - {a.status}
+                      <br />
+                      Drivers: {a.drivers?.length ? a.drivers.join(", ") : "N/A"}
+                      <br />
+                      Mobile: {a.mobile || "N/A"}
                       {destinationCoords && (
                         <>
                           <br />
