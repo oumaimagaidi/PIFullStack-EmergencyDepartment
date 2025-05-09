@@ -150,6 +150,31 @@
   .hover-scale {
     @apply transition-transform duration-200 hover:scale-[1.02];
   }
+  @layer components {
+    .glass-card {
+      @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/20 shadow-xl;
+    }
+    
+    .profile-field-container {
+      @apply transition-all duration-300 rounded-2xl overflow-hidden;
+    }
+    
+    .profile-field-container:hover {
+      @apply shadow-lg;
+    }
+    
+    .tab-indicator {
+      @apply absolute left-0 h-full bg-primary rounded-r-full w-1 transition-all duration-300;
+    }
+    
+    .profile-gradient {
+      background: linear-gradient(135deg, hsl(var(--primary)/0.8), hsl(var(--accent)/0.8));
+    }
+    
+    .field-highlight {
+      @apply ring-2 ring-primary/30 ring-offset-2 ring-offset-background;
+    }
+  }
 }
 @tailwind utilities;
 

@@ -27,6 +27,7 @@ import AmbulanceDashboard from "./pages/AmbulanceDashboard";
 import AmbulanceNurseDashboard from "./pages/AmbulanceNurseDashboard";
 import MedicalRecordDetails from './pages/MedicalRecordDetails';
 import MedicalDocument from "./pages/MedicalDocument";
+import Feedback from "./components/FeedBack";
 import  HexGrid  from "./components/HexGrid";
 import ParticlesComponent from "./components/ParticlesComponent";
 import ResourcesPage from "./pages/ResourcesPage";
@@ -46,6 +47,8 @@ function App() {
         <Route path="/emergency-status" element={<MainLayout><EmergencyStatus /> </MainLayout>} />
         <Route path="/register" element={<PublicLayout><Register /></PublicLayout>} />
         <Route path="/forgotpassword" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
+        <Route path="/feedback" element={<MainLayout><Feedback /></MainLayout>} />
+
 <Route path="/hexa" element={<HexGrid/>}/>
         {/* Routes Main avec header/footer */}
         <Route path="/home" element={<MainLayout><Home /></MainLayout>} />
