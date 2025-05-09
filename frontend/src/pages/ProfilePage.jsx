@@ -143,10 +143,11 @@ const ProfilePage = () => {
 
     return (
         <div className="min-h-screen bg-slate-50">
-            <ProfileHeader
+            {/* SUPPRIMER ou commenter cette ligne */}
+            {/* <ProfileHeader
                 username={profileData.personal.username}
                 role={profileData.personal.role}
-            />
+            /> */}
 
             <div className="container -mt-16 relative z-30 pb-16">
                 <ProfileContent

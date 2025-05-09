@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import ProfileHeader from './ProfileHeader';
+// ProfileHeader n'est plus importé/utilisé directement ici
 import ProfileContent from './ProfileContent';
 import LoadingState from './LoadingState';
 import { toast } from 'sonner';
 
+
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('personal');
-  const [profileData, setProfileData] = useState({
-    personal: {},
-    medical: {},
-    professional: {}
-  });
+  const [profileData, setProfileData] = useState(null); // Initialiser à null pour mieux gérer l'état de chargement
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = Cookies.get("token");
+    if (!token) {
+        setError("Authentication token not found. Please log in.");
+        setLoading(false);
+        // Idéalement, rediriger vers la page de connexion
+        return;
+    }
 
     axios.get('http://localhost:8089/api/profile', {
       headers: {
@@ -26,20 +29,49 @@ const Profile = () => {
       }
     })
     .then(response => {
-      setProfileData(response.data);
+      // S'assurer que la structure attendue est là
+      const data = response.data;
+      setProfileData({
+        personal: data.personal || {},
+        contact: data.contact || {}, // Assurez-vous que ces sections existent ou initialisez-les
+        emergencyContacts: data.emergencyContacts || {},
+        settings: data.settings || {},
+        medical: data.medical || {},
+        professional: data.professional || {},
+        certifications: data.certifications || {},
+        appointments: data.appointments || {},
+        // ... autres sections si nécessaire
+      });
       setLoading(false);
     })
     .catch(error => {
-      console.error('Error:', error);
-      setError('Error loading profile');
+      console.error('Error fetching profile:', error);
+      if (error.response) {
+        setError(`Error ${error.response.status}: ${error.response.data.message || 'Failed to load profile'}`);
+      } else if (error.request) {
+        setError('No response from server. Please check your connection.');
+      } else {
+        setError('Error setting up request: ' + error.message);
+      }
       setLoading(false);
     });
   }, []);
 
   const handleSave = async () => {
+    // ... (votre logique handleSave existante)
+    // Assurez-vous que profileData est bien structuré avant l'envoi
+    // et que le backend attend cette structure.
     try {
       const token = Cookies.get("token");
-      const response = await axios.put('http://localhost:8089/api/profile', profileData, {
+      // Filtrer les sections vides si le backend ne les gère pas
+      const dataToSave = { ...profileData };
+      Object.keys(dataToSave).forEach(key => {
+        if (Object.keys(dataToSave[key]).length === 0) {
+          delete dataToSave[key]; // Optionnel: supprimer les sections vides
+        }
+      });
+
+      const response = await axios.put('http://localhost:8089/api/profile', dataToSave, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -47,74 +79,63 @@ const Profile = () => {
 
       if (response.status === 200) {
         const updatedData = response.data;
-        setProfileData(updatedData);
+         setProfileData({ // S'assurer de réinitialiser toutes les sections
+            personal: updatedData.personal || {},
+            contact: updatedData.contact || {},
+            emergencyContacts: updatedData.emergencyContacts || {},
+            settings: updatedData.settings || {},
+            medical: updatedData.medical || {},
+            professional: updatedData.professional || {},
+            certifications: updatedData.certifications || {},
+            appointments: updatedData.appointments || {},
+         });
         setIsEditing(false);
         toast.success('Profile updated successfully');
       } else {
-        throw new Error('Failed to update profile');
+        throw new Error(`Failed to update profile - Status: ${response.status}`);
       }
     } catch (error) {
-      console.error('Error:', error);
-      setError('Error saving changes');
-      toast.error('Failed to update profile');
+      console.error('Error saving profile:', error);
+      toast.error(error.message || 'Failed to update profile. Please try again.');
+      // setError peut aussi être utilisé pour afficher l'erreur dans l'UI si besoin
     }
   };
 
   const handleEdit = (section, field, value) => {
-    setProfileData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
-    }));
+    setProfileData(prev => {
+      // Si la section n'existe pas, l'initialiser
+      const currentSectionData = prev[section] || {};
+      return {
+        ...prev,
+        [section]: {
+          ...currentSectionData,
+          [field]: value
+        }
+      };
+    });
   };
 
   if (loading) return <LoadingState />;
-  if (error) {
+  if (error || !profileData) { // Ajout de !profileData pour le cas où les données ne sont pas chargées
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-          <div className="text-center">
-            <div className="bg-red-100 text-red-600 p-3 rounded-full inline-flex mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">Error Loading Profile</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="bg-[#42A5FF] hover:bg-[#1E88E5] text-white font-medium py-2 px-4 rounded transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
+        {/* ... (votre UI d'erreur) ... */}
+         <p className="text-gray-600 mb-4">{error || "Failed to load profile data."}</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <ProfileHeader 
-        username={profileData.personal.username} 
-        role={profileData.personal.role} 
-        profileImage={profileData.personal.profileImage} // Passer l'image de profil
-      />
-      
-      <div className="container -mt-16 relative z-30 pb-16">
-        <ProfileContent
-          profileData={profileData}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
-          handleEdit={handleEdit}
-          handleSave={handleSave}
-        />
-      </div>
-    </div>
+    // ProfileContent gère son propre fond et le ProfileHeader
+    <ProfileContent
+      profileData={profileData}
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      isEditing={isEditing}
+      setIsEditing={setIsEditing}
+      handleEdit={handleEdit}
+      handleSave={handleSave}
+    />
   );
 };
 
