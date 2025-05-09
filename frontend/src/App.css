@@ -1,5 +1,15 @@
 /* Hero Section */
 /* Modern Emergency Department Home Page Styles */
+.genre-card {
+  background: rgba(255, 255, 255, 0.6); /* White with 20% opacity */
+  border-radius: 10px;
+  padding: 30x;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+/* Base Styles */
+/* Hero Section */
+/* Modern Emergency Department Home Page Styles */
 
 /* Base Styles */
 .home-container {
@@ -824,6 +834,7 @@ p {
   background-color: #edf4f8;
   padding: 20px 20px;
   border-top:100px solid #ffff;
+ 
 }
 
 .footer_content {
@@ -832,6 +843,7 @@ p {
   flex-wrap: wrap;
   max-width: 1300px;
   margin: 0 auto;
+  
 }
 
 .footer_logo {
@@ -899,5 +911,5 @@ p {
   .footer_section {
     margin-bottom: 20px;
   }
+  
 }
-

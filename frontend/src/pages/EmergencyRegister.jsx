@@ -187,7 +187,7 @@ const EmergencyRegister = () => {
     }
 
     return (
-        <div className="relativeflex-2 max-w-5xl mx-auto py-20 px-4 relative z-10 flex flex-col bg-gradient-to-br from-blue-50 to-cyan-50 font-sans">
+        <div className="relativeflex-2 bg-gradient-to-br from-blue-50 to-cyan-200 max-w-5xl mx-auto py-20 px-4 relative z-10 flex flex-col  font-sans">
             <div className="fixed inset-0 z-0">
                 <ParticlesComponent
                     id="emergency-particles"
@@ -200,8 +200,8 @@ const EmergencyRegister = () => {
                 />
             </div>
 
-            <div className="max-w-6xl w-full bg-white bg-opacity-95 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-100 relative z-10">
-                <Card className="w-full border-none shadow-none bg-transparent">
+            <div className="max-w-6xl w-full bg-white bg-opacity-95 backdrop-blur-sm p-8 rounded-2xl shadow-xl  relative z-10">
+                <Card className="w-full border-none shadow-none ">
                     <CardHeader className="relative text-gray-800 pb-8">
                         <div className="flex items-center gap-4 mb-4">
                             <div className="p-2 bg-gradient-to-br from-red-100 to-yellow-100 rounded-full shadow-md">

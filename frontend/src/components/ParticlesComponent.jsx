@@ -20,7 +20,7 @@ const ParticlesComponent = (props) => {
   // Configuration médicale/thème santé
   const options = useMemo(() => ({
     background: {
-      color: "#E8F4F8" // Bleu clair médical
+color: "linear-gradient(to bottom right, #4A90E2, #4ECDC4)" // Dégradé ajouté ici
     },
     fpsLimit: 120,
     interactivity: {
@@ -91,8 +91,7 @@ const ParticlesComponent = (props) => {
         },
         options: {
           background: {
-            color: "#C3E1FF",
-            
+color: "linear-gradient(to bottom right, #4A90E2, #4ECDC4)" // Dégradé dans le thème            
           },
           particles: {
             color: { value: ["#6DDDCF", "#42A5FF", "#42A5FF"] } // Palette bleue

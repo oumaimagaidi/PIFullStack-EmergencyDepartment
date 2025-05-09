@@ -1201,7 +1201,7 @@ const MedicalDocument = () => {
   }
 
   return (
-    <div className="relative z-20 min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-cyan-50 font-sans">
+    <div className="relative z-20 min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-cyan-200 font-sans">
       {/* Background Layers */}
       <div className="fixed inset-0 z-0">
         <ParticlesComponent
