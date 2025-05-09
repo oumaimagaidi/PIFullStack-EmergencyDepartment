@@ -50,6 +50,8 @@ const newsArray = [
     date: "May 5, 2025",
     source: "PYMNTS.com",
     link: "https://www.pymnts.com",
+    image: "https://picsum.photos/id/2/800/450" 
+                                                
   },
   {
     title: "Mental Health Investments Delayed",
@@ -57,6 +59,8 @@ const newsArray = [
     date: "May 7, 2025",
     source: "ResearchAndMarkets.com",
     link: "https://finance.yahoo.com",
+    image: "https://picsum.photos/id/1015/800/450" 
+                                                
   },
   {
     title: "Wearable Healthcare Market Booms",
@@ -64,7 +68,8 @@ const newsArray = [
     date: "May 2, 2025",
     source: "PR Newswire",
     link: "https://www.excellentwebworld.com",
-    image: "https://picsum.photos/id/160/800/450" 
+    image: "https://picsum.photos/id/160/800/450" // Image d'une montre ou d'un objet technologique (ID 160 est une smartwatch)
+                                                // Alternative: https://picsum.photos/seed/wearabletech/800/450
   },
   {
     title: "Data Breach Exposes Millions",
