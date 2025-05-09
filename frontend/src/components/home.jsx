@@ -43,40 +43,56 @@ const Home = () => {
     },
   ];
   
-  const newsArray = [
-    { 
-      title: "AI Revolutionizes Healthcare Delivery",
-      description: "UnitedHealth Group deploys 1,000 AI applications to enhance insurance, health delivery, and pharmacy services, improving patient outcomes.",
-      date: "May 5, 2025",
-      source: "PYMNTS.com",
-      link: "https://www.pymnts.com",
-      image: "/images/ai_healthcare.jpg"
-    },
-    { 
-      title: "Mental Health Investments Delayed",
-      description: "55% of healthcare organizations postpone mental health initiatives due to tariff-driven supply chain issues, highlighting gaps in global health governance.",
-      date: "May 7, 2025",
-      source: "ResearchAndMarkets.com",
-      link: "https://finance.yahoo.com",
-      image: "/images/mental_health.jpg"
-    },
-    { 
-      title: "Wearable Healthcare Market Booms",
-      description: "The smart wearable healthcare devices market is projected to reach USD 37.4 billion by 2028, driven by IoMT and proactive patient monitoring.",
-      date: "May 2, 2025",
-      source: "PR Newswire",
-      link: "https://www.excellentwebworld.com",
-      image: "/images/wearables.jpg"
-    },
-    { 
-      title: "Data Breach Exposes Millions",
-      description: "Blue Shield of California confirms the largest healthcare data breach of 2025, affecting 4.7 million patients due to a misconfigured Google Analytics setup.",
-      date: "April 24, 2025",
-      source: "TheStreet",
-      link: "https://www.thestreet.com",
-      image: "/images/data_breach.jpg"
-    },
-  ];
+const newsArray = [
+  {
+    title: "AI Revolutionizes Healthcare Delivery",
+    description: "UnitedHealth Group deploys 1,000 AI applications to enhance insurance, health delivery, and pharmacy services, improving patient outcomes.",
+    date: "May 5, 2025",
+    source: "PYMNTS.com",
+    link: "https://www.pymnts.com",
+  },
+  {
+    title: "Mental Health Investments Delayed",
+    description: "55% of healthcare organizations postpone mental health initiatives due to tariff-driven supply chain issues, highlighting gaps in global health governance.",
+    date: "May 7, 2025",
+    source: "ResearchAndMarkets.com",
+    link: "https://finance.yahoo.com",
+  },
+  {
+    title: "Wearable Healthcare Market Booms",
+    description: "The smart wearable healthcare devices market is projected to reach USD 37.4 billion by 2028, driven by IoMT and proactive patient monitoring.",
+    date: "May 2, 2025",
+    source: "PR Newswire",
+    link: "https://www.excellentwebworld.com",
+    image: "https://picsum.photos/id/160/800/450" 
+  },
+  {
+    title: "Data Breach Exposes Millions",
+    description: "Blue Shield of California confirms the largest healthcare data breach of 2025, affecting 4.7 million patients due to a misconfigured Google Analytics setup.",
+    date: "April 24, 2025",
+    source: "TheStreet",
+    link: "https://www.thestreet.com",
+    image: "https://picsum.photos/id/0/800/450" 
+  },
+ 
+  {
+    title: "Telemedicine Adoption Skyrockets",
+    description: "A new report shows a 300% increase in telemedicine consultations in the last quarter, driven by convenience and accessibility.",
+    date: "May 10, 2025",
+    source: "Healthcare IT News",
+    link: "https://www.healthcareitnews.com",
+    image: "https://picsum.photos/id/200/800/450" 
+  },
+  {
+    title: "Breakthrough in Cancer Research",
+    description: "Scientists announce a promising new therapy showing significant results in early-stage clinical trials for a common type of cancer.",
+    date: "May 12, 2025",
+    source: "Nature Medicine",
+    link: "https://www.nature.com/nm/",
+    image: "https://picsum.photos/id/30/800/450"  
+  }
+];
+
 
   const responsive = {
     desktop: { breakpoint: { max: 3000, min: 1024 }, items: 3, slidesToSlide: 1 },

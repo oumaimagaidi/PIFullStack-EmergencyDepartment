@@ -824,6 +824,7 @@ p {
   background-color: #edf4f8;
   padding: 20px 20px;
   border-top:100px solid #ffff;
+ 
 }
 
 .footer_content {
@@ -832,6 +833,7 @@ p {
   flex-wrap: wrap;
   max-width: 1300px;
   margin: 0 auto;
+  
 }
 
 .footer_logo {
