@@ -5,7 +5,15 @@ WORKDIR /usr/src/app
 
 # Install build dependencies for native modules like canvas and sharp
 # <<< REQUIRED: add Python, make, g++, and pixman/cairo deps for canvas
-RUN apk add --no-cache python3 make g++ pixman-dev cairo-dev pango-dev jpeg-dev giflib-dev
+RUN apk update && \
+    apk add --no-cache \
+      python3 \
+      build-base \                # includes gcc, g++, make :contentReference[oaicite:5]{index=5}
+      pixman-dev \                # low-level pixel library :contentReference[oaicite:6]{index=6}
+      cairo-dev \                 # 2D graphics library dev files :contentReference[oaicite:7]{index=7}
+      pango-dev \                 # text layout engine dev files :contentReference[oaicite:8]{index=8}
+      jpeg-dev \                  # JPEG image manipulation lib dev :contentReference[oaicite:9]{index=9}
+      giflib-dev                  # GIF library dev files :contentReference[oaicite:10]{index=10}
 
 # Copy only package.json files first (to leverage Docker cache for faster builds)
 COPY ./frontend/package*.json ./frontend/
