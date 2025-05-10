@@ -2,6 +2,7 @@ import "@testing-library/jest-dom";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import Profile from "../components/profile";
+import ProfileContent from '../components/ProfileContent';
 import axios from "axios";
 import Cookies from "js-cookie";
 
