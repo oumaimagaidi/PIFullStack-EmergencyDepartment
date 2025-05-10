@@ -3,17 +3,7 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /usr/src/app
 
-# Install build dependencies for native modules like canvas and sharp
-# <<< REQUIRED: add Python, make, g++, and pixman/cairo deps for canvas
-RUN apk update && \
-    apk add --no-cache \
-      python3 \
-      build-base \                
-      pixman-dev \                
-      cairo-dev \                
-      pango-dev \                
-      jpeg-dev \                  
-      giflib-dev                  
+
 # Copy only package.json files first (to leverage Docker cache for faster builds)
 COPY ./frontend/package*.json ./frontend/
 COPY ./backend/package*.json ./backend/
