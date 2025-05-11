@@ -97,15 +97,10 @@
 }
 
 /* Special styling for emergency link */
-.emergency-link {
-  background-color: rgba(255, 66, 66, 0.2);
-  color: white !important;
-  font-weight: 600;
-  border-radius: 5px;
-}
+
 
 .emergency-link .nav-icon {
-  color: white;
+  color: #eceff2;
 }
 
 .emergency-link:hover {
@@ -116,7 +111,7 @@
   padding: 8px 18px;
   border: none;
   border-radius: 5px;
-  background-color: #0056b3; /* Darker blue for button */
+  background-color: #003d80; /* Darker blue for button */
   color: white;
   cursor: pointer;
   font-weight: 500;
@@ -127,14 +122,12 @@
   background-color: #003d80;
 }
 
-.header_loginBtn {
-  /* Specific login button styles */
-}
+
 
 .header_hamburger {
   font-size: 24px;
   cursor: pointer;
-  color: white;
+  color: #003d80;
   display: none;
 }
 
@@ -149,17 +142,17 @@
 .header_user-info {
   display: flex;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: #003e80a8;
   padding: 6px 12px;
   border-radius: 5px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   transition: all 0.2s ease-in-out;
-  color: white;
+  color: rgba(255, 255, 255, 0.279);
 }
 
 .header_user-info:hover,
 .header_user-info:focus {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.284);
 }
 
 .header_user-avatar {
@@ -168,7 +161,7 @@
   border-radius: 50%;
   margin-right: 8px;
   vertical-align: middle;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid rgb(255, 255, 255);
 }
 
 .header_user-icon {
@@ -183,7 +176,7 @@
   top: 100%;
   right: 0;
   background-color: white;
-  border: 1px solid #e0f2fe;
+  border: 1px solid #003d80;
   border-radius: 5px;
   padding: 8px 0;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -208,7 +201,7 @@
 
 .header_dropdown-menu a:hover,
 .header_dropdown-menu button:hover {
-  background-color: #f0f0f0;
+  background-color: #003d80;
   color: #0056b3;
 }
 

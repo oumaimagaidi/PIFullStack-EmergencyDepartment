@@ -579,15 +579,7 @@ const newsArray = [
         <canvas className="particles-canvas"></canvas>
       </section>
       
-        <section className="cta-section">
-          <div className="cta-content">
-            <h2>Need Emergency Assistance?</h2>
-            <p>Our team of medical professionals is ready to provide immediate care</p>
-            <Link to="/emergency-register" className="cta-button">
-              <MdEmergency className="btn-icon" /> Get Emergency Help
-            </Link>
-          </div>
-        </section>
+        
       </div>
     </div>
   );

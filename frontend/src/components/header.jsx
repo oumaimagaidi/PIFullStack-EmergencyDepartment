@@ -101,9 +101,7 @@ const Header = () => {
             <FaAmbulance className="nav-icon" />
             <span>Ambulance Check</span>
           </Link>
-          <Link to={"/ressources"} onClick={() => setShow(!show)}>
-            <span>Resources</span>
-          </Link>
+         
         </div>
 
         {user ? (

@@ -335,9 +335,9 @@ const EmergencyStatus = () => {
                                         <Link to="/home">Retour à l'Accueil</Link>
                                     </Button>
                                     {!['Traité', 'Annulé'].includes(patientDetails.status) && (
-                                        <Button asChild variant="default" className="bg-blue-600 hover:bg-blue-700 text-white">
-                                            <Link to="/calendar">
-                                                <Calendar className="mr-2 h-4 w-4" /> Planifier un RDV de suivi
+                                        <Button asChild variant="default" className="bg-blue-900 hover:bg-blue-700 text-white">
+                                            <Link to="/document">
+                                               See your medical record
                                             </Link>
                                         </Button>
                                     )}
