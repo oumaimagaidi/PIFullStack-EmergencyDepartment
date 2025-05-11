@@ -1,9 +1,7 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
-
 import { Label } from "@/components/ui/label"
-
 import { useEffect, useState } from "react"
 import axios from "axios"
 import { Upload } from "lucide-react"
@@ -99,11 +97,11 @@ const MedicalRecordDetails = () => {
         setPatientFiles(filesRes.data)
       } catch (err) {
         console.error("Fetch error:", err)
-        setError(err.response?.data?.message || "Erreur lors du chargement des données")
+        setError(err.response?.data?.message || "Error loading data")
 
         // If 404, redirect or show not found message
         if (err.response?.status === 404) {
-          setError("Dossier médical non trouvé")
+          setError("Medical record not found")
         }
       } finally {
         setLoading(false)
@@ -122,8 +120,8 @@ const MedicalRecordDetails = () => {
       setPatientFiles([...patientFiles, res.data])
       setShowAddModal(false)
     } catch (err) {
-      setError("Erreur lors de l'ajout du fichier")
-      console.error("Erreur:", err)
+      setError("Error adding file")
+      console.error("Error:", err)
     }
   }
 
@@ -137,8 +135,8 @@ const MedicalRecordDetails = () => {
       setShowAddModal(false)
       setEditFile(null)
     } catch (err) {
-      setError("Erreur lors de la mise à jour du fichier")
-      console.error("Erreur:", err)
+      setError("Error updating file")
+      console.error("Error:", err)
     }
   }
 
@@ -160,8 +158,8 @@ const MedicalRecordDetails = () => {
         setSelectedFile(null)
       }
     } catch (err) {
-      setError("Erreur lors de la suppression du fichier")
-      console.error("Erreur:", err)
+      setError("Error deleting file")
+      console.error("Error:", err)
     }
   }
 
@@ -244,44 +242,43 @@ const MedicalRecordDetails = () => {
   }
 
   const handleOCRUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-  
-    const formData = new FormData();
-    formData.append("medicalImage", file); // Corrigez le nom du champ
-    formData.append("medicalRecordId", id);
-  
+    const file = e.target.files[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append("medicalImage", file) // Correct field name
+    formData.append("medicalRecordId", id)
+
     try {
-      setOcrLoading(true);
-      setOcrError(null);
-  
-      const token = Cookies.get("token");
+      setOcrLoading(true)
+      setOcrError(null)
+
+      const token = Cookies.get("token")
       const response = await axios.post(
-        "http://localhost:8089/api/ocr/process-image", // Corrigez l'endpoint
+        "http://localhost:8089/api/ocr/process-image", // Correct endpoint
         formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
-        }
-      );
-  
-      // Vérification des données extraites
-      if (!response.data.data?.extractedData?.patientName || 
-          !response.data.data?.extractedData?.diagnosis) {
-        throw new Error("Les informations essentielles n'ont pas pu être extraites de l'image");
+        },
+      )
+
+      // Verify extracted data
+      if (!response.data.data?.extractedData?.patientName || !response.data.data?.extractedData?.diagnosis) {
+        throw new Error("Essential information could not be extracted from the image")
       }
-  
-      setOcrResult(response.data.data);
+
+      setOcrResult(response.data.data)
     } catch (err) {
-      setOcrError(err.response?.data?.error || err.message || "Erreur lors du traitement OCR");
-      console.error("OCR Error:", err);
+      setOcrError(err.response?.data?.error || err.message || "Error during OCR processing")
+      console.error("OCR Error:", err)
     } finally {
-      setOcrLoading(false);
-      e.target.value = "";
+      setOcrLoading(false)
+      e.target.value = ""
     }
-  };
+  }
 
   const renderFileDetails = (file) => {
     switch (file.type) {
@@ -291,10 +288,10 @@ const MedicalRecordDetails = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Pill className="h-5 w-5 text-emerald-500" />
-                <h3 className="font-medium text-lg">Prescription médicale</h3>
+                <h3 className="font-medium text-lg">Medical Prescription</h3>
               </div>
               <div className="space-y-3">
-                <h4 className="font-medium text-sm text-slate-700">Médicaments prescrits</h4>
+                <h4 className="font-medium text-sm text-slate-700">Prescribed Medications</h4>
                 {file.details.medications?.length > 0 ? (
                   <div className="grid gap-3">
                     {file.details.medications.map((med, idx) => (
@@ -314,7 +311,7 @@ const MedicalRecordDetails = () => {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500 italic">Aucun médicament prescrit</p>
+                  <p className="text-sm text-slate-500 italic">No medications prescribed</p>
                 )}
               </div>
               {file.notes && (
@@ -342,10 +339,10 @@ const MedicalRecordDetails = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Stethoscope className="h-5 w-5 text-violet-500" />
-                <h3 className="font-medium text-lg">Diagnostic</h3>
+                <h3 className="font-medium text-lg">Diagnosis</h3>
               </div>
               <div className="space-y-2">
-                <h4 className="font-medium text-sm text-slate-700">Diagnostic principal</h4>
+                <h4 className="font-medium text-sm text-slate-700">Primary Diagnosis</h4>
                 <Card className="bg-violet-50 border-violet-100">
                   <CardContent className="p-3">
                     <p>{file.details.diagnosis}</p>
@@ -354,7 +351,7 @@ const MedicalRecordDetails = () => {
               </div>
               {file.details.diagnosticTests?.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="font-medium text-sm text-slate-700">Tests diagnostiques</h4>
+                  <h4 className="font-medium text-sm text-slate-700">Diagnostic Tests</h4>
                   <div className="grid gap-2">
                     {file.details.diagnosticTests.map((test, idx) => (
                       <div key={idx} className="flex justify-between items-center p-2 border rounded-md bg-white">
@@ -395,11 +392,11 @@ const MedicalRecordDetails = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Activity className="h-5 w-5 text-amber-500" />
-                <h3 className="font-medium text-lg">Plan de traitement</h3>
+                <h3 className="font-medium text-lg">Treatment Plan</h3>
               </div>
               {file.details.procedures?.length > 0 ? (
                 <div className="space-y-2">
-                  <h4 className="font-medium text-sm text-slate-700">Procédures médicales</h4>
+                  <h4 className="font-medium text-sm text-slate-700">Medical Procedures</h4>
                   <div className="grid gap-3">
                     {file.details.procedures.map((proc, idx) => (
                       <Card key={idx} className="bg-amber-50 border-amber-100">
@@ -417,7 +414,7 @@ const MedicalRecordDetails = () => {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-slate-500 italic">Aucune procédure enregistrée</p>
+                <p className="text-sm text-slate-500 italic">No procedures recorded</p>
               )}
               {file.notes && (
                 <div className="mt-4 text-sm">
@@ -444,20 +441,20 @@ const MedicalRecordDetails = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Heart className="h-5 w-5 text-rose-500" />
-                <h3 className="font-medium text-lg">Signes vitaux</h3>
+                <h3 className="font-medium text-lg">Vital Signs</h3>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <Card className="bg-rose-50 border-rose-100">
                   <CardContent className="p-3 flex flex-col items-center justify-center">
                     <Thermometer className="h-5 w-5 text-rose-500 mb-1" />
-                    <div className="text-sm text-slate-500">Température</div>
+                    <div className="text-sm text-slate-500">Temperature</div>
                     <div className="text-xl font-semibold">{file.details.vitalSigns?.temperature}°C</div>
                   </CardContent>
                 </Card>
                 <Card className="bg-rose-50 border-rose-100">
                   <CardContent className="p-3 flex flex-col items-center justify-center">
                     <Activity className="h-5 w-5 text-rose-500 mb-1" />
-                    <div className="text-sm text-slate-500">Pression artérielle</div>
+                    <div className="text-sm text-slate-500">Blood Pressure</div>
                     <div className="text-xl font-semibold">
                       {file.details.vitalSigns?.bloodPressure?.systolic}/
                       {file.details.vitalSigns?.bloodPressure?.diastolic}
@@ -467,14 +464,14 @@ const MedicalRecordDetails = () => {
                 <Card className="bg-rose-50 border-rose-100">
                   <CardContent className="p-3 flex flex-col items-center justify-center">
                     <Heart className="h-5 w-5 text-rose-500 mb-1" />
-                    <div className="text-sm text-slate-500">Rythme cardiaque</div>
+                    <div className="text-sm text-slate-500">Heart Rate</div>
                     <div className="text-xl font-semibold">{file.details.vitalSigns?.heartRate} bpm</div>
                   </CardContent>
                 </Card>
                 <Card className="bg-rose-50 border-rose-100">
                   <CardContent className="p-3 flex flex-col items-center justify-center">
                     <BarChart className="h-5 w-5 text-rose-500 mb-1" />
-                    <div className="text-sm text-slate-500">Saturation O₂</div>
+                    <div className="text-sm text-slate-500">O₂ Saturation</div>
                     <div className="text-xl font-semibold">{file.details.vitalSigns?.oxygenSaturation}%</div>
                   </CardContent>
                 </Card>
@@ -510,13 +507,13 @@ const MedicalRecordDetails = () => {
                 <Card className="bg-orange-50 border-orange-100">
                   <CardContent className="p-3">
                     <div className="flex justify-between items-center">
-                      <div className="font-medium text-sm text-slate-700">Niveau de priorité</div>
+                      <div className="font-medium text-sm text-slate-700">Priority Level</div>
                       <Badge
                         className={
-                          file.details.priorityLevel?.toLowerCase().includes("élevé") ||
+                          file.details.priorityLevel?.toLowerCase().includes("high") ||
                           file.details.priorityLevel?.toLowerCase().includes("urgent")
                             ? "bg-red-100 text-red-800 hover:bg-red-100"
-                            : file.details.priorityLevel?.toLowerCase().includes("moyen")
+                            : file.details.priorityLevel?.toLowerCase().includes("medium")
                               ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
                               : "bg-green-100 text-green-800 hover:bg-green-100"
                         }
@@ -528,7 +525,7 @@ const MedicalRecordDetails = () => {
                 </Card>
                 <Card className="bg-orange-50 border-orange-100">
                   <CardContent className="p-3">
-                    <div className="font-medium text-sm text-slate-700">Motif principal</div>
+                    <div className="font-medium text-sm text-slate-700">Chief Complaint</div>
                     <p className="mt-1">{file.details.chiefComplaint}</p>
                   </CardContent>
                 </Card>
@@ -558,11 +555,11 @@ const MedicalRecordDetails = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Clipboard className="h-5 w-5 text-sky-500" />
-                <h3 className="font-medium text-lg">Sortie du patient</h3>
+                <h3 className="font-medium text-lg">Patient Discharge</h3>
               </div>
               <Card className="bg-sky-50 border-sky-100">
                 <CardContent className="p-3">
-                  <div className="font-medium text-sm text-slate-700">Instructions de sortie</div>
+                  <div className="font-medium text-sm text-slate-700">Discharge Instructions</div>
                   <p className="mt-1">{file.details.dischargeInstructions}</p>
                 </CardContent>
               </Card>
@@ -570,7 +567,7 @@ const MedicalRecordDetails = () => {
                 <Card className="bg-sky-50 border-sky-100">
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between">
-                      <div className="font-medium text-sm text-slate-700">Rendez-vous de suivi</div>
+                      <div className="font-medium text-sm text-slate-700">Follow-up Appointment</div>
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1 text-sky-500" />
                         <span>{new Date(file.details.followUpDate).toLocaleDateString()}</span>
@@ -604,12 +601,12 @@ const MedicalRecordDetails = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5 text-slate-500" />
-                <h3 className="font-medium text-lg">Informations patient</h3>
+                <h3 className="font-medium text-lg">Patient Information</h3>
               </div>
               <div className="grid gap-3">
                 <Card className="bg-slate-50 border-slate-100">
                   <CardContent className="p-3">
-                    <div className="font-medium text-sm text-slate-700">Identité</div>
+                    <div className="font-medium text-sm text-slate-700">Identity</div>
                     <p className="mt-1">
                       {file.details.patientInfo?.firstName} {file.details.patientInfo?.lastName}
                     </p>
@@ -618,13 +615,13 @@ const MedicalRecordDetails = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <Card className="bg-slate-50 border-slate-100">
                     <CardContent className="p-3">
-                      <div className="font-medium text-sm text-slate-700">Symptômes actuels</div>
-                      <p className="mt-1">{file.details.patientInfo?.currentSymptoms || "Non spécifiés"}</p>
+                      <div className="font-medium text-sm text-slate-700">Current Symptoms</div>
+                      <p className="mt-1">{file.details.patientInfo?.currentSymptoms || "Not specified"}</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-slate-50 border-slate-100">
                     <CardContent className="p-3">
-                      <div className="font-medium text-sm text-slate-700">Niveau de douleur</div>
+                      <div className="font-medium text-sm text-slate-700">Pain Level</div>
                       <div className="flex items-center mt-1">
                         <div
                           className="h-2 rounded-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500"
@@ -754,7 +751,7 @@ const MedicalRecordDetails = () => {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
           <Button onClick={() => window.location.reload()} variant="outline">
-            Réessayer
+            Try Again
           </Button>
         </div>
       </div>
@@ -767,10 +764,10 @@ const MedicalRecordDetails = () => {
         <div className="max-w-7xl mx-auto">
           <Alert className="mb-6 border-yellow-200 bg-yellow-50 text-yellow-800">
             <AlertTriangle className="h-4 w-4 text-yellow-800" />
-            <AlertDescription>Dossier médical non trouvé</AlertDescription>
+            <AlertDescription>Medical record not found</AlertDescription>
           </Alert>
           <Button onClick={() => window.history.back()} variant="outline">
-            Retour
+            Back
           </Button>
         </div>
       </div>
@@ -785,7 +782,9 @@ const MedicalRecordDetails = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <CardTitle className="text-2xl font-bold flex items-center text-slate-800">
-                  <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{ color: '#42A5FF' }}>Dossier Médical</h1>
+                  <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{ color: "#42A5FF" }}>
+                    Medical Record
+                  </h1>
                 </CardTitle>
                 <CardDescription className="text-slate-500 mt-1">
                   {medicalRecord.patientId?.firstName} {medicalRecord.patientId?.lastName}
@@ -793,7 +792,7 @@ const MedicalRecordDetails = () => {
               </div>
               <div className="flex gap-2">
                 <Button onClick={() => window.history.back()} variant="outline" size="sm" className="sm:self-start">
-                  Retour à la liste
+                  Back to List
                 </Button>
                 <ShareMedicalRecordButton medicalRecordId={id} />
               </div>
@@ -805,22 +804,22 @@ const MedicalRecordDetails = () => {
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-semibold flex items-center">
                   <User className="mr-2 h-5 w-5 text-slate-500" />
-                  Informations Patient
+                  Patient Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-y-2 gap-x-4 text-sm">
                   <div className="flex items-center">
                     <User className="h-4 w-4 mr-2 text-slate-400" />
-                    <span className="font-medium text-slate-700">Nom:</span>
+                    <span className="font-medium text-slate-700">Name:</span>
                     <span className="ml-2">
                       {medicalRecord.patientId?.firstName} {medicalRecord.patientId?.lastName}
                     </span>
                   </div>
                   <div className="flex items-center">
                     <Droplet className="h-4 w-4 mr-2 text-red-400" />
-                    <span className="font-medium text-slate-700">Type de sang:</span>
-                    <span className="ml-2">{medicalRecord.bloodType || "Non spécifié"}</span>
+                    <span className="font-medium text-slate-700">Blood Type:</span>
+                    <span className="ml-2">{medicalRecord.bloodType || "Not specified"}</span>
                   </div>
                   <div className="flex items-start">
                     <Allergens className="h-4 w-4 mr-2 mt-0.5 text-amber-400" />
@@ -828,7 +827,7 @@ const MedicalRecordDetails = () => {
                     <span className="ml-2">
                       {medicalRecord.knownAllergies?.length
                         ? medicalRecord.knownAllergies.join(", ")
-                        : "Aucune allergie connue"}
+                        : "No known allergies"}
                     </span>
                   </div>
                 </div>
@@ -838,32 +837,26 @@ const MedicalRecordDetails = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <h3 className="text-xl font-semibold text-slate-800 flex items-center">
                 <Clipboard className="mr-2 h-5 w-5 text-slate-600" />
-                Documents Médicaux
+                Medical Documents
               </h3>
               <div className="flex gap-2">
                 <Button
                   onClick={() => setShowAddModal(true)}
-                  className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300"
+                  className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300 flex items-center h-11"
                 >
                   <FilePlus className="mr-2 h-4 w-4" />
                   Add file document
                 </Button>
-                <div className="flex gap-2">
-  <input
-    type="file"
-    id="ocr-upload"
-    accept="image/*"
-    onChange={handleOCRUpload}
-    className="hidden"
-  />
-  <label
-    htmlFor="ocr-upload"
-    className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300 cursor-pointer flex items-center"
-  >
-    <Upload className="mr-2 h-4 w-4" />
-    OCR upload
-  </label>
-</div>
+                <div>
+                  <input type="file" id="ocr-upload" accept="image/*" onChange={handleOCRUpload} className="hidden" />
+                  <label
+                    htmlFor="ocr-upload"
+                    className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300 cursor-pointer flex items-center h-11"
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    OCR upload
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -872,23 +865,23 @@ const MedicalRecordDetails = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
                   <FileText className="h-8 w-8 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-medium text-slate-900">Aucun document</h3>
+                <h3 className="text-lg font-medium text-slate-900">No documents</h3>
                 <p className="text-slate-500 mt-1 max-w-md mx-auto">
-                  Ce dossier médical ne contient pas encore de documents. Cliquez sur "Ajouter un Document" pour
-                  commencer à créer le dossier.
+                  This medical record does not contain any documents yet. Click "Add Document" to start creating the
+                  record.
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-1 bg-white rounded-lg border h-fit">
                   <div className="p-4 border-b">
-                    <h4 className="font-medium text-slate-800">Liste des documents</h4>
+                    <h4 className="font-medium text-slate-800">Document List</h4>
                   </div>
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <div className="px-4 pt-2">
                       <TabsList className="w-full gap-1">
                         <TabsTrigger value="all" className="text-xs px-2 py-1">
-                          Tous
+                          All
                         </TabsTrigger>
                         <TabsTrigger value="Prescription" className="text-xs px-2 py-1">
                           Prescriptions
@@ -898,7 +891,7 @@ const MedicalRecordDetails = () => {
                         </TabsTrigger>
 
                         <TabsTrigger value="archived" className="text-xs px-2 py-1">
-                          Archivés
+                          Archived
                         </TabsTrigger>
                       </TabsList>
                     </div>
@@ -965,7 +958,7 @@ const MedicalRecordDetails = () => {
                             <span className="ml-2">{selectedFile.type}</span>
                           </CardTitle>
                           <CardDescription>
-                            Créé le {new Date(selectedFile.createdAt).toLocaleDateString()}
+                            Created on {new Date(selectedFile.createdAt).toLocaleDateString()}
                           </CardDescription>
                         </div>
                         <div className="flex space-x-2">
@@ -978,7 +971,7 @@ const MedicalRecordDetails = () => {
                             }}
                           >
                             <Edit className="mr-2 h-4 w-4" />
-                            Modifier
+                            Edit
                           </Button>
                           <Button
                             variant="outline"
@@ -987,7 +980,7 @@ const MedicalRecordDetails = () => {
                             onClick={() => confirmDeleteFile(selectedFile._id)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Supprimer
+                            Delete
                           </Button>
                           <Button
                             variant="outline"
@@ -998,7 +991,7 @@ const MedicalRecordDetails = () => {
                             }}
                           >
                             <Archive className="mr-2 h-4 w-4" />
-                            Archiver
+                            Archive
                           </Button>
                         </div>
                       </CardHeader>
@@ -1009,9 +1002,9 @@ const MedicalRecordDetails = () => {
                     <div className="h-full flex items-center justify-center bg-white rounded-lg border p-8">
                       <div className="text-center">
                         <FileText className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-slate-800">Aucun document sélectionné</h3>
+                        <h3 className="text-lg font-medium text-slate-800">No document selected</h3>
                         <p className="text-slate-500 mt-1 max-w-md">
-                          Sélectionnez un document dans la liste pour afficher ses détails.
+                          Select a document from the list to view its details.
                         </p>
                       </div>
                     </div>
@@ -1052,32 +1045,41 @@ const MedicalRecordDetails = () => {
         />
       )}
       {ocrLoading && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-    <div className="bg-white p-4 rounded-lg">
-      <p className="flex items-center gap-2">
-        <svg className="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Analyse de l'image en cours...
-      </p>
-    </div>
-  </div>
-)}
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+          <div className="bg-white p-4 rounded-lg">
+            <p className="flex items-center gap-2">
+              <svg
+                className="animate-spin h-5 w-5 text-blue-500"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Analyzing image...
+            </p>
+          </div>
+        </div>
+      )}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmer la suppression</DialogTitle>
+            <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible.
+              Are you sure you want to delete this document? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Annuler
+              Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteFile}>
-              Supprimer
+              Delete
             </Button>
           </div>
         </DialogContent>
@@ -1099,94 +1101,88 @@ const MedicalRecordDetails = () => {
           onFileArchived={handleFileArchived}
         />
       )}
-   
-   <Dialog open={!!ocrResult} onOpenChange={() => setOcrResult(null)}>
-  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-    <DialogHeader>
-      <DialogTitle>Résultats OCR</DialogTitle>
-      <DialogDescription>
-        Vérifiez les informations extraites avant de créer le document médical
-      </DialogDescription>
-    </DialogHeader>
 
-    {ocrResult && (
-      <div className="space-y-6">
-        <div className="grid gap-4">
-          <div>
-            <Label htmlFor="patientName">Nom du patient</Label>
-            <Input 
-              id="patientName" 
-              value={ocrResult.extractedData.patientName} 
-              readOnly 
-              className="font-medium"
-            />
-          </div>
+      <Dialog open={!!ocrResult} onOpenChange={() => setOcrResult(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>OCR Results</DialogTitle>
+            <DialogDescription>Verify the extracted information before creating the medical document</DialogDescription>
+          </DialogHeader>
 
-          <div>
-            <Label htmlFor="diagnosis">Diagnostic</Label>
-            <Input 
-              id="diagnosis" 
-              value={ocrResult.extractedData.diagnosis} 
-              readOnly 
-              className="font-medium text-red-600"
-            />
-          </div>
+          {ocrResult && (
+            <div className="space-y-6">
+              <div className="grid gap-4">
+                <div>
+                  <Label htmlFor="patientName">Patient Name</Label>
+                  <Input
+                    id="patientName"
+                    value={ocrResult.extractedData.patientName}
+                    readOnly
+                    className="font-medium"
+                  />
+                </div>
 
-          {ocrResult.extractedData.tests?.length > 0 && (
-            <div>
-              <Label>Résultats d'examens</Label>
-              <div className="mt-2 space-y-2">
-                {ocrResult.extractedData.tests.map((test, index) => (
-                  <div key={index} className="p-3 border rounded-md bg-gray-50">
-                    <div className="font-medium">{test.testName}</div>
-                    <div className="text-sm mt-1">{test.result}</div>
-                    {test.date && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        {new Date(test.date).toLocaleDateString()}
-                      </div>
-                    )}
+                <div>
+                  <Label htmlFor="diagnosis">Diagnosis</Label>
+                  <Input
+                    id="diagnosis"
+                    value={ocrResult.extractedData.diagnosis}
+                    readOnly
+                    className="font-medium text-red-600"
+                  />
+                </div>
+
+                {ocrResult.extractedData.tests?.length > 0 && (
+                  <div>
+                    <Label>Test Results</Label>
+                    <div className="mt-2 space-y-2">
+                      {ocrResult.extractedData.tests.map((test, index) => (
+                        <div key={index} className="p-3 border rounded-md bg-gray-50">
+                          <div className="font-medium">{test.testName}</div>
+                          <div className="text-sm mt-1">{test.result}</div>
+                          {test.date && (
+                            <div className="text-xs text-gray-500 mt-1">{new Date(test.date).toLocaleDateString()}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setOcrResult(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleAddFile({
+                      type: "Diagnostic",
+                      notes: "Document generated automatically by OCR",
+                      details: {
+                        diagnosis: ocrResult.extractedData.diagnosis,
+                        diagnosticTests: ocrResult.extractedData.tests.map((test) => ({
+                          testName: test.testName,
+                          result: test.result,
+                          date: test.date || new Date(),
+                        })),
+                        patientInfo: {
+                          firstName: ocrResult.extractedData.patientName.split(" ")[0],
+                          lastName: ocrResult.extractedData.patientName.split(" ").slice(1).join(" "),
+                        },
+                      },
+                    })
+                    setOcrResult(null)
+                  }}
+                  className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300"
+                >
+                  Confirm and create
+                </Button>
               </div>
             </div>
           )}
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => setOcrResult(null)}
-          >
-            Annuler
-          </Button>
-          <Button 
-            onClick={() => {
-              handleAddFile({
-                type: "Diagnostic",
-                notes: "Document généré automatiquement par OCR",
-                details: {
-                  diagnosis: ocrResult.extractedData.diagnosis,
-                  diagnosticTests: ocrResult.extractedData.tests.map(test => ({
-                    testName: test.testName,
-                    result: test.result,
-                    date: test.date || new Date()
-                  })),
-                  patientInfo: {
-                    firstName: ocrResult.extractedData.patientName.split(' ')[0],
-                    lastName: ocrResult.extractedData.patientName.split(' ').slice(1).join(' '),
-                  }
-                }
-              });
-              setOcrResult(null);
-            }}
-          >
-            Confirmer et créer
-          </Button>
-        </div>
-      </div>
-    )}
-  </DialogContent>
-</Dialog>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
