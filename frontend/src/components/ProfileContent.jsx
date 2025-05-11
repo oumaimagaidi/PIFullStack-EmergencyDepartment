@@ -1,3 +1,4 @@
+// ProfileContent.jsx
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,7 +13,6 @@ import EditableField from './EditableField';
 import ProfileHeader from './ProfileHeader'; // Le ProfileHeader fusionné
 
 // --- AJOUT : URL de base de votre backend ---
-// Remplacez par l'URL réelle ou utilisez une variable d'environnement
 const BACKEND_BASE_URL = 'http://localhost:8089';
 // --- FIN AJOUT ---
 
@@ -48,37 +48,22 @@ const ProfileContent = ({
         }
     }, [isDarkThemeLocal]);
 
-    // --- MODIFIÉ : useEffect pour synchroniser l'URL de l'avatar ---
+    // useEffect pour synchroniser l'URL de l'avatar
     useEffect(() => {
-        let finalImageUrl = ''; // Commencer avec une URL vide par défaut
+        let finalImageUrl = '';
         if (profileData?.personal?.profileImage) {
             const imagePath = profileData.personal.profileImage;
-
-            // Vérifier si c'est déjà une URL absolue
             if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
                 finalImageUrl = imagePath;
-            }
-            // Sinon, si c'est un chemin relatif commençant par '/', construire l'URL absolue
-            else if (imagePath.startsWith('/')) {
+            } else if (imagePath.startsWith('/')) {
                 finalImageUrl = `${BACKEND_BASE_URL}${imagePath}`;
-            }
-            // Optionnel: Gérer d'autres formats ou logguer un avertissement
-            else {
+            } else {
                 console.warn("Format de chemin d'image non reconnu:", imagePath);
-                // finalImageUrl reste ''
             }
-        } else {
-            // Pas de profileImage dans les données
-            // finalImageUrl reste ''
         }
-
-        setAvatarUrlLocal(finalImageUrl); // Mettre à jour l'état avec l'URL complète (ou vide)
-
-        // Logique pour les notifications (inchangée)
+        setAvatarUrlLocal(finalImageUrl);
         setNotificationsLocal(profileData?.user?.unreadNotifications || 3); // Exemple
-
-    }, [profileData]); // Déclenché quand profileData change
-    // --- FIN MODIFICATION ---
+    }, [profileData]);
 
     const getTabs = () => {
         const baseTabs = ['personal', 'contact', 'emergencyContacts', 'settings'];
@@ -95,13 +80,11 @@ const ProfileContent = ({
     const firstNameForHeader = profileData.personal?.firstName || profileData.personal?.username?.split(' ')[0] || '';
     const lastNameForHeader = profileData.personal?.lastName || profileData.personal?.username?.split(' ').slice(1).join(' ') || '';
 
-    // --- MODIFIÉ : S'assurer que handleEdit utilise 'profileImage' ---
     const handleAvatarUploadCallback = (event) => {
         const file = event.target.files[0];
         if (file) {
             const tempUrl = URL.createObjectURL(file);
-            setAvatarUrlLocal(tempUrl); // Affichage optimiste
-            // Utiliser 'profileImage' car c'est le nom du champ dans la DB
+            setAvatarUrlLocal(tempUrl);
             handleEdit('personal', 'profileImage', file);
             toast({
                 title: "Photo de profil en cours...",
@@ -109,8 +92,6 @@ const ProfileContent = ({
             });
         }
     };
-    // --- FIN MODIFICATION ---
-
 
     const getFieldTooltipText = (field) => {
         const tooltips = { firstName: 'Votre prénom', lastName: 'Votre nom de famille', email: 'Adresse e-mail pour la communication', phone: 'Numéro de téléphone pour le contact', address: 'Adresse physique', dateOfBirth: 'Date de naissance', allergies: 'Liste des allergies connues', medicalConditions: 'Conditions médicales actuelles', specialty: 'Domaine de spécialisation médicale', licenseNumber: 'Numéro de licence professionnelle', notificationPreferences: 'Préférences pour les notifications', language: 'Langue préférée pour l\'interface', emergencyContactName: 'Nom du contact d\'urgence', emergencyContactPhone: 'Téléphone du contact d\'urgence', certificationName: 'Nom de la certification', certificationDate: 'Date d\'obtention de la certification', appointmentDate: 'Date du rendez-vous', appointmentDetails: 'Détails du rendez-vous' };
@@ -122,10 +103,7 @@ const ProfileContent = ({
             return <div className="col-span-1 md:col-span-2 text-center py-12 text-gray-500 dark:text-gray-400">Aucune donnée disponible pour cette section.</div>;
         }
         const data = profileData[section];
-        // --- MODIFIÉ : S'assurer que profileImage est bien dans skipFields ---
-        const skipFields = ['role', 'username', 'avatar', 'profileImage', 'id', '_id', 'userId', 'user', 'password']; // Ajouter password aussi
-        // --- FIN MODIFICATION ---
-
+        const skipFields = ['role', 'username', 'avatar', 'profileImage', 'id', '_id', 'userId', 'user', 'password'];
         const fields = Object.entries(data).filter(([key, value]) =>
             !skipFields.includes(key) &&
             (typeof value !== 'object' || value === null || (Array.isArray(value) && value.every(item => typeof item === 'string')))
@@ -193,19 +171,22 @@ const ProfileContent = ({
 
     return (
         <div className={`min-h-screen transition-colors duration-300 ${isDarkThemeLocal ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} pb-12`}>
-            <ProfileHeader
-                firstName={firstNameForHeader}
-                lastName={lastNameForHeader}
-                role={currentRole}
-                avatarUrl={avatarUrlLocal} // Utilise l'URL locale construite
-                isDarkTheme={isDarkThemeLocal}
-                notifications={notificationsLocal}
-                isEditing={isEditing}
-                setIsDarkTheme={setIsDarkThemeLocal}
-                setNotifications={setNotificationsLocal}
-                handleAvatarUpload={handleAvatarUploadCallback}
-                onSettingsClick={() => setActiveTab('settings')}
-            />
+            <div className="pt-12">
+                {/* Added padding-top to push the entire content down */}
+                <ProfileHeader
+                    firstName={firstNameForHeader}
+                    lastName={lastNameForHeader}
+                    role={currentRole}
+                    avatarUrl={avatarUrlLocal}
+                    isDarkTheme={isDarkThemeLocal}
+                    notifications={notificationsLocal}
+                    isEditing={isEditing}
+                    setIsDarkTheme={setIsDarkThemeLocal}
+                    setNotifications={setNotificationsLocal}
+                    handleAvatarUpload={handleAvatarUploadCallback}
+                    onSettingsClick={() => setActiveTab('settings')}
+                />
+            </div>
 
             <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 md:mt-12 flex flex-col lg:flex-row gap-6 relative z-10">
                 <motion.aside

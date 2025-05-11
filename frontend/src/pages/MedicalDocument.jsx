@@ -45,6 +45,7 @@ const colors = {
   secondaryLight: "#cffafe",
   alertLight: "#1e3a8a",
   bgAccent: "#1e3a8a", // Light cyan for background
+  white : "#ffffff"
 }
 
 // Animated Medical Icons Component
@@ -399,7 +400,7 @@ const MedicalDocument = () => {
                             backgroundColor: test.result.toLowerCase().includes("normal")
                               ? colors.secondaryLight
                               : colors.alertLight,
-                            color: test.result.toLowerCase().includes("normal") ? colors.secondary : colors.alert,
+                            color: test.result.toLowerCase().includes("normal") ? colors.secondary : colors.white,
                           }}
                         >
                           {test.result}

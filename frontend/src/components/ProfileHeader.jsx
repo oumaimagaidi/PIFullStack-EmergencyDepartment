@@ -1,10 +1,9 @@
-// src/components/ProfileHeader.jsx
 import React from 'react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { Bell, Moon, Sun, Upload, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button'; // Assurez-vous qu'il est importé si vous l'utilisez
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -36,21 +35,20 @@ const ProfileHeader = ({
 
   return (
     <motion.div
-      className="w-full rounded-b-2xl md:rounded-b-3xl overflow-hidden bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl" // Un exemple de dégradé
+      className="w-full rounded-b-2xl md:rounded-b-3xl overflow-hidden bg-blue-900 shadow-xl" // Changement ici
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* La partie supérieure de la bannière - peut être vide ou avec une image de fond subtile */}
-      {/* J'ai réduit la hauteur ici pour qu'elle soit moins proéminente */}
-      <div className="w-full h-24 md:h-32 relative">
-        {/* Si vous voulez une image de fond pour cette partie : */}
+      {/* La partie supérieure de la bannière */}
+      <div className="w-full h-24 md:h-32 bg-blue-900 relative">
+        {/* Si vous voulez une image de fond, décommentez et ajustez */}
         {/* <img src="/path-to-your-banner-image.jpg" alt="Profile Banner" className="absolute inset-0 w-full h-full object-cover opacity-20" /> */}
-        {/* <div className="absolute inset-0 bg-black/10"></div> */} {/* Overlay optionnel */}
+        {/* <div className="absolute inset-0 bg-black/10"></div> */}
       </div>
 
-      {/* Conteneur principal pour l'avatar, le nom, le rôle ET les icônes d'action */}
-      <div className="relative w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 md:-mt-20 pb-6 md:pb-8">
+      {/* Conteneur principal pour l'avatar, le nom, le rôle et les icônes d'action */}
+      <div className="relative w-full max-w-5xl bg-blue-900 mx-auto px-4 sm:px-6 lg:px-8 -mt-16 md:-mt-20 pb-6 md:pb-8">
         <div className="flex flex-col md:flex-row justify-between items-center md:items-end gap-4">
           {/* Partie gauche : Avatar et Nom/Rôle */}
           <div className="flex flex-col md:flex-row items-center md:items-end gap-4">
@@ -58,13 +56,13 @@ const ProfileHeader = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <motion.div
-                    className="relative" // mb-4 md:mb-0 supprimé pour aligner avec le texte
+                    className="relative"
                     variants={avatarVariants}
                     initial="initial"
                     whileHover="hover"
                     whileTap="tap"
                   >
-                    <Avatar className="h-28 w-28 md:h-32 md:w-32 border-4 border-white dark:border-gray-800 shadow-xl">
+                    <Avatar className="h-28 w-28 md:h-32 md:w-32 border-4 bg-blue-900 dark:border-gray-800 shadow-xl">
                       <AvatarImage src={avatarUrl} alt={`${firstName} ${lastName}`} className="object-cover" />
                       <AvatarFallback className="bg-primary/80 text-white text-2xl md:text-3xl">
                         {getInitials()}
@@ -87,7 +85,7 @@ const ProfileHeader = ({
               </Tooltip>
             </TooltipProvider>
 
-            <div className="text-center md:text-left md:mb-1"> {/* mb-1 pour aligner avec les icônes */}
+            <div className="text-center md:text-left md:mb-1">
               <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-sm">
                 {firstName} {lastName}
               </h1>
@@ -99,8 +97,8 @@ const ProfileHeader = ({
             </div>
           </div>
 
-          {/* Partie droite : Icônes d'action - maintenant alignées avec le nom/rôle sur desktop */}
-          <div className="flex items-center space-x-2 mt-4 md:mt-0 md:mb-1"> {/* mb-1 pour aligner avec le texte */}
+          {/* Partie droite : Icônes d'action */}
+          <div className="flex items-center space-x-2 mt-4 md:mt-0 md:mb-1">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>

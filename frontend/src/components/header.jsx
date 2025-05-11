@@ -62,10 +62,7 @@ const Header = () => {
 
   return (
     <nav className="header_container">
-      <div className="emergency-indicator">
-        <div className="pulse-ring"></div>
-        <span>EMERGENCY SERVICES</span>
-      </div>
+            
 
       <div className="header_logo flex items-center gap-2">
   <img 

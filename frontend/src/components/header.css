@@ -1,7 +1,7 @@
 /* Emergency Department Header Styles with #42A5FF color scheme */
 .header_container {
   background-color: #42a5ff;
-  padding: 10px 20px;
+  padding: 12px 24px; /* Consistent padding with sidebar (px-4 in SidebarHeader is 16px, adjusted for balance) */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -10,84 +10,66 @@
   left: 0;
   width: 100%;
   z-index: 1000;
-  border-bottom: 3px solid #0056b3; /* Darker blue border */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-bottom: 2px solid #0056b3; /* Slightly thinner border for a cleaner look */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Softer shadow for depth */
 }
 
-/* Emergency indicator with pulsing effect */
-.emergency-indicator {
+/* Logo styling aligned with sidebar */
+.header_logo {
   display: flex;
   align-items: center;
-  position: absolute;
-  top: 0;
-  left: 0;
-  background-color: #ff4242; /* Red for emergency */
-  color: white;
-  padding: 4px 15px;
-  font-weight: bold;
-  font-size: 12px;
-  border-radius: 0 0 8px 0;
-  letter-spacing: 1px;
-}
-
-.pulse-ring {
-  width: 10px;
-  height: 10px;
-  background-color: white;
-  border-radius: 50%;
-  margin-right: 8px;
-  position: relative;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
-  }
-}
-
-.header_logo {
-  margin-left: 150px; /* Make space for emergency indicator */
+  gap: 8px; /* Matches the gap-2 (8px) in SidebarHeader */
 }
 
 .header_logo-img {
-  height: 60px;
-  vertical-align: middle;
+  width: 40px; /* Matches the h-10 in SidebarHeader */
+  height: 40px;
   background-color: white;
-  padding: 5px;
-  border-radius: 5px;
+  padding: 4px;
+  border-radius: 6px; /* Slightly larger radius for a modern look */
+  object-fit: contain;
 }
 
+/* Typography for logo text */
+.header_logo .font-bold {
+  font-size: 1.125rem; /* Matches text-lg in SidebarHeader */
+  color: #1e3a8a; /* Darker blue for better contrast and professionalism */
+  letter-spacing: -0.025em; /* Tightened tracking for a polished look */
+}
+
+.header_logo .text-xs {
+  font-size: 0.75rem; /* Matches text-xs in SidebarHeader */
+  color: #2563eb; /* Slightly lighter blue for contrast */
+  letter-spacing: 0.05em; /* Matches tracking-wider */
+}
+
+/* Navigation links */
 .header_navLinks {
   display: flex;
   align-items: center;
+  gap: 12px; /* Consistent spacing between nav items */
 }
 
 .header_links {
   display: flex;
-  margin-right: 20px;
+  align-items: center;
+  gap: 8px; /* Smaller gap for a tighter, professional look */
 }
 
 .header_links a {
   color: white;
   text-decoration: none;
-  margin: 0 15px;
   font-weight: 500;
+  font-size: 0.95rem; /* Slightly larger for readability */
   transition: all 0.2s ease-in-out;
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  border-radius: 5px;
+  border-radius: 6px;
 }
 
 .header_links a:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.15); /* Subtle hover effect */
   color: white;
 }
 
@@ -96,9 +78,7 @@
   font-size: 18px;
 }
 
-/* Special styling for emergency link */
-
-
+/* Emergency link styling */
 .emergency-link .nav-icon {
   color: #eceff2;
 }
@@ -107,23 +87,24 @@
   background-color: #ff424266;
 }
 
+/* Buttons */
 .header_btn {
-  padding: 8px 18px;
+  padding: 8px 16px;
   border: none;
-  border-radius: 5px;
-  background-color: #003d80; /* Darker blue for button */
+  border-radius: 6px;
+  background-color: #003d80;
   color: white;
   cursor: pointer;
   font-weight: 500;
+  font-size: 0.875rem;
   transition: background-color 0.2s ease-in-out;
 }
 
 .header_btn:hover {
-  background-color: #003d80;
+  background-color: #002a5c; /* Darker shade on hover */
 }
 
-
-
+/* Hamburger menu */
 .header_hamburger {
   font-size: 24px;
   cursor: pointer;
@@ -142,32 +123,30 @@
 .header_user-info {
   display: flex;
   align-items: center;
-  background-color: #003e80a8;
+  background-color: #003d80;
   padding: 6px 12px;
-  border-radius: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.2s ease-in-out;
-  color: rgba(255, 255, 255, 0.279);
+  color: white;
 }
 
 .header_user-info:hover,
 .header_user-info:focus {
-  background-color: rgba(255, 255, 255, 0.284);
+  background-color: #002a5c;
 }
 
 .header_user-avatar {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   margin-right: 8px;
-  vertical-align: middle;
-  border: 1px solid rgb(255, 255, 255);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .header_user-icon {
   margin-left: 5px;
   font-size: 18px;
-  vertical-align: middle;
   color: white;
 }
 
@@ -176,19 +155,19 @@
   top: 100%;
   right: 0;
   background-color: white;
-  border: 1px solid #003d80;
-  border-radius: 5px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
   padding: 8px 0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 10;
   min-width: 160px;
-  margin-top: 5px;
+  margin-top: 6px;
 }
 
 .header_dropdown-menu a,
 .header_dropdown-menu button {
   display: block;
-  padding: 8px 20px;
+  padding: 8px 16px;
   text-decoration: none;
   color: #42a5ff;
   text-align: left;
@@ -197,11 +176,12 @@
   width: 100%;
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
+  font-size: 0.875rem;
 }
 
 .header_dropdown-menu a:hover,
 .header_dropdown-menu button:hover {
-  background-color: #003d80;
+  background-color: #f3f4f6;
   color: #0056b3;
 }
 
@@ -217,16 +197,12 @@
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-  .header_logo {
-    margin-left: 0;
+  .header_container {
+    padding: 12px 16px; /* Slightly reduced padding for mobile */
   }
 
-  .emergency-indicator {
-    position: static;
-    margin-right: 10px;
-    border-radius: 4px;
-    padding: 2px 8px;
-    font-size: 10px;
+  .header_logo {
+    flex: 1;
   }
 
   .header_navLinks {
@@ -238,8 +214,8 @@
     right: 0;
     background-color: #42a5ff;
     text-align: center;
-    padding: 20px 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 16px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
   .header_showmenu {
@@ -248,13 +224,13 @@
 
   .header_links {
     flex-direction: column;
-    margin-right: 0;
+    gap: 12px;
   }
 
   .header_links a {
-    margin: 10px 0;
-    display: flex;
+    margin: 0;
     justify-content: center;
+    padding: 10px 16px;
   }
 
   .header_hamburger {
