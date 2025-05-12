@@ -8,7 +8,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { Server as SocketIOServer } from "socket.io"; // Use the alias you defined
 import jwt from 'jsonwebtoken'; // Keep JWT import
-
+import ocrRouter from "./routes/ocr.js"
 import connectDB from "./db.js";
 
 // --- Route Imports ---
@@ -31,6 +31,8 @@ import feedbackRoutes from "./routes/feedback.js";
 import { User } from "./models/User.js";
 import Ambulance from "./models/Ambulance.js";
 import Alert from "./models/Alert.js";
+import Resource from "./routes/resource.js";
+import patientRoutes from "./routes/patient.js"
 
 // --- Helpers ---
 dotenv.config();
