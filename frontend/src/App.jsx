@@ -32,6 +32,9 @@ import  HexGrid  from "./components/HexGrid";
 import ParticlesComponent from "./components/ParticlesComponent";
 import ResourcesPage from "./pages/ResourcesPage";
 import AmbulanceCheck from "./pages/AmbulanceCheck";
+import Requestambulance from "./pages/RequestAmbulance";
+import ChooseAmbulance from "./pages/ChooseAmbulance";
+import TrackAmbulance from "./pages/TrackAmbulance";
 function App() {
   const user = JSON.parse(sessionStorage.getItem("user"));
   
@@ -58,7 +61,11 @@ function App() {
         <Route path="/emergency-register" element={<MainLayout><EmergencyRegister /></MainLayout>} />
         <Route path="/emergency-confirmation" element={<MainLayout><ConfirmationEmergencyRegister /></MainLayout>} />
         
-        <Route path="/ambulance_check" element={<MainLayout><AmbulanceCheck/></MainLayout>} />
+        <Route path="/ambulance_check" element={<MainLayout><AmbulanceCheck /></MainLayout>} />
+        <Route path="/request-ambulance" element={<MainLayout><Requestambulance /></MainLayout>} />
+        <Route path="/choose-ambulance/:id" element={<MainLayout><ChooseAmbulance /></MainLayout>} />
+        <Route path="/track-ambulance/:id" element={<MainLayout><TrackAmbulance /></MainLayout>} />
+
 
         {/* Routes Dashboard avec sidebar */}
         <Route path="/dashboard" element={
