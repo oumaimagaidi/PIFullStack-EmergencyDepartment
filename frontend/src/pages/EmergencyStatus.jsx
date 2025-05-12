@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Clock, Stethoscope, Calendar, AlertTriangle, Loader2, MessageSquare, Clipboard, User } from "lucide-react";
 // --- Fin UI Imports ---
+import ParticlesComponent from "@/components/ParticlesComponent"; // <-- Import ParticlesComponent
 
 // --- Thème Chatbot ---
 const chatbotTheme = {
@@ -52,8 +53,8 @@ const EmergencyStatus = () => {
     const [chatbotIsProcessing, setChatbotIsProcessing] = useState(false);
     // --- Fin États ---
 
-    // --- Fonctions Fetch (INCHANGÉES) ---
-    const fetchPatientAndWaitTime = async (isInitialLoad = false) => {
+    // --- Fonctions Fetch (UNCHANGED) ---
+    const fetchPatientAndWaitTime = useCallback(async (isInitialLoad = false) => {
         if (!patientIdFromState) {
             setError("ID Patient manquant pour le suivi.");
             if (isInitialLoad) setLoading(false);
@@ -94,9 +95,9 @@ const EmergencyStatus = () => {
             if (isInitialLoad) setLoading(false);
             setLoadingWaitTime(false);
         }
-    };
+    }, [patientIdFromState, doctorInfo]); // Added doctorInfo to dependencies for comparison
 
-    const fetchMedicalAccessCode = async () => {
+    const fetchMedicalAccessCode = useCallback(async () => {
         if (!patientIdFromState || !patientDetails || !patientDetails.status) return;
         const relevantStatuses = ['Médecin En Route', 'Traité'];
         if (!relevantStatuses.includes(patientDetails.status)) {
@@ -110,27 +111,31 @@ const EmergencyStatus = () => {
         } catch (err) {
             setMedicalAccess(prev => ({ ...prev, loading: false, error: "Impossible de récupérer le code d'accès." }));
         }
-    };
+    }, [patientIdFromState, patientDetails]); // Dependencies updated
+
 
     useEffect(() => {
         if (patientIdFromState) {
-            fetchPatientAndWaitTime(true);
-            const intervalId = setInterval(() => fetchPatientAndWaitTime(false), 30000);
-            return () => clearInterval(intervalId);
+            fetchPatientAndWaitTime(true); // Initial load
+            const intervalId = setInterval(() => fetchPatientAndWaitTime(false), 30000); // Periodic fetch
+            return () => clearInterval(intervalId); // Cleanup on unmount
         } else {
             setError("Aucun ID patient fourni.");
             setLoading(false);
         }
-    }, [patientIdFromState]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [patientIdFromState]); // Run only when patientId changes
 
     useEffect(() => {
-        if (patientDetails && patientDetails.status && patientIdFromState) {
+        // Fetch medical code only when status changes to relevant ones or on initial load if relevant
+        if (patientDetails?.status && patientIdFromState) {
             fetchMedicalAccessCode();
         }
-    }, [patientDetails?.status, patientIdFromState]);
+    }, [patientDetails?.status, patientIdFromState, fetchMedicalAccessCode]); // Dependency on the memoized function
 
-    // --- Fonctions de Rendu (INCHANGÉES) ---
-    const renderDoctorInfo = () => { /* ... Votre code ... */
+
+    // --- Fonctions de Rendu (UNCHANGED) ---
+    const renderDoctorInfo = () => {
         if (loading && !doctorInfo) return <p className="text-sm text-gray-500 italic">Chargement info médecin...</p>;
         if (!doctorInfo) return <p className="text-sm text-orange-600 italic">Assignation du médecin en cours...</p>;
         return (
@@ -144,7 +149,7 @@ const EmergencyStatus = () => {
             </div>
         );
     };
-    const renderMedicalAccessCode = () => { /* ... Votre code ... */
+    const renderMedicalAccessCode = () => {
         if (medicalAccess.loading) return <p className="text-sm text-gray-500 italic mt-4">Chargement du code...</p>;
         if (medicalAccess.error) return <p className="text-sm text-red-500 mt-4">{medicalAccess.error}</p>;
         if (!medicalAccess.shouldDisplay || !medicalAccess.code) return null;
@@ -162,27 +167,19 @@ const EmergencyStatus = () => {
     };
     // --- Fin Fonctions de Rendu ---
 
-    // --- Fonction Asynchrone pour l'Appel API du Chatbot ---
+    // --- Fonction Asynchrone pour l'Appel API du Chatbot (UNCHANGED) ---
     const processUserQuery = useCallback(async (props) => {
-        // *** CORRECTION ICI: props contient value et triggerNextStep ***
         const { value: userQuery, triggerNextStep: triggerFn } = props;
-
         console.log("[processUserQuery] User Query:", userQuery, "PatientID:", patientIdFromState);
-
         if (!userQuery || !patientIdFromState) {
             const errorMsg = !patientIdFromState ? "ID Patient non disponible." : "Question vide.";
             console.error("[processUserQuery] Info manquante:", errorMsg);
             setChatbotIsProcessing(false);
-            // S'assurer que triggerFn existe avant de l'appeler
-            if (triggerFn) {
-                triggerFn({ value: errorMsg, trigger: '5_error_display' });
-            }
-            return ' '; // Important pour que l'étape actuelle ne retente rien
+            if (triggerFn) { triggerFn({ value: errorMsg, trigger: '5_error_display' }); }
+            return ' ';
         }
-
         setChatbotIsProcessing(true);
         let apiResponseText = "Désolé, une erreur est survenue.";
-
         try {
             console.log(`[processUserQuery] Appel API avec query: "${userQuery}" pour patient: ${patientIdFromState}`);
             const response = await axios.post('http://localhost:8089/api/chatbot/query', {
@@ -196,28 +193,31 @@ const EmergencyStatus = () => {
             apiResponseText = "Erreur technique avec l'assistant.";
         } finally {
             setChatbotIsProcessing(false);
-            // S'assurer que triggerFn existe avant de l'appeler
-            if (triggerFn) {
-                triggerFn({ value: apiResponseText, trigger: '3_bot_response_display' });
-            }
+            if (triggerFn) { triggerFn({ value: apiResponseText, trigger: '3_bot_response_display' }); }
         }
-        // La fonction trigger d'une étape de message doit retourner l'ID de l'étape suivante,
-        // ou rien (undefined) si triggerNextStep est appelé à l'intérieur.
-        // Puisque triggerNextStep est appelé dans finally, on ne retourne rien ici pour laisser
-        // react-simple-chatbot attendre ce trigger asynchrone.
-        // Retourner ' ' est une astuce pour que le message de l'étape '2_async_trigger_step'
-        // soit remplacé par la réponse finale.
         return ' ';
     }, [patientIdFromState]); // Dépendance à patientIdFromState
-
-
-    // Il n'y a plus besoin du composant QueryTriggerStep, car la logique est dans processUserQuery
 
     // --- Rendu JSX Principal ---
     return (
         <ThemeProvider theme={chatbotTheme}>
-            <div className="min-h-screen bg-gray-100 pt-24 pb-20 px-4 md:px-6 relative">
-                <Card className="max-w-2xl mx-auto shadow-lg rounded-lg overflow-hidden border border-gray-200">
+             {/* Conteneur principal: flex pour centrer, relatif pour être au-dessus du z-0 */}
+            <div className="min-h-screen flex items-center justify-center pt-24 pb-20 px-4 md:px-6 relative z-10">
+                {/* Arrière-plan des particules: fixe, derrière tout (z-0) */}
+                <div className="fixed inset-0 z-0">
+                    <ParticlesComponent
+                        id="status-particles" // ID unique
+                        style={{
+                            position: 'absolute',
+                            width: '100%',
+                            height: '100%',
+                            backgroundColor: '#E8F4F8', // Couleur de fond souhaitée
+                        }}
+                    />
+                </div>
+
+                {/* Carte de contenu: w-full pour prendre la largeur max-w, opacité/flou pour l'effet */}
+                <Card className="max-w-2xl w-full mx-auto shadow-lg rounded-lg overflow-hidden border border-gray-200 bg-white bg-opacity-95 backdrop-blur-sm">
                     <CardHeader className="bg-blue-50 p-6 border-b">
                         <CardTitle className="text-2xl font-bold text-blue-800 flex items-center">
                             <Clock className="mr-2 h-6 w-6 text-blue-600" />
@@ -240,7 +240,6 @@ const EmergencyStatus = () => {
                             </Alert>
                         ) : patientDetails ? (
                             <>
-                                {/* ... (Affichage des détails du patient, médecin, etc.) ... */}
                                 <div className="border rounded-lg p-4 bg-gray-50 shadow-sm">
                                     <h4 className="font-semibold mb-1 text-gray-700">Statut Actuel :</h4>
                                     <p className="text-xl font-bold text-blue-700">{patientDetails.status || 'N/A'}</p>
@@ -279,9 +278,9 @@ const EmergencyStatus = () => {
                                         <Link to="/home">Accueil</Link>
                                     </Button>
                                     {!['Traité', 'Annulé'].includes(patientDetails.status) && (
-                                        <Button asChild className="bg-blue-600">
-                                            <Link to="/calendar">
-                                                <Calendar className="mr-2 h-4 w-4" /> RDV Suivi
+                                         <Button asChild variant="default" className="bg-blue-900 hover:bg-blue-700 text-white">
+                                            <Link to="/document">
+                                               See your medical record
                                             </Link>
                                         </Button>
                                     )}
@@ -296,6 +295,7 @@ const EmergencyStatus = () => {
                 </Card>
 
                 {/* --- Section Chatbot --- */}
+                {/* Positionnement fixe (z-[100]) devrait fonctionner correctement au-dessus de z-0 et z-10 */}
                 {!loading && patientIdFromState && (
                     <>
                         {!showChatbot && (
@@ -315,40 +315,12 @@ const EmergencyStatus = () => {
                                     key={patientIdFromState + "_chatbot_" + (showChatbot ? "open" : "closed")}
                                     headerTitle="Assistant Virtuel"
                                     steps={[
-                                        {
-                                            id: '0_welcome',
-                                            message: 'Bonjour ! Comment puis-je vous aider ?',
-                                            trigger: '1_user_input',
-                                        },
-                                        {
-                                            id: '1_user_input',
-                                            user: true,
-                                            trigger: '2_async_trigger_step',
-                                        },
-                                        {
-                                            id: '2_async_trigger_step',
-                                            // Le message est une fonction pour réagir à l'état de chargement
-                                            message: () => chatbotIsProcessing
-                                                ? 'Recherche en cours...'
-                                                : 'Un instant, je traite votre demande...',
-                                            // La fonction trigger exécute l'appel API
-                                            trigger: processUserQuery,
-                                        },
-                                        {
-                                            id: '3_bot_response_display',
-                                            message: '{previousValue}', // Affiche la réponse de l'API (ou erreur)
-                                            trigger: '4_ask_again',
-                                        },
-                                        {
-                                            id: '4_ask_again',
-                                            message: 'Avez-vous une autre question ?',
-                                            trigger: '1_user_input', // Reboucle
-                                        },
-                                        {
-                                            id: '5_error_display', // Étape spécifique si processUserQuery déclenche une erreur explicite
-                                            message: '{previousValue}',
-                                            trigger: '4_ask_again',
-                                        },
+                                        { id: '0_welcome', message: 'Bonjour ! Comment puis-je vous aider concernant votre statut ?', trigger: '1_user_input' },
+                                        { id: '1_user_input', user: true, trigger: '2_async_trigger_step' },
+                                        { id: '2_async_trigger_step', message: () => chatbotIsProcessing ? 'Recherche...' : 'Un instant...', trigger: processUserQuery },
+                                        { id: '3_bot_response_display', message: '{previousValue}', trigger: '4_ask_again' },
+                                        { id: '4_ask_again', message: 'Autre question ?', trigger: '1_user_input' },
+                                        { id: '5_error_display', message: '{previousValue}', trigger: '4_ask_again' },
                                     ]}
                                     floating={false}
                                     opened={true}

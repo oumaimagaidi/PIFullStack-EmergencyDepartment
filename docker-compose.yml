@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: 192.168.252.114:8083/nodemongoapp:5.0
+    image: localhost:8083/nodemongoapp:5.0
     container_name: nodemongoapp
     restart: always
     ports:

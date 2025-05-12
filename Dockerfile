@@ -1,11 +1,8 @@
-FROM node:20-alpine
+FROM node:20-bullseye-slim
 
 # Set working directory
 WORKDIR /usr/src/app
 
-# Install build dependencies for native modules like canvas and sharp
-# <<< REQUIRED: add Python, make, g++, and pixman/cairo deps for canvas
-RUN apk add --no-cache python3 make g++ pixman-dev cairo-dev pango-dev jpeg-dev giflib-dev
 
 # Copy only package.json files first (to leverage Docker cache for faster builds)
 COPY ./frontend/package*.json ./frontend/

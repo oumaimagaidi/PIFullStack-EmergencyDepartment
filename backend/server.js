@@ -8,6 +8,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { Server as SocketIOServer } from "socket.io"; // Use the alias you defined
 import jwt from 'jsonwebtoken'; // Keep JWT import
+
 import connectDB from "./db.js";
 
 // --- Route Imports ---
@@ -20,16 +21,13 @@ import ambulanceRoutes from "./routes/ambulance.js";
 import medicalRecordRoutes from "./routes/medicalRecords.js";
 import patientFileRoutes from "./routes/patientFile.js";
 import alertsRoutes from "./routes/alerts.js";
-import annotationsRoutes from "./routes/annotation.js";
-import archiveRoutes from "./routes/archive.js";
-import chatbotRoutes from './routes/chatbot.js';
+import notificationRoutes from './routes/notifications.js';
 
+// --- Model Imports ---
 import { User } from "./models/User.js";
 import Ambulance from "./models/Ambulance.js";
-import Resource from "./routes/resource.js";
 import Alert from "./models/Alert.js";
-import patientRoutes from "./routes/patient.js"; // Ensure this is imported correctly
-import ocrRouter from './routes/ocr.js'; // Adjust the path as needed
+
 // --- Helpers ---
 dotenv.config();
 connectDB();
@@ -87,18 +85,8 @@ app.use("/api/ambulance", ambulanceRoutes);
 app.use("/api/medical-records", medicalRecordRoutes);
 app.use("/api/patient-files", patientFileRoutes);
 app.use("/api/alerts", alertsRoutes);
-app.use("/api/annotations", annotationsRoutes);
-app.use("/api/archive", archiveRoutes);
-app.use("/api/resources",Resource );
-app.use('/api/ocr', ocrRouter); // Mount the router under /api/ocr
-app.use('/api/patients',patientRoutes );
-app.use('/api/chatbot', chatbotRoutes);
-
 app.use('/api/ai', aiRoutes);
-
-app.use('/api/ai', aiRoutes);
-
-app.use('/api/ai', aiRoutes);
+app.use('/api/notifications', notificationRoutes); 
 
 // --- ✨ Socket.IO Authentication Middleware ---
 io.use((socket, next) => {

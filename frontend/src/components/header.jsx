@@ -62,10 +62,7 @@ const Header = () => {
 
   return (
     <nav className="header_container">
-      <div className="emergency-indicator">
-        <div className="pulse-ring"></div>
-        <span>EMERGENCY SERVICES</span>
-      </div>
+            
 
       <div className="header_logo flex items-center gap-2">
   <img 
@@ -97,13 +94,11 @@ const Header = () => {
             <FaFileMedical className="nav-icon" />
             <span>Medical Document</span>
           </Link>
-          <Link to={"/ambulance"} onClick={() => setShow(!show)}>
+          <Link to={"/ambulance_check"} onClick={() => setShow(!show)}>
             <FaAmbulance className="nav-icon" />
             <span>Ambulance Check</span>
           </Link>
-          <Link to={"/PatientResourcesPage"} onClick={() => setShow(!show)}>
-            <span>Resources</span>
-          </Link>
+       
         </div>
 
         {user ? (

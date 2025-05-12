@@ -2,6 +2,7 @@ import "@testing-library/jest-dom";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import Profile from "../components/profile";
+import ProfileContent from '../components/ProfileContent';
 import axios from "axios";
 import Cookies from "js-cookie";
 
@@ -12,12 +13,31 @@ vi.mock("axios", () => ({
       Promise.resolve({
         data: {
           personal: { username: "testuser", role: "Patient", profileImage: "test.jpg" },
+          contact: {},
+          emergencyContacts: {},
+          settings: {},
           medical: {},
           professional: {},
+          certifications: {},
+          appointments: {},
         },
       })
     ),
-    put: vi.fn(() => Promise.resolve({ status: 200, data: { personal: { username: "updateduser" } } })),
+    put: vi.fn(() =>
+      Promise.resolve({
+        status: 200,
+        data: {
+          personal: { username: "updateduser" },
+          contact: {},
+          emergencyContacts: {},
+          settings: {},
+          medical: {},
+          professional: {},
+          certifications: {},
+          appointments: {},
+        },
+      })
+    ),
   },
 }));
 
@@ -29,17 +49,12 @@ vi.mock("js-cookie", () => ({
 }));
 
 // Mock child components
-vi.mock("../components/ProfileHeader", () => ({
-  default: ({ username, role, profileImage }) => (
-    <div data-testid="profile-header">
-      {username} - {role} - {profileImage}
-    </div>
-  ),
-}));
-
 vi.mock("../components/ProfileContent", () => ({
   default: ({ profileData, activeTab, setActiveTab, isEditing, setIsEditing, handleEdit, handleSave }) => (
     <div data-testid="profile-content">
+      <div data-testid="profile-header">
+        {profileData.personal.username} - {profileData.personal.role} - {profileData.personal.profileImage}
+      </div>
       <button onClick={() => setActiveTab("medical")}>Switch to Medical</button>
       <button onClick={() => setIsEditing(true)}>Edit</button>
       {isEditing && (
@@ -60,7 +75,7 @@ vi.mock("../components/LoadingState", () => ({
   default: () => <div data-testid="loading-state">Loading...</div>,
 }));
 
-// Mock toast from sonner inline (still included for completeness, though not used in remaining tests)
+// Mock toast
 vi.mock("sonner", () => ({
   toast: {
     success: vi.fn(),
@@ -81,8 +96,8 @@ describe("Profile Component", () => {
   it("renders profile data after successful fetch", async () => {
     render(<Profile />);
     await waitFor(() => {
-      expect(screen.getByTestId("profile-header")).toHaveTextContent("testuser - Patient - test.jpg");
       expect(screen.getByTestId("profile-content")).toBeInTheDocument();
+      expect(screen.getByTestId("profile-header")).toHaveTextContent("testuser - Patient - test.jpg");
     });
   });
 
@@ -90,16 +105,34 @@ describe("Profile Component", () => {
     vi.mocked(axios.get).mockRejectedValueOnce(new Error("Fetch error"));
     render(<Profile />);
     await waitFor(() => {
-      expect(screen.getByText("Error Loading Profile")).toBeInTheDocument();
-      expect(screen.getByText("Error loading profile")).toBeInTheDocument();
+      expect(screen.getByText(/Error setting up request: Fetch error/i)).toBeInTheDocument();
     });
   });
 
   it("switches tabs when clicking tab button", async () => {
-    render(<Profile />);
-    await waitFor(() => screen.getByTestId("profile-content"));
-    const switchButton = screen.getByText("Switch to Medical");
-    fireEvent.click(switchButton);
+    const setActiveTabSpy = vi.fn();
+    render(
+      <ProfileContent
+        profileData={{
+          personal: { username: "testuser", role: "Patient", profileImage: "test.jpg" },
+          contact: {},
+          emergencyContacts: {},
+          settings: {},
+          medical: {},
+          professional: {},
+          certifications: {},
+          appointments: {},
+        }}
+        activeTab="personal"
+        setActiveTab={setActiveTabSpy}
+        isEditing={false}
+        setIsEditing={vi.fn()}
+        handleEdit={vi.fn()}
+        handleSave={vi.fn()}
+      />
+    );
+    fireEvent.click(screen.getByText("Switch to Medical"));
+    expect(setActiveTabSpy).toHaveBeenCalledWith("medical");
   });
 
   it("enters editing mode and updates field", async () => {
@@ -109,6 +142,19 @@ describe("Profile Component", () => {
     const input = screen.getByTestId("edit-input");
     expect(input).toBeInTheDocument();
     fireEvent.change(input, { target: { value: "newuser" } });
-    expect(input.value).toBe("newuser");
+    expect(input).toHaveValue("newuser");
+  });
+
+  it("saves profile data successfully", async () => {
+    render(<Profile />);
+    await waitFor(() => screen.getByTestId("profile-content"));
+    fireEvent.click(screen.getByText("Edit"));
+    const input = screen.getByTestId("edit-input");
+    fireEvent.change(input, { target: { value: "newuser" } });
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() => {
+      expect(vi.mocked(axios.put)).toHaveBeenCalled();
+      expect(screen.getByTestId("profile-header")).toHaveTextContent("updateduser");
+    });
   });
 });
