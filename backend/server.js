@@ -24,6 +24,10 @@ import alertsRoutes from "./routes/alerts.js";
 import notificationRoutes from './routes/notifications.js';
 
 // --- Model Imports ---
+import annotationsRoutes from "./routes/annotation.js";
+import archiveRoutes from "./routes/archive.js";
+import Feedback from "./models/FeedBack.js";
+import feedbackRoutes from "./routes/feedback.js";
 import { User } from "./models/User.js";
 import Ambulance from "./models/Ambulance.js";
 import Alert from "./models/Alert.js";
@@ -85,6 +89,16 @@ app.use("/api/ambulance", ambulanceRoutes);
 app.use("/api/medical-records", medicalRecordRoutes);
 app.use("/api/patient-files", patientFileRoutes);
 app.use("/api/alerts", alertsRoutes);
+app.use("/api/annotations", annotationsRoutes);
+app.use("/api/archive", archiveRoutes);
+app.use("/api/resources",Resource );
+app.use('/api/ocr', ocrRouter); // Mount the router under /api/ocr
+app.use('/api/patients',patientRoutes );
+app.use('/api/feedback',feedbackRoutes);
+app.use('/api/ai', aiRoutes);
+
+app.use('/api/ai', aiRoutes);
+
 app.use('/api/ai', aiRoutes);
 app.use('/api/notifications', notificationRoutes); 
 

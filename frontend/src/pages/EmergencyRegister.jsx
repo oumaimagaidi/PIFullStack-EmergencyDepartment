@@ -215,8 +215,8 @@ const EmergencyRegister = () => {
   }
 
   return (
-    <div className="relativeflex-2 max-w-5xl mx-auto py-20 px-4 relative z-10 flex flex-col bg-gradient-to-br  font-sans">
-      <div className="fixed inset-0 z-0">
+<div className="w-6xl mx-auto py-20 px-4 relative z-10 flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-[#FEE2C5] to-[#C4DDFF] font-sans">    
+    <div className="fixed inset-0 z-0">
         <ParticlesComponent
           id="emergency-particles"
           style={{
