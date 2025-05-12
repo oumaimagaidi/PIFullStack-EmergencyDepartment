@@ -38,13 +38,13 @@ import {
 
 // Color palette
 const colors = {
-  primary: "#1e3a8a", // Blue-900
-  secondary: "#0891b2", // Cyan
-  alert: "#dc2626", // Red
+  primary: "#213448", // Blue
+  secondary: "#547792", 
+  alert: "#ECEFCA", // 
   primaryLight: "#dbeafe",
-  secondaryLight: "#cffafe",
-  alertLight: "#1e3a8a",
-  bgAccent: "#1e3a8a", // Light cyan for background
+  secondaryLight: "#ECEFCA",
+  alertLight: "#ECEFCA",
+  bgAccent: "#ECEFCA", // Light cyan for background
   white : "#ffffff"
 }
 
@@ -1446,7 +1446,7 @@ const MedicalDocument = () => {
   }
 
   return (
-    <div className="relative z-20 min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-cyan-200 font-sans">
+    <div className="relative z-20 min-h-screen flex flex-col bg-gradient-to-br from-[#FEE2C5] to-[#C4DDFF] font-sans">
       {/* Background Layers */}
       <div className="fixed inset-0 z-0">
         <ParticlesComponent
@@ -1470,7 +1470,7 @@ const MedicalDocument = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="md:col-span-2 hidden md:flex flex-col justify-center items-center p-8 bg-blue-900 text-white">
+            <div className="md:col-span-2 hidden md:flex flex-col justify-center items-center p-8 bg-[#213448] text-white">
               <div className="text-center">
                 <motion.div
                   className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-white/20 mb-6"
@@ -1513,7 +1513,7 @@ const MedicalDocument = () => {
                 </div>
               </div>
             </div>
-            <Card className="mt-8 md:col-span-3 border-0 transition-all duration-300 hover:shadow-lg">
+            <Card className="mt-8 md:col-span-3 border-0 transition-all duration-300 hover:shadow-lg" >
               <CardHeader className="py-8 pt-12 pb-8">
                 <CardTitle className="text-2xl font-bold text-center md:text-left" style={{ color: colors.primary }}>
                   Medical Record Access
@@ -1569,7 +1569,7 @@ const MedicalDocument = () => {
                   <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
                     <Button
                       type="submit"
-                      className="w-full font-medium text-white bg-blue-900 hover:bg-blue-800"
+                      className="w-full font-medium text-white bg-[#213448] hover:bg-blue-800"
                       disabled={loading}
                     >
                       {loading ? (

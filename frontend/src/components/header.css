@@ -1,6 +1,6 @@
 /* Emergency Department Header Styles with #42A5FF color scheme */
 .header_container {
-  background-color: #42a5ff;
+  background-color: #183B4E;
   padding: 12px 24px; /* Consistent padding with sidebar (px-4 in SidebarHeader is 16px, adjusted for balance) */
   display: flex;
   justify-content: space-between;
@@ -33,13 +33,13 @@
 /* Typography for logo text */
 .header_logo .font-bold {
   font-size: 1.125rem; /* Matches text-lg in SidebarHeader */
-  color: #1e3a8a; /* Darker blue for better contrast and professionalism */
+  color: #94B4C1; /* Darker blue for better contrast and professionalism */
   letter-spacing: -0.025em; /* Tightened tracking for a polished look */
 }
 
 .header_logo .text-xs {
   font-size: 0.75rem; /* Matches text-xs in SidebarHeader */
-  color: #2563eb; /* Slightly lighter blue for contrast */
+  color: #94B4C1; /* Slightly lighter blue for contrast */
   letter-spacing: 0.05em; /* Matches tracking-wider */
 }
 
@@ -169,7 +169,7 @@
   display: block;
   padding: 8px 16px;
   text-decoration: none;
-  color: #42a5ff;
+  color: #183B4E;
   text-align: left;
   border: none;
   background: none;
@@ -192,7 +192,7 @@
   align-items: center;
   height: 100vh;
   font-weight: bold;
-  color: #42a5ff;
+  color: #183B4E;
 }
 
 /* Responsive Styles */
@@ -212,7 +212,7 @@
     top: 100%;
     left: 0;
     right: 0;
-    background-color: #42a5ff;
+    background-color: #183B4E;
     text-align: center;
     padding: 16px 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

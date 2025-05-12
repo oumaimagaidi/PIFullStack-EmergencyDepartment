@@ -8,7 +8,7 @@ const Footer = () => {
     <footer className="footer">
       {/* Emergency Banner */}
 
-      <div className="emergency-banner bg-opacity-95 backdrop-blur-sm border-gray-100 relative"style={{ backgroundColor: '#1e3a8a' }}>
+      <div className="emergency-banner bg-opacity-95 backdrop-blur-sm border-gray-100 relative"style={{ backgroundColor: '#547792' }}>
         <div className="container">
           <div className="emergency-items">
             <div className="emergency-item">

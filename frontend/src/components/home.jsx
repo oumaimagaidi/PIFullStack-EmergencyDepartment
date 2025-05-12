@@ -181,7 +181,7 @@ const newsArray = [
   }, []);
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-cyan-50 font-sans">
+    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-[#FEE2C5] to-[#C4DDFF] font-sans">
       <div className="fixed inset-0 z-0">
         <ParticlesComponent 
           id="home-particles"

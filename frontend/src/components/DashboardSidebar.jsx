@@ -1,6 +1,6 @@
 // src/components/DashboardSidebar.jsx
 "use client";
-
+import { useTheme } from "./theme-provider";
 import {
   Sidebar,
   SidebarContent,
@@ -32,7 +32,7 @@ import {
   Sun,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
-import { useTheme } from "./theme-provider";
+
 import { Button } from "@/components/ui/button";
 
 const DashboardSidebar = () => {
