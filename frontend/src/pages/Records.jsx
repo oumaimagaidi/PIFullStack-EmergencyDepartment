@@ -165,11 +165,11 @@ const Records = () => {
     <div className="p-6 max-w-7xl mx-auto bg-slate-50 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Dossiers Médicaux</h1>
+          <h1 className="text-3xl font-bold text-slate-800"style={{ color: '#42A5FF' }}>Dossiers Médicaux</h1>
           <p className="text-slate-500 mt-1">Gestion des patients assignés</p>
         </div>
         <div className="relative w-full md:w-64">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-0.5 top-2.5 h-4 w-4 text-slate-500" />
           <Input
             type="search"
             placeholder="Rechercher un patient..."

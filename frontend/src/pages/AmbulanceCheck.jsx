@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
+import Cookies from 'js-cookie';
+
 import {
   Box,
   Grid,
@@ -218,18 +220,21 @@ const AmbulanceCheck = () => {
   const [formErrors, setFormErrors] = useState({});
   const [paymentLoading, setPaymentLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchAmbulances = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          throw new Error("No token found. Please log in.");
-        }
+ useEffect(() => {
+  const fetchAmbulances = async () => {
+    try {
+      // Modification ici
+      const token = Cookies.get("token");
+      if (!token) {
+        // Redirection immédiate si token manquant
+        navigate("/login");
+        return;
+      }
 
-        const response = await axios.get("http://localhost:8089/api/ambulance", {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        });
+      const response = await axios.get("http://localhost:8089/api/ambulance", {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
         console.log("API Response:", response.data);
 
         const ambulanceData = Array.isArray(response.data) ? response.data : response.data.data || [];

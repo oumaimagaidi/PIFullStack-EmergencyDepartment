@@ -181,7 +181,7 @@ const newsArray = [
   }, []);
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-cyan-50 font-sans">
+    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-[#FEE2C5] to-[#C4DDFF] font-sans">
       <div className="fixed inset-0 z-0">
         <ParticlesComponent 
           id="home-particles"
@@ -579,15 +579,7 @@ const newsArray = [
         <canvas className="particles-canvas"></canvas>
       </section>
       
-        <section className="cta-section">
-          <div className="cta-content">
-            <h2>Need Emergency Assistance?</h2>
-            <p>Our team of medical professionals is ready to provide immediate care</p>
-            <Link to="/emergency-register" className="cta-button">
-              <MdEmergency className="btn-icon" /> Get Emergency Help
-            </Link>
-          </div>
-        </section>
+        
       </div>
     </div>
   );

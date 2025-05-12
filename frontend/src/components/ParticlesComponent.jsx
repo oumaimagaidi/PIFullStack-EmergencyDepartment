@@ -20,7 +20,7 @@ const ParticlesComponent = (props) => {
   // Configuration médicale/thème santé
   const options = useMemo(() => ({
     background: {
-color: "linear-gradient(to bottom right, #4A90E2, #4ECDC4)" // Dégradé ajouté ici
+color: "linear-gradient(to bottom right, #1e3a8a, #1e3a8a)" // Dégradé ajouté ici
     },
     fpsLimit: 120,
     interactivity: {
@@ -41,7 +41,7 @@ color: "linear-gradient(to bottom right, #4A90E2, #4ECDC4)" // Dégradé ajouté
     },
     particles: {
       color: {
-        value: "#42A5FF" // Bleu médical
+        value: "#1e3a8a" // Bleu médical
       },
       links: {
         color: "#42A5FF", // Bleu pastel
@@ -91,10 +91,10 @@ color: "linear-gradient(to bottom right, #4A90E2, #4ECDC4)" // Dégradé ajouté
         },
         options: {
           background: {
-color: "linear-gradient(to bottom right, #4A90E2, #4ECDC4)" // Dégradé dans le thème            
+color: "linear-gradient(to bottom right, #1e3a8a, #1e3a8a)" // Dégradé dans le thème            
           },
           particles: {
-            color: { value: ["#6DDDCF", "#42A5FF", "#42A5FF"] } // Palette bleue
+            color: { value: ["#6DDDCF", "#1e3a8a", "#1e3a8a"] } // Palette bleue
           }
         }
       }

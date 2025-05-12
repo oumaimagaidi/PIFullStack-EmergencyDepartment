@@ -1,6 +1,6 @@
 // src/components/DashboardSidebar.jsx
 "use client";
-
+import { useTheme } from "./theme-provider";
 import {
   Sidebar,
   SidebarContent,
@@ -31,12 +31,13 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useTheme } from "./theme-provider";
+import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
+
 import { Button } from "@/components/ui/button";
 
 const DashboardSidebar = () => {
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate(); // Define navigate using useNavigate hook
 
   const mainMenuItems = [
     { title: "Dashboard", icon: Home, path: "/dashboard" },
@@ -89,14 +90,14 @@ const DashboardSidebar = () => {
         </div>
       </SidebarHeader>
       <div className="fixed top-4 right-4 z-50">
-  <Button 
-    onClick={() => navigate("/home")}
-    className="rounded-full p-3 shadow-lg hover:shadow-xl transition-all bg-white/90 backdrop-blur-sm"
-    variant="ghost"
-  >
-    <Home className="h-6 w-6 text-blue-600 hover:text-blue-700" />
-  </Button>
-</div>
+        <Button
+          onClick={() => navigate("/home")} // Use the navigate function
+          className="rounded-full p-3 shadow-lg hover:shadow-xl transition-all bg-white/90 backdrop-blur-sm"
+          variant="ghost"
+        >
+          <Home className="h-6 w-6 text-blue-600 hover:text-blue-700" />
+        </Button>
+      </div>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-sidebar-foreground/70 dark:text-sidebar-foreground/70">
@@ -131,7 +132,7 @@ const DashboardSidebar = () => {
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-sidebar-border dark:border-sidebar-border">
-       
+        {/* Footer content */}
       </SidebarFooter>
     </Sidebar>
   );

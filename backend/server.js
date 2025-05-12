@@ -8,6 +8,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { Server as SocketIOServer } from "socket.io";
 import jwt from "jsonwebtoken";
+import { Server as SocketIOServer } from "socket.io"; // Use the alias you defined
+import jwt from 'jsonwebtoken'; // Keep JWT import
+import ocrRouter from "./routes/ocr.js"
 import connectDB from "./db.js";
 
 // Route Imports
@@ -20,6 +23,9 @@ import ambulanceRoutes from "./routes/ambulance.js";
 import medicalRecordRoutes from "./routes/medicalRecords.js";
 import patientFileRoutes from "./routes/patientFile.js";
 import alertsRoutes from "./routes/alerts.js";
+import notificationRoutes from './routes/notifications.js';
+
+// --- Model Imports ---
 import annotationsRoutes from "./routes/annotation.js";
 import archiveRoutes from "./routes/archive.js";
 import ambulanceRequestRoutes from "./routes/ambulanceRequests.js";
@@ -31,6 +37,15 @@ import Alert from "./models/Alert.js";
 import patientRoutes from "./routes/patient.js";
 import ocrRouter from "./routes/ocr.js";
 
+import Feedback from "./models/FeedBack.js";
+import feedbackRoutes from "./routes/feedback.js";
+import { User } from "./models/User.js";
+import Ambulance from "./models/Ambulance.js";
+import Alert from "./models/Alert.js";
+import Resource from "./routes/resource.js";
+import patientRoutes from "./routes/patient.js"
+
+// --- Helpers ---
 dotenv.config();
 connectDB();
 
@@ -93,6 +108,18 @@ app.use("/api/patients", patientRoutes);
 app.use("/api/ai", aiRoutes); // Note: Remove duplicate aiRoutes entries
 
 // Socket.IO Authentication Middleware
+app.use("/api/resources",Resource );
+app.use('/api/ocr', ocrRouter); // Mount the router under /api/ocr
+app.use('/api/patients',patientRoutes );
+app.use('/api/feedback',feedbackRoutes);
+app.use('/api/ai', aiRoutes);
+
+app.use('/api/ai', aiRoutes);
+
+app.use('/api/ai', aiRoutes);
+app.use('/api/notifications', notificationRoutes); 
+
+// --- ✨ Socket.IO Authentication Middleware ---
 io.use((socket, next) => {
   const token =
     socket.handshake.auth.token ||

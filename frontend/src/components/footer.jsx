@@ -1,122 +1,130 @@
 import { Link } from "react-router-dom"
-import { FaLocationArrow, FaPhone, FaAmbulance, FaHospital, FaFirstAid } from "react-icons/fa"
+import { FaPhone, FaLocationArrow, FaHospital, FaAmbulance, FaFirstAid, FaClock } from "react-icons/fa"
 import { MdEmail, MdEmergency } from "react-icons/md"
-import { BsClockFill } from "react-icons/bs"
 import "./footer.css"
 
 const Footer = () => {
-  const hours = [{ id: 1, day: "Monday-Saturday", time: "24/24" }]
-
   return (
-    <footer className="footer_container bg-gray-800 text-white py-4 relative z-20">
+    <footer className="footer">
       {/* Emergency Banner */}
-      <div className="emergency-contact-banner ">
-        <div className="emergency-contact-item">
-          <FaAmbulance className="emergency-icon pulse-icon" />
-          <div>
-            <h3>Emergency Hotline</h3>
-            <a href="tel:+21656800822">+216 56 800 822</a>
-          </div>
-        </div>
-        <div className="emergency-contact-item">
-          <MdEmergency className="emergency-icon" />
-          <div>
-            <h3>24/7 Emergency</h3>
-            <p>Always Available</p>
-          </div>
-        </div>
-        <div className="emergency-contact-item">
-          <FaFirstAid className="emergency-icon" />
-          <div>
-            <h3>Urgent Care</h3>
-            <Link to="/emergency-register">Register Now</Link>
+
+      <div className="emergency-banner bg-opacity-95 backdrop-blur-sm border-gray-100 relative"style={{ backgroundColor: '#547792' }}>
+        <div className="container">
+          <div className="emergency-items">
+            <div className="emergency-item">
+              <div className="emergency-icon">
+                <FaAmbulance />
+              </div>
+              <div className="emergency-info">
+                <h3>Emergency Hotline</h3>
+                <a href="tel:+21656800822">+216 56 800 822</a>
+              </div>
+            </div>
+
+            <div className="emergency-item">
+              <div className="emergency-icon">
+                <MdEmergency />
+              </div>
+              <div className="emergency-info">
+                <h3>24/7 Emergency</h3>
+                <p>Always Available</p>
+              </div>
+            </div>
+
+            <div className="emergency-item">
+              <div className="emergency-icon">
+                <FaFirstAid />
+              </div>
+              <div className="emergency-info">
+                <h3>Urgent Care</h3>
+                <Link to="/emergency-register">Register Now</Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Footer Content */}
-      <div className="footer_content">
-        <div className="footer_section footer_about">
-          <div className="footer_logo">
-            <img src="./images/logo1.png" alt="Emergency Department Logo" className="footer_logo-img" />
-            <div className="footer_logo-text">
-              <span className="footer_logo-title">EMERGENCY MANAGEMENT</span>
-              <span className="footer_logo-subtitle">Healthcare System</span>
+      {/* Main Footer */}
+      <div className="footer-main">
+        <div className="container">
+          <div className="footer-content">
+            {/* About Section */}
+            <div className="footer-section">
+              <div className="footer-logo">
+                <h2>EMERGENCY MANAGEMENT</h2>
+                <p className="subtitle">HEALTHCARE SYSTEM</p>
+              </div>
+              <p className="tagline">Providing immediate, life-saving care when every second counts.</p>
             </div>
-            <p className="footer_tagline">Providing immediate, life-saving care when every second counts.</p>
-          </div>
-        </div>
 
-        <div className="footer_section footer_links-section">
-          <h4>
-            <FaHospital className="footer-icon" /> Quick Links
-          </h4>
-          <ul className="footer_links">
-            <li>
-              <Link to={"/"}>
-                <span>Home</span>
-              </Link>
-            </li>
-            <li>
-              <Link to={"/emergency-register"}>
-                <span>Emergency Services</span>
-              </Link>
-            </li>
-            <li>
-              <Link to={"/appointment"}>
-                <span>Appointment</span>
-              </Link>
-            </li>
-            <li>
-              <Link to={"/document"}>
-                <span>Medical Documents</span>
-              </Link>
-            </li>
-            <li>
-              <Link to={"/about"}>
-                <span>About Us</span>
-              </Link>
-            </li>
-          </ul>
-        </div>
+            {/* Quick Links */}
+            <div className="footer-section">
+              <h3 className="footer-heading">
+                <FaHospital className="heading-icon" /> Quick Links
+              </h3>
+              <ul className="footer-links">
+                <li>
+                  <Link to="/">Home</Link>
+                </li>
+                <li>
+                  <Link to="/emergency-register">Emergency Services</Link>
+                </li>
+                <li>
+                  <Link to="/appointment">Appointment</Link>
+                </li>
+                <li>
+                  <Link to="/document">Medical Documents</Link>
+                </li>
+                <li>
+                  <Link to="/about">About Us</Link>
+                </li>
+              </ul>
+            </div>
 
-        <div className="footer_section footer_hours-section">
-          <h4>
-            <BsClockFill className="footer-icon" /> Hours & Contact
-          </h4>
-          <div className="footer_hours-container">
-            <div className="footer_hours-list">
-              {hours.slice(0, 3).map((element) => (
-                <div key={element.id} className="hour-item">
-                  <span className="day">{element.day}</span>
-                  <span className="time">{element.time}</span>
+            {/* Hours & Contact */}
+            <div className="footer-section">
+              <h3 className="footer-heading">
+                <FaClock className="heading-icon" /> Hours & Contact
+              </h3>
+
+              <div className="hours-container">
+                <div className="hours-item">
+                  <span>Monday-Saturday</span>
+                  <span>24/24</span>
                 </div>
-              ))}
+                <div className="emergency-hours">
+                  <span>Emergency Services</span>
+                  <span>24/7</span>
+                </div>
+              </div>
+
+              <div className="contact-info">
+                <div className="contact-item">
+                  <FaPhone className="contact-icon" />
+                  <a href="tel:+21656800822">+216 56 800 822</a>
+                </div>
+                <div className="contact-item">
+                  <MdEmail className="contact-icon" />
+                  <a href="mailto:Edepartement@gmail.com">Edepartement@gmail.com</a>
+                </div>
+                <div className="contact-item">
+                  <FaLocationArrow className="contact-icon" />
+                  <span>Ariana, Tunisia</span>
+                </div>
+              </div>
             </div>
-            <div className="footer_contact">
-            <div className="contact-item">
-              <FaPhone className="contact-icon" />
-              <a href="tel:+21656800822">+216 56 800 822</a>
-            </div>
-            <div className="contact-item">
-              <MdEmail className="contact-icon" />
-              <a href="mailto:Edepartement@gmail.com">Edepartement@gmail.com</a>
-            </div>
-            <div className="contact-item">
-              <FaLocationArrow className="contact-icon" />
-              <address>Ariana, Tunisia</address>
-            </div>
-          </div>
           </div>
         </div>
       </div>
 
       {/* Footer Bottom */}
-      <div className="footer_bottom bg-transparent">
-        <p>© {new Date().getFullYear()} Emergency Department. All rights reserved.</p>
-        <div className="footer_bottom-links">
-          <Link to="/privacy">Privacy Policy</Link>
-          <Link to="/terms">Terms of Service</Link>
+      <div className="footer-bottom">
+        <div className="container">
+          <p>© {new Date().getFullYear()} Emergency Department. All rights reserved.</p>
+          <div className="bottom-links">
+            <Link to="/privacy">Privacy Policy</Link>
+            <Link to="/terms">Terms of Service</Link>
+          </div>
         </div>
       </div>
     </footer>
