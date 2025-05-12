@@ -22,6 +22,7 @@ import patientFileRoutes from "./routes/patientFile.js";
 import alertsRoutes from "./routes/alerts.js";
 import annotationsRoutes from "./routes/annotation.js";
 import archiveRoutes from "./routes/archive.js";
+import chatbotRoutes from './routes/chatbot.js';
 
 import { User } from "./models/User.js";
 import Ambulance from "./models/Ambulance.js";
@@ -91,6 +92,7 @@ app.use("/api/archive", archiveRoutes);
 app.use("/api/resources",Resource );
 app.use('/api/ocr', ocrRouter); // Mount the router under /api/ocr
 app.use('/api/patients',patientRoutes );
+app.use('/api/chatbot', chatbotRoutes);
 
 app.use('/api/ai', aiRoutes);
 

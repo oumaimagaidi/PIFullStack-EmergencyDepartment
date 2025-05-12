@@ -31,6 +31,7 @@ import Feedback from "./components/FeedBack";
 import  HexGrid  from "./components/HexGrid";
 import ParticlesComponent from "./components/ParticlesComponent";
 import ResourcesPage from "./pages/ResourcesPage";
+import PatientResourcesPage from"./pages/PatientResourcesPage";
 function App() {
   const user = JSON.parse(sessionStorage.getItem("user"));
   
@@ -48,6 +49,8 @@ function App() {
         <Route path="/register" element={<PublicLayout><Register /></PublicLayout>} />
         <Route path="/forgotpassword" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
         <Route path="/feedback" element={<MainLayout><Feedback /></MainLayout>} />
+         <Route path="/PatientResourcesPage" element={<MainLayout><PatientResourcesPage /></MainLayout>} />
+
 
 <Route path="/hexa" element={<HexGrid/>}/>
         {/* Routes Main avec header/footer */}
