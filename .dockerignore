@@ -1,0 +1,7 @@
+# exclude your local database folder entirely
+data/
+
+# plus any other junk you never COPY into images
+node_modules/
+.git
+*.log
