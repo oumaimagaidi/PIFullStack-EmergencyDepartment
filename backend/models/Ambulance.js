@@ -12,11 +12,11 @@ const AmbulanceSchema = new mongoose.Schema({
   drivers: [{
     type: String,
     ref: "Driver",
-    required: true
+    required: [false, "Driver ID is required"],
   }],
     mobile: {
     type: String,
-    required: [true, "Mobile number is required"],
+    required: [false, "Mobile number is required"],
     match: [/^[0-9]{8,15}$/, "Please enter a valid mobile number (8-15 digits)"],
     unique: true
   },
