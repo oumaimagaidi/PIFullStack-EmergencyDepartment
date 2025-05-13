@@ -22,6 +22,7 @@ import medicalRecordRoutes from "./routes/medicalRecords.js";
 import patientFileRoutes from "./routes/patientFile.js";
 import alertsRoutes from "./routes/alerts.js";
 import notificationRoutes from './routes/notifications.js';
+import staffChatbotRoutes from './routes/chatbot.js';
 
 // --- Model Imports ---
 import annotationsRoutes from "./routes/annotation.js";
@@ -98,6 +99,7 @@ app.use('/api/ocr', ocrRouter); // Mount the router under /api/ocr
 app.use('/api/patients',patientRoutes );
 app.use('/api/feedback',feedbackRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/chatbot', staffChatbotRoutes); 
 
 app.use('/api/ai', aiRoutes);
 

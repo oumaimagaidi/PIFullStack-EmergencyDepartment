@@ -1,46 +1,50 @@
 // backend/services/huggingFaceQAService.js
-import { HfInference } from '@huggingface/inference';
-import dotenv from 'dotenv';
 
+import { InferenceClient } from '@huggingface/inference';
+import dotenv from 'dotenv';
 dotenv.config();
 
-const HF_TOKEN = process.env.HF_ACCESS_TOKEN; // Assurez-vous que c'est le bon nom de variable d'env
+// 1. On lit le token AVANT toute utilisation
+const HF_TOKEN = process.env.HF_ACCESS_TOKEN;
 if (!HF_TOKEN) {
-    console.warn("HF_ACCESS_TOKEN n'est pas défini dans .env. Les appels à Hugging Face échoueront.");
+  console.warn("⚠️ HF_ACCESS_TOKEN n’est pas défini dans .env");
 }
-const hf = new HfInference(HF_TOKEN);
 
-// Choisissez un modèle QA. 'deepset/roberta-base-squad2' est un bon point de départ.
-// Vous pouvez aussi utiliser 'distilbert-base-cased-distilled-squad' pour plus de légèreté.
+// 2. Instanciation correcte du client avec la string du token
+const hf = new InferenceClient(HF_TOKEN);
+
+// 3. Choix du modèle QA (public ou privé)
 const QA_MODEL = process.env.HF_QA_MODEL || 'deepset/roberta-base-squad2';
 
-export const getAnswerFromContext = async (context, question) => {
-    if (!HF_TOKEN) {
-        throw new Error("Configuration Hugging Face Token manquante.");
-    }
-    if (!context || !question) {
-        throw new Error("Le contexte et la question sont requis pour le modèle QA.");
-    }
+export const getAnswerFromContext = async (question, context) => {
+  // 4. Vérifications
+  if (!HF_TOKEN) {
+    throw new Error("Token Hugging Face manquant.");
+  }
+  if (!question || !context) {
+    throw new Error("Question et contexte sont requis.");
+  }
 
-    console.log(`[HF QA Service] Question: "${question}"`);
-    // console.log(`[HF QA Service] Context (premiers 300 chars): "${context.substring(0, 300)}..."`);
+  // 5. Convertir en string si besoin
+  const q = String(question);
+  const c = String(context);
+  console.log(`[HF QA] Question: "${q}"`);
 
-    try {
-        const result = await hf.questionAnswering({
-            model: QA_MODEL,
-            inputs: {
-                question: question,
-                context: context,
-            },
-        });
-        console.log("[HF QA Service] Réponse du modèle:", result);
-        return { answer: result.answer, score: result.score };
-    } catch (error) {
-        console.error("[HF QA Service] Erreur lors de l'appel à Hugging Face:", error);
-        // Gérer différents types d'erreurs de l'API HF si nécessaire
-        if (error.response && error.response.data) {
-            console.error("Détails de l'erreur HF:", error.response.data);
-        }
-        throw new Error(`Échec de la réponse du modèle QA: ${error.message}`);
-    }
+  try {
+    // 6. Appel au pipeline QA
+    const raw = await hf.questionAnswering({
+      model: QA_MODEL,
+      inputs: { question: q, context: c },
+    });
+
+    // 7. Normalisation de la sortie
+    const { answer, score } = Array.isArray(raw) ? raw[0] : raw;
+    console.log("[HF QA] Réponse:", answer, "(score:", score, ")");
+    return { answer, score };
+
+  } catch (err) {
+    const errMsg = err.response?.data?.error || err.message;
+    console.error("[HF QA] Erreur :", errMsg);
+    throw new Error(`QA pipeline failed: ${errMsg}`);
+  }
 };
