@@ -7,6 +7,11 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
         stage('Teardown & Clean') {
       steps {
         echo 'Stopping existing Docker Compose services and cleaning data…'
