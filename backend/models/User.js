@@ -15,7 +15,15 @@ const UserSchema = new mongoose.Schema(
 		resetPasswordToken: String, // Nouveau champ
 		resetPasswordExpires: Date, // Nouveau champ
 		otp: { type: String, required: false, default: 0 },
+		 donationCount: {
+      type: Number,
+      default: 0,
+    },
+    unlockedBadges: [{
+      type: String, // e.g., "beginner", "committed", "heroic", "legendary"
+    }],
 		otpExpires: Date,
+		
 	},
 	options
 );
