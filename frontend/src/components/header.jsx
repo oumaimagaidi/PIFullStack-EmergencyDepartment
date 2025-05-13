@@ -96,7 +96,7 @@ const Header = () => {
             <FaFileMedical className="nav-icon" />
             <span>Medical Document</span>
           </Link>
-          <Link to={"/ambulance_check"} onClick={() => setShow(!show)}>
+          <Link to={"/request-ambulance"} onClick={() => setShow(!show)}>
             <FaAmbulance className="nav-icon" />
             <span>Ambulance Check</span>
           </Link>
