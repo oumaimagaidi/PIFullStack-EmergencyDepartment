@@ -17,7 +17,6 @@ pipeline {
         echo 'Stopping existing Docker Compose services and cleaning data…'
         sh 'docker-compose down'
         sh 'docker-compose down -v'
-        sh 'sudo rm -rf data'
       }
     }
 
