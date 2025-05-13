@@ -8,7 +8,7 @@ import { io } from "socket.io-client"
 // Color palette
 const COLORS = {
   primary: "#547792",
-  secondary: "#94B4C1",
+  secondary: "#94B4C1", // Will use this for border-sky-200 equivalent
   dark: "#213448",
   light: "#F8B55F",
   white: "#FFFFFF"
@@ -136,7 +136,7 @@ const Feedback = () => {
       }
 
       draw() {
-        ctx.fillStyle = `${COLORS.light}80` // Using light color (ECEFCA) with opacity
+        ctx.fillStyle = `${COLORS.light}80`
         ctx.beginPath()
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
         ctx.fill()
@@ -184,7 +184,7 @@ const Feedback = () => {
             min-height: 100vh;
             color: ${COLORS.dark};
             position: relative;
-            overflow: hidden;
+            overflow: hidden; /* Changed from visible to hidden to contain particles if they go wild */
           }
 
           .particles-canvas {
@@ -260,14 +260,34 @@ const Feedback = () => {
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2), 0 0 20px ${COLORS.light}80;
           }
 
-          .testimonial-icon {
-            font-size: 2.5rem;
-            color: ${COLORS.primary};
-            margin-bottom: 15px;
-            background: ${COLORS.light}40;
-            border-radius: 50%;
-            padding: 10px;
+          /* New Avatar Styles Start */
+          .avatar-wrapper {
+            width: 7rem; /* w-28 (112px) */
+            height: 7rem; /* h-28 (112px) */
+            border-radius: 9999px; /* rounded-full */
+            border: 4px solid ${COLORS.secondary}; /* border-4 border-sky-200 equivalent */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); /* shadow-lg */
+            margin-bottom: 20px; /* Increased margin for larger avatar */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; /* Important for img to respect border-radius */
+            background-color: ${COLORS.white}; /* A default background for the circle */
           }
+
+          .avatar-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Fills the circle, might crop */
+          }
+
+          .avatar-icon-placeholder { /* Styles for the MdPerson SVG icon */
+            font-size: 4.5rem; /* Adjust icon size to fit well within 7rem wrapper */
+            color: ${COLORS.primary};
+          }
+          /* New Avatar Styles End */
+          
+          /* REMOVED old .testimonial-icon CSS as it's replaced by avatar-wrapper */
 
           .testimonial-card h4 {
             font-size: 1.5rem;
@@ -463,6 +483,14 @@ const Feedback = () => {
             .testimonials-grid {
               grid-template-columns: 1fr;
             }
+            
+            .avatar-wrapper { /* Adjust avatar size for smaller screens */
+              width: 5rem; 
+              height: 5rem;
+            }
+            .avatar-icon-placeholder {
+              font-size: 3rem;
+            }
 
             .rating-star {
               font-size: 1.3rem;
@@ -481,6 +509,15 @@ const Feedback = () => {
             .testimonial-card h4 {
               font-size: 1.3rem;
             }
+            
+            .avatar-wrapper { /* Further adjust avatar size for very small screens */
+              width: 4rem; 
+              height: 4rem;
+            }
+            .avatar-icon-placeholder {
+              font-size: 2.5rem;
+            }
+
 
             .feedback-form h3 {
               font-size: 1.5rem;
@@ -502,38 +539,47 @@ const Feedback = () => {
           <p>Continuous improvement through patient insights</p>
         </div>
 
-        <div className="testimonials-grid">
-          {feedbacks.map((feedback, index) => (
-            <div key={feedback._id} className="testimonial-card" style={{ "--card-index": index }}>
-              {feedback.user?.profileImage ? (
-                <img
-                  src={feedback.user.profileImage || "/placeholder.svg"}
-                  alt={feedback.user.username}
-                  className="testimonial-icon"
-                  style={{ borderRadius: "50%", width: "60px", height: "60px", objectFit: "cover" }}
-                />
-              ) : (
-                <MdPerson className="testimonial-icon" />
-              )}
-              <h4>{feedback.user?.username || "Anonymous"}</h4>
-              {feedback.user?.role && (
-                <small style={{ color: COLORS.dark + "99", marginBottom: "5px" }}>{feedback.user.role}</small>
-              )}
-              <div className="testimonial-rating">
-                {[...Array(5)].map((_, i) => (
-                  <FaStar key={i} className={`testimonial-star ${i < feedback.rating ? "filled" : ""}`} />
-                ))}
+     <div className="testimonials-grid">
+          {feedbacks.map((feedback, index) => {
+            const usernameForAvatar = feedback.user?.username || 'Anonymous';
+            const avatarSrc = feedback.user?.profileImage || 
+                              `https://avatar.iran.liara.run/public/boy?username=${encodeURIComponent(usernameForAvatar)}`;
+            const fallbackAvatarOnError = `https://avatar.iran.liara.run/public/boy?username=DefaultFallback`;
+
+            return (
+              <div key={feedback._id} className="testimonial-card" style={{ "--card-index": index }}>
+                <div className="avatar-wrapper">
+                  <img
+                    src={avatarSrc}
+                    alt={feedback.user?.username || "User Avatar"}
+                    className="avatar-image"
+                    onError={(e) => {
+                      if (e.target.src !== fallbackAvatarOnError) { // Eviter boucle infinie si fallback échoue aussi
+                        e.target.src = fallbackAvatarOnError;
+                        e.target.onerror = null; // Important pour ne pas retenter à l'infini
+                      }
+                    }}
+                  />
+                </div>
+
+                <h4>{feedback.user?.username || "Anonymous"}</h4>
+                {feedback.user?.role && (
+                  <small style={{ color: COLORS.dark + "99", marginBottom: "5px" }}>{feedback.user.role}</small>
+                )}
+                <div className="testimonial-rating">
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar key={i} className={`testimonial-star ${i < feedback.rating ? "filled" : ""}`} />
+                  ))}
+                </div>
+                <p>{feedback.feedback}</p>
+                <div className="testimonial-date">
+                  {new Date(feedback.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric", month: "long", day: "numeric",
+                  })}
+                </div>
               </div>
-              <p>{feedback.feedback}</p>
-              <div className="testimonial-date">
-                {new Date(feedback.createdAt).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="feedback-form">

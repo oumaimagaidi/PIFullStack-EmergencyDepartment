@@ -463,15 +463,21 @@ const Doctors = () => {
                   <CardContent className="p-6 text-center">
                     <div className="relative group">
                       <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-500"></div>
-                      <img
-                        src={
-                          doctor.profileImage
-                            ? `http://localhost:8089${doctor.profileImage.startsWith("/") ? doctor.profileImage : "/" + doctor.profileImage}`
-                            : "https://via.placeholder.com/150?text=Doctor"
-                        }
-                        alt={doctor.username}
-                        className="w-40 h-40 mx-auto object-cover rounded-full border-4 border-gray-100 group-hover:border-indigo-300 transition-all duration-500 group-hover:scale-110"
-                      />
+                    <img
+  src={
+    doctor.profileImage
+      ? `http://localhost:8089${doctor.profileImage.startsWith("/") ? doctor.profileImage : "/" + doctor.profileImage}`
+      : "https://via.placeholder.com/150?text=Doctor"
+  }
+  alt={doctor.username}
+  onError={(e) => {
+    e.target.onerror = null;
+    e.target.src = "https://cdn-icons-png.flaticon.com/512/387/387561.png"; // Icône de docteur
+  }}
+  className="w-40 h-40 mx-auto object-cover rounded-full border-4 border-gray-100 group-hover:border-indigo-300 transition-all duration-500 group-hover:scale-110"
+/>
+
+
                       {doctor.specialization && (
                         <motion.span
                           initial={{ x: -20, opacity: 0 }}
