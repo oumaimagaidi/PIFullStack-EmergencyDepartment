@@ -5,7 +5,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import Records from "./pages/Records";
 import PublicLayout from "./Layouts/PublicLayout";
 import './index.css'
-
+import BloodRequestDetailsPage from "./pages/BloodRequestDetailsPage";
 import Home from "./components/home";
 import Profile from "./components/profile";
 import Login from "./pages/Login";
@@ -62,7 +62,7 @@ function App() {
         
         <Route path="/ambulance_check" element={<MainLayout><AmbulanceCheck/></MainLayout>} />
         <Route path="/blood-requests/active" element={<MainLayout><ActiveBloodRequestsPage/></MainLayout>} />
-
+<Route path="/blood-requests/:id" element={<MainLayout><BloodRequestDetailsPage /></MainLayout>} />
         {/* Routes Dashboard avec sidebar */}
         <Route path="/dashboard" element={
     <SidebarProvider>
