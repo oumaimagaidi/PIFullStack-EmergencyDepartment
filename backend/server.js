@@ -6,8 +6,6 @@ import http from "http";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
-import { Server as SocketIOServer } from "socket.io";
-import jwt from "jsonwebtoken";
 import { Server as SocketIOServer } from "socket.io"; // Use the alias you defined
 import jwt from 'jsonwebtoken'; // Keep JWT import
 import ocrRouter from "./routes/ocr.js"
@@ -29,21 +27,15 @@ import notificationRoutes from './routes/notifications.js';
 import annotationsRoutes from "./routes/annotation.js";
 import archiveRoutes from "./routes/archive.js";
 import ambulanceRequestRoutes from "./routes/ambulanceRequests.js";
-import { User } from "./models/User.js";
 import Ambulance from "./models/Ambulance.js";
 import AmbulanceRequest from "./models/AmbulanceRequest.js";
-import Resource from "./routes/resource.js";
-import Alert from "./models/Alert.js";
 import patientRoutes from "./routes/patient.js";
-import ocrRouter from "./routes/ocr.js";
 
 import Feedback from "./models/FeedBack.js";
 import feedbackRoutes from "./routes/feedback.js";
 import { User } from "./models/User.js";
-import Ambulance from "./models/Ambulance.js";
 import Alert from "./models/Alert.js";
 import Resource from "./routes/resource.js";
-import patientRoutes from "./routes/patient.js"
 
 // --- Helpers ---
 dotenv.config();
