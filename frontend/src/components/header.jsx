@@ -9,6 +9,8 @@ import { FaAmbulance, FaFileMedical } from "react-icons/fa"
 import Cookies from "js-cookie"
 import axios from "axios"
 import "./header.css"
+import { FaTint } from "react-icons/fa";
+
 const Header = () => {
   const [show, setShow] = useState(false)
   const [user, setUser] = useState(null)
@@ -98,7 +100,11 @@ const Header = () => {
             <FaAmbulance className="nav-icon" />
             <span>Ambulance Check</span>
           </Link>
-       
+           <Link to={"/blood-requests/active"} onClick={() => setShow(!show)}>
+           <FaTint className="nav-icon" /> {/* Adjust icon */}
+            <span>Active Blood Needs</span>
+          </Link>
+         
         </div>
 
         {user ? (

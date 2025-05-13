@@ -29,7 +29,7 @@ router.post("/", authenticateToken, async (req, res) => {
 router.get("/", authenticateToken, async (req, res) => {
   try {
     // Allow access to Administrator, Doctor, or Nurse roles
-    if (!["Administrator", "Doctor", "Nurse"].includes(req.user.role)) {
+    if (!["Administrator", "Doctor", "Nurse","Patient"].includes(req.user.role)) {
       return res.status(403).json({ message: "Accès refusé" });
     }
     

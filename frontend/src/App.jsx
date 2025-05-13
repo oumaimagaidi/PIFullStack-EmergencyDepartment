@@ -5,7 +5,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import Records from "./pages/Records";
 import PublicLayout from "./Layouts/PublicLayout";
 import './index.css'
-
+import BloodRequestDetailsPage from "./pages/BloodRequestDetailsPage";
 import Home from "./components/home";
 import Profile from "./components/profile";
 import Login from "./pages/Login";
@@ -32,6 +32,11 @@ import  HexGrid  from "./components/HexGrid";
 import ParticlesComponent from "./components/ParticlesComponent";
 import ResourcesPage from "./pages/ResourcesPage";
 import AmbulanceCheck from "./pages/AmbulanceCheck";
+import ActiveBloodRequestsPage from "./pages/ActiveBloodRequestsPage";
+import ManageBloodRequestes from "./components/staff/ManageBloodRequestsPage";
+import Requestambulance from "./pages/RequestAmbulance";
+import ChooseAmbulance from "./pages/ChooseAmbulance";
+import TrackAmbulance from "./pages/TrackAmbulance";
 function App() {
   const user = JSON.parse(sessionStorage.getItem("user"));
   
@@ -59,6 +64,12 @@ function App() {
         <Route path="/emergency-confirmation" element={<MainLayout><ConfirmationEmergencyRegister /></MainLayout>} />
         
         <Route path="/ambulance_check" element={<MainLayout><AmbulanceCheck/></MainLayout>} />
+                <Route path="/blood-requests/active" element={<MainLayout><ActiveBloodRequestsPage/></MainLayout>} />
+ <Route path="/request-ambulance" element={<MainLayout><Requestambulance /></MainLayout>} />
+        <Route path="/choose-ambulance/:id" element={<MainLayout><ChooseAmbulance /></MainLayout>} />
+        <Route path="/track-ambulance/:id" element={<MainLayout><TrackAmbulance /></MainLayout>} />
+        <Route path="/blood-requests/:id" element={<MainLayout><BloodRequestDetailsPage /></MainLayout>} />
+
 
         {/* Routes Dashboard avec sidebar */}
         <Route path="/dashboard" element={
@@ -76,6 +87,8 @@ function App() {
         <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
         <Route path="/forum" element={<DashboardLayout><Forum /></DashboardLayout>} />
         <Route path="/resources" element={<DashboardLayout><ResourcesPage /></DashboardLayout>} />
+        
+        <Route path="/staff/blood-requests/manage" element={<DashboardLayout><ManageBloodRequestes /></DashboardLayout>} />
         {user?.role === 'Administrator' ? (
           <Route path="/ambulance" element={<DashboardLayout><AmbulanceDashboard /></DashboardLayout>} />
         ) : (

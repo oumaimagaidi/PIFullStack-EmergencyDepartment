@@ -1,12 +1,21 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { motion } from 'framer-motion';
-import { Bell, Moon, Sun, Upload, Settings } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+"use client"
+
+import { motion } from "framer-motion"
+import { Bell, Moon, Sun, Upload, Settings } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
+import PropTypes from "prop-types"
+
+// Color palette
+const COLORS = {
+  primary: "#547792",
+  secondary: "#547792",
+  dark: "#547792",
+  light: "#ECEFCA",
+}
 
 const ProfileHeader = ({
   firstName,
@@ -22,33 +31,41 @@ const ProfileHeader = ({
   onSettingsClick,
 }) => {
   const getInitials = () => {
-    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
-  };
+    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase()
+  }
 
   const avatarVariants = {
     initial: { scale: 1 },
-    hover: { scale: 1.05, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' },
-    tap: { scale: 0.95 }
-  };
+    hover: { scale: 1.05, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" },
+    tap: { scale: 0.95 },
+  }
 
-  const notificationCount = Number(notifications) || 0;
+  const notificationCount = Number(notifications) || 0
 
   return (
     <motion.div
-      className="w-full rounded-b-2xl md:rounded-b-3xl overflow-hidden bg-blue-900 shadow-xl" // Changement ici
+      className="w-full rounded-b-2xl md:rounded-b-3xl pt-12 overflow-hidden shadow-xl"
+      style={{ backgroundColor: COLORS.dark }}
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
       {/* La partie supérieure de la bannière */}
-      <div className="w-full h-24 md:h-32 bg-blue-900 relative">
-        {/* Si vous voulez une image de fond, décommentez et ajustez */}
-        {/* <img src="/path-to-your-banner-image.jpg" alt="Profile Banner" className="absolute inset-0 w-full h-full object-cover opacity-20" /> */}
-        {/* <div className="absolute inset-0 bg-black/10"></div> */}
+      <div className="w-full h-24 md:h-32 relative" style={{ backgroundColor: COLORS.dark }}>
+        {/* Gradient overlay for visual interest */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(135deg, ${COLORS.primary}40 0%, ${COLORS.dark} 100%)`,
+          }}
+        ></div>
       </div>
 
       {/* Conteneur principal pour l'avatar, le nom, le rôle et les icônes d'action */}
-      <div className="relative w-full max-w-5xl bg-blue-900 mx-auto px-4 sm:px-6 lg:px-8 -mt-16 md:-mt-20 pb-6 md:pb-8">
+      <div
+        className="relative w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 md:-mt-20 pb-6 md:pb-8"
+        style={{ backgroundColor: COLORS.dark }}
+      >
         <div className="flex flex-col md:flex-row justify-between items-center md:items-end gap-4">
           {/* Partie gauche : Avatar et Nom/Rôle */}
           <div className="flex flex-col md:flex-row items-center md:items-end gap-4">
@@ -62,35 +79,54 @@ const ProfileHeader = ({
                     whileHover="hover"
                     whileTap="tap"
                   >
-                    <Avatar className="h-28 w-28 md:h-32 md:w-32 border-4 bg-blue-900 dark:border-gray-800 shadow-xl">
-                      <AvatarImage src={avatarUrl} alt={`${firstName} ${lastName}`} className="object-cover" />
-                      <AvatarFallback className="bg-primary/80 text-white text-2xl md:text-3xl">
+                    <Avatar
+                      className="h-28 w-28 md:h-32 md:w-32 border-4 shadow-xl"
+                      style={{ backgroundColor: COLORS.primary, borderColor: COLORS.light }}
+                    >
+                      <AvatarImage
+                        src={avatarUrl || "/placeholder.svg"}
+                        alt={`${firstName} ${lastName}`}
+                        className="object-cover"
+                      />
+                      <AvatarFallback
+                        className="text-2xl md:text-3xl"
+                        style={{ backgroundColor: COLORS.primary, color: COLORS.light }}
+                      >
                         {getInitials()}
                       </AvatarFallback>
                     </Avatar>
                     {isEditing && (
-                      <label className="absolute bottom-1 right-1 bg-white dark:bg-gray-700 rounded-full p-1.5 cursor-pointer shadow-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600">
-                        <Upload size={16} className="text-primary dark:text-gray-300" />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleAvatarUpload}
-                        />
+                      <label
+                        className="absolute bottom-1 right-1 rounded-full p-1.5 cursor-pointer shadow-lg border hover:bg-gray-100"
+                        style={{
+                          backgroundColor: COLORS.light,
+                          borderColor: COLORS.secondary,
+                        }}
+                      >
+                        <Upload size={16} style={{ color: COLORS.primary }} />
+                        <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                       </label>
                     )}
                   </motion.div>
                 </TooltipTrigger>
-                <TooltipContent>{isEditing ? 'Changer la photo' : 'Photo de profil'}</TooltipContent>
+                <TooltipContent>{isEditing ? "Changer la photo" : "Photo de profil"}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
             <div className="text-center md:text-left md:mb-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-sm">
+              <h1 className="text-2xl md:text-3xl font-bold drop-shadow-sm" style={{ color: COLORS.light }}>
                 {firstName} {lastName}
               </h1>
               <div className="flex items-center justify-center md:justify-start mt-1">
-                <Badge variant="outline" className="bg-white/25 backdrop-blur-sm text-white border-white/40 px-3 py-1 text-xs md:text-sm">
+                <Badge
+                  variant="outline"
+                  className="backdrop-blur-sm px-3 py-1 text-xs md:text-sm"
+                  style={{
+                    backgroundColor: `${COLORS.primary}80`,
+                    color: COLORS.light,
+                    borderColor: `${COLORS.light}40`,
+                  }}
+                >
                   {role}
                 </Badge>
               </div>
@@ -106,9 +142,12 @@ const ProfileHeader = ({
                     variant="ghost"
                     size="icon"
                     className={cn(
-                      "relative text-white/80 hover:text-white hover:bg-white/20 rounded-full w-9 h-9",
-                      notificationCount > 0 && "animate-pulse"
+                      "relative hover:bg-opacity-20 rounded-full w-9 h-9",
+                      notificationCount > 0 && "animate-pulse",
                     )}
+                    style={{
+                      color: `${COLORS.light}80`,
+                    }}
                     onClick={() => setNotifications(0)}
                     aria-label="Notifications"
                   >
@@ -118,7 +157,9 @@ const ProfileHeader = ({
                     )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{notificationCount > 0 ? `${notificationCount} notification(s)` : 'Aucune notification'}</TooltipContent>
+                <TooltipContent>
+                  {notificationCount > 0 ? `${notificationCount} notification(s)` : "Aucune notification"}
+                </TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
@@ -128,14 +169,17 @@ const ProfileHeader = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-white/80 hover:text-white hover:bg-white/20 rounded-full w-9 h-9"
+                    className="hover:bg-opacity-20 rounded-full w-9 h-9"
+                    style={{
+                      color: `${COLORS.light}80`,
+                    }}
                     onClick={() => setIsDarkTheme(!isDarkTheme)}
                     aria-label="Changer de thème"
                   >
                     {isDarkTheme ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{isDarkTheme ? 'Thème clair' : 'Thème sombre'}</TooltipContent>
+                <TooltipContent>{isDarkTheme ? "Thème clair" : "Thème sombre"}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
@@ -146,7 +190,10 @@ const ProfileHeader = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-white/80 hover:text-white hover:bg-white/20 rounded-full w-9 h-9"
+                      className="hover:bg-opacity-20 rounded-full w-9 h-9"
+                      style={{
+                        color: `${COLORS.light}80`,
+                      }}
                       onClick={onSettingsClick}
                       aria-label="Paramètres"
                     >
@@ -161,8 +208,8 @@ const ProfileHeader = ({
         </div>
       </div>
     </motion.div>
-  );
-};
+  )
+}
 
 ProfileHeader.propTypes = {
   firstName: PropTypes.string.isRequired,
@@ -176,11 +223,11 @@ ProfileHeader.propTypes = {
   setNotifications: PropTypes.func.isRequired,
   handleAvatarUpload: PropTypes.func.isRequired,
   onSettingsClick: PropTypes.func,
-};
+}
 
 ProfileHeader.defaultProps = {
   avatarUrl: null,
   notifications: 0,
-};
+}
 
-export default ProfileHeader;
+export default ProfileHeader

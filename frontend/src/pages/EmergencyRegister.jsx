@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-import { AlertTriangle, Heart, Stethoscope, UserPlus, Sparkles, Loader2, Info } from "lucide-react"
+import { AlertTriangle, Heart, Stethoscope, UserPlus, Sparkles, Loader2, Info } from 'lucide-react'
 import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form"
@@ -20,15 +20,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import axios from "axios"
 import ParticlesComponent from "@/components/ParticlesComponent"
 
-// Color palette from medical document
+// Updated color palette
 const colors = {
-  primary: "#1e3a8a", // Blue-900
-  secondary: "#0891b2", // Cyan
+  primary: "#213448", // Dark blue
+  secondary: "#547792", // Medium blue
   alert: "#dc2626", // Red
-  primaryLight: "#dbeafe",
-  secondaryLight: "#cffafe",
+  primaryLight: "#94B4C1", // Light blue
+  secondaryLight: "#ECEFCA", // Light cream/beige
   alertLight: "#fee2e2",
-  bgAccent: "#e0f7fa", // Light cyan for background
+  bgAccent: "#ECEFCA", // Light cream/beige for background
 }
 
 const emergencyFormSchema = z.object({
@@ -215,23 +215,22 @@ const EmergencyRegister = () => {
   }
 
   return (
-<div className="w-6xl mx-auto py-20 px-4 relative z-10 flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-[#FEE2C5] to-[#C4DDFF] font-sans">    
-    <div className="fixed inset-0 z-0">
+    <div className="w-6xl mx-auto py-20 px-4 relative z-10 flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-[#FEE2C5] to-[#C4DDFF] font-sans">    
+      <div className="fixed inset-0 z-0">
         <ParticlesComponent
           id="emergency-particles"
           style={{
             position: "absolute",
             width: "100%",
             height: "100%",
-            backgroundColor: "#E8F4F8",
+            backgroundColor: "#ECEFCA",
           }}
         />
       </div>
 
-      <div className="max-w-6xl w-full bg-white bg-opacity-95 backdrop-blur-sm   shadow-xl border border-gray-100 relative ">
-        <Card className="w-full border-none shadow-none ">
+      <div className="max-w-6xl w-full bg-white bg-opacity-95 backdrop-blur-sm shadow-xl border border-gray-100 relative">
+        <Card className="w-full border-none shadow-none">
           <CardHeader className="relative pb-8 rounded-t-lg" style={{ backgroundColor: colors.primary }}>
-           
             <CardTitle className="text-4xl font-bold tracking-tight text-white">
               Emergency Patient Registration
             </CardTitle>

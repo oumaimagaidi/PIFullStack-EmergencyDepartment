@@ -36,16 +36,16 @@ import {
   Microscope,
 } from "lucide-react"
 
-// Color palette
+// Updated color palette
 const colors = {
-  primary: "#213448", // Blue
-  secondary: "#547792", 
-  alert: "#ECEFCA", // 
-  primaryLight: "#dbeafe",
-  secondaryLight: "#ECEFCA",
-  alertLight: "#ECEFCA",
-  bgAccent: "#ECEFCA", // Light cyan for background
-  white : "#ffffff"
+  primary: "#213448", // Dark blue
+  secondary: "#547792", // Medium blue
+  alert: "#dc2626", // Red
+  primaryLight: "#94B4C1", // Light blue
+  secondaryLight: "#ECEFCA", // Light cream/beige
+  alertLight: "#fee2e2",
+  bgAccent: "#ECEFCA", // Light cream/beige for background
+  white: "#ffffff",
 }
 
 // Animated Medical Icons Component
@@ -54,9 +54,9 @@ const AnimatedMedicalIcons = () => {
   const iconCount = 15 // Reduced for better performance and clarity
 
   const darkColors = {
-    primary: "#1e3a8a",
-    secondary: "#0c4a6e",
-    accent: "#7f1d1d",
+    primary: "#213448",
+    secondary: "#547792",
+    accent: "#94B4C1",
   }
 
   const getRandomPosition = () => ({
@@ -951,7 +951,7 @@ const MedicalDocument = () => {
       <div className="space-y-6 relative z-10">
         {/* Header */}
         <motion.div
-          className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-blue-900 p-6 rounded-lg text-white shadow-lg"
+          className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#213448] p-6 rounded-lg text-white shadow-lg"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -991,7 +991,7 @@ const MedicalDocument = () => {
               <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
                 <TabsTrigger
                   value="general"
-                  className="data-[state=active]:bg-blue-900 data-[state=active]:text-white rounded-md transition-all duration-300"
+                  className="data-[state=active]:bg-[#213448] data-[state=active]:text-white rounded-md transition-all duration-300"
                 >
                   <User className="h-4 w-4 mr-2" />
                   Patient
@@ -1000,7 +1000,7 @@ const MedicalDocument = () => {
               <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
                 <TabsTrigger
                   value="medical"
-                  className="data-[state=active]:bg-blue-900 data-[state=active]:text-white rounded-md transition-all duration-300"
+                  className="data-[state=active]:bg-[#213448] data-[state=active]:text-white rounded-md transition-all duration-300"
                 >
                   <Heart className="h-4 w-4 mr-2" />
                   Medical
@@ -1009,7 +1009,7 @@ const MedicalDocument = () => {
               <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
                 <TabsTrigger
                   value="documents"
-                  className="data-[state=active]:bg-blue-900 data-[state=active]:text-white rounded-md transition-all duration-300"
+                  className="data-[state=active]:bg-[#213448] data-[state=active]:text-white rounded-md transition-all duration-300"
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Documents
@@ -1018,7 +1018,7 @@ const MedicalDocument = () => {
               <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
                 <TabsTrigger
                   value="emergency"
-                  className="data-[state=active]:bg-blue-900 data-[state=active]:text-white rounded-md transition-all duration-300"
+                  className="data-[state=active]:bg-[#213448] data-[state=active]:text-white rounded-md transition-all duration-300"
                 >
                   <Phone className="h-4 w-4 mr-2" />
                   Emergency
@@ -1414,7 +1414,7 @@ const MedicalDocument = () => {
               <Button
                 variant="outline"
                 onClick={() => setIsValid(false)}
-                className="font-medium border-blue-900 text-blue-900 hover:bg-blue-50"
+                className="font-medium border-[#213448] text-[#213448] hover:bg-blue-50"
               >
                 Check another record
               </Button>
@@ -1423,7 +1423,7 @@ const MedicalDocument = () => {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
                   onClick={handleDownloadPDF}
-                  className="font-medium text-white bg-blue-900 hover:bg-blue-800"
+                  className="font-medium text-white bg-[#213448] hover:bg-[#547792]"
                   disabled={loading}
                 >
                   <FileText className="mr-2 h-4 w-4 text-white" />
@@ -1513,7 +1513,7 @@ const MedicalDocument = () => {
                 </div>
               </div>
             </div>
-            <Card className="mt-8 md:col-span-3 border-0 transition-all duration-300 hover:shadow-lg" >
+            <Card className="mt-8 md:col-span-3 border-0 transition-all duration-300 hover:shadow-lg">
               <CardHeader className="py-8 pt-12 pb-8">
                 <CardTitle className="text-2xl font-bold text-center md:text-left" style={{ color: colors.primary }}>
                   Medical Record Access
@@ -1569,7 +1569,7 @@ const MedicalDocument = () => {
                   <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
                     <Button
                       type="submit"
-                      className="w-full font-medium text-white bg-[#213448] hover:bg-blue-800"
+                      className="w-full font-medium text-white bg-[#213448] hover:bg-[#547792]"
                       disabled={loading}
                     >
                       {loading ? (

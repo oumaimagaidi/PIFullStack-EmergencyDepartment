@@ -1,15 +1,26 @@
-import React, { useState, useEffect } from "react";
-import { MdFeedback, MdPerson } from "react-icons/md";
-import { FaStar } from "react-icons/fa";
-import { io } from "socket.io-client";
+"use client"
+
+import React, { useState, useEffect } from "react"
+import { MdFeedback, MdPerson } from "react-icons/md"
+import { FaStar } from "react-icons/fa"
+import { io } from "socket.io-client"
+
+// Color palette
+const COLORS = {
+  primary: "#547792",
+  secondary: "#94B4C1",
+  dark: "#213448",
+  light: "#F8B55F",
+  white: "#FFFFFF"
+}
 
 const Feedback = () => {
-  const [feedbacks, setFeedbacks] = useState([]);
-  const [formData, setFormData] = useState({ feedback: "", rating: 0 });
-  const [hoverRating, setHoverRating] = useState(0);
-  const [userFeedback, setUserFeedback] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [socket, setSocket] = useState(null);
+  const [feedbacks, setFeedbacks] = useState([])
+  const [formData, setFormData] = useState({ feedback: "", rating: 0 })
+  const [hoverRating, setHoverRating] = useState(0)
+  const [userFeedback, setUserFeedback] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [socket, setSocket] = useState(null)
 
   // Fetch feedbacks and user's feedback
   useEffect(() => {
@@ -17,151 +28,150 @@ const Feedback = () => {
       try {
         // Fetch all feedbacks
         const feedbacksResponse = await fetch("http://localhost:8089/api/feedback", {
-          credentials: 'include'
-        });
-        
-        if (!feedbacksResponse.ok) throw new Error('Failed to fetch feedbacks');
-        const feedbacksData = await feedbacksResponse.json();
-        setFeedbacks(feedbacksData);
+          credentials: "include",
+        })
+
+        if (!feedbacksResponse.ok) throw new Error("Failed to fetch feedbacks")
+        const feedbacksData = await feedbacksResponse.json()
+        setFeedbacks(feedbacksData)
 
         // Fetch user's feedback
         const userFeedbackResponse = await fetch("http://localhost:8089/api/feedback/my-feedback", {
-          credentials: 'include'
-        });
-        
+          credentials: "include",
+        })
+
         if (userFeedbackResponse.ok) {
-          const userFeedbackData = await userFeedbackResponse.json();
-          setUserFeedback(userFeedbackData);
+          const userFeedbackData = await userFeedbackResponse.json()
+          setUserFeedback(userFeedbackData)
         }
       } catch (error) {
-        console.error("Error fetching feedback data:", error);
+        console.error("Error fetching feedback data:", error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchData();
+    fetchData()
 
     // Initialize Socket.IO connection with credentials
     const newSocket = io("http://localhost:8089", {
       withCredentials: true,
-      transports: ['websocket']
-    });
-    
-    setSocket(newSocket);
+      transports: ["websocket"],
+    })
+
+    setSocket(newSocket)
 
     // Socket.IO event listeners
     newSocket.on("newFeedback", (newFeedback) => {
-      setFeedbacks(prev => [newFeedback, ...prev]);
-    });
+      setFeedbacks((prev) => [newFeedback, ...prev])
+    })
 
     newSocket.on("feedbackDeleted", (data) => {
-      setFeedbacks(prev => prev.filter(fb => fb._id !== data.id));
-    });
+      setFeedbacks((prev) => prev.filter((fb) => fb._id !== data.id))
+    })
 
-    return () => newSocket.disconnect();
-  }, []);
+    return () => newSocket.disconnect()
+  }, [])
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
 
   const handleRatingClick = (ratingValue) => {
-    setFormData({ ...formData, rating: ratingValue });
-  };
+    setFormData({ ...formData, rating: ratingValue })
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     try {
       const response = await fetch("http://localhost:8089/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-        credentials: 'include'
-      });
+        credentials: "include",
+      })
 
-      const data = await response.json();
-      
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error(data.message || "Failed to submit feedback");
+        throw new Error(data.message || "Failed to submit feedback")
       }
 
-      setUserFeedback(data);
-      setFormData({ feedback: "", rating: 0 });
-      
+      setUserFeedback(data)
+      setFormData({ feedback: "", rating: 0 })
     } catch (error) {
-      console.error("Error submitting feedback:", error);
-      alert(error.message);
+      console.error("Error submitting feedback:", error)
+      alert(error.message)
     }
-  };
+  }
 
   // Animation des particules
   useEffect(() => {
-    const canvas = document.querySelector(".particles-canvas");
-    if (!canvas) return;
+    const canvas = document.querySelector(".particles-canvas")
+    if (!canvas) return
 
-    const ctx = canvas.getContext("2d");
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    const ctx = canvas.getContext("2d")
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
 
-    const particles = [];
-    const particleCount = 50;
+    const particles = []
+    const particleCount = 50
 
     class Particle {
       constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 5 + 1;
-        this.speedX = Math.random() * 1 - 0.5;
-        this.speedY = Math.random() * 1 - 0.5;
+        this.x = Math.random() * canvas.width
+        this.y = Math.random() * canvas.height
+        this.size = Math.random() * 5 + 1
+        this.speedX = Math.random() * 1 - 0.5
+        this.speedY = Math.random() * 1 - 0.5
       }
 
       update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
+        this.x += this.speedX
+        this.y += this.speedY
 
-        if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
-        if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+        if (this.x > canvas.width || this.x < 0) this.speedX *= -1
+        if (this.y > canvas.height || this.y < 0) this.speedY *= -1
       }
 
       draw() {
-        ctx.fillStyle = "rgba(66, 165, 255, 0.5)";
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = `${COLORS.light}80` // Using light color (ECEFCA) with opacity
+        ctx.beginPath()
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+        ctx.fill()
       }
     }
 
     for (let i = 0; i < particleCount; i++) {
-      particles.push(new Particle());
+      particles.push(new Particle())
     }
 
     function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(particle => {
-        particle.update();
-        particle.draw();
-      });
-      requestAnimationFrame(animate);
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      particles.forEach((particle) => {
+        particle.update()
+        particle.draw()
+      })
+      requestAnimationFrame(animate)
     }
 
-    animate();
+    animate()
 
     const handleResize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
 
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize)
 
     return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+      window.removeEventListener("resize", handleResize)
+    }
+  }, [])
 
   if (isLoading) {
-    return <div className="loading">Loading...</div>;
+    return <div className="loading">Loading...</div>
   }
 
   return (
@@ -170,20 +180,21 @@ const Feedback = () => {
         {`
           .feedback-container {
             padding: 80px 20px;
-            background: linear-gradient(135deg, #f8fbff 0%, #e6f0fa 100%);
+            background: linear-gradient(135deg, ${COLORS.white} 0%, ${COLORS.light}80 100%);
             min-height: 100vh;
-            color: #333;
+            color: ${COLORS.dark};
             position: relative;
             overflow: hidden;
           }
 
           .particles-canvas {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 0;
+            pointer-events: none;
           }
 
           .feedback-section {
@@ -202,7 +213,7 @@ const Feedback = () => {
             font-size: 3rem;
             font-family: 'Poppins', sans-serif;
             font-weight: 700;
-            background: linear-gradient(90deg, #0056b3, #42a5ff);
+            background: linear-gradient(90deg, ${COLORS.dark}, ${COLORS.primary});
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-transform: uppercase;
@@ -213,7 +224,7 @@ const Feedback = () => {
           .section-header p {
             font-size: 1.2rem;
             font-family: 'Roboto', sans-serif;
-            color: rgba(92, 173, 179, 0.79);
+            color: ${COLORS.secondary};
             max-width: 700px;
             margin: 0 auto;
             font-weight: 300;
@@ -227,11 +238,11 @@ const Feedback = () => {
           }
 
           .testimonial-card {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             border-radius: 20px;
             padding: 25px;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
             transition: transform 0.4s ease, box-shadow 0.4s ease;
             border: 1px solid rgba(255, 255, 255, 0.3);
             animation: fadeInUp 0.6s ease forwards;
@@ -240,18 +251,20 @@ const Feedback = () => {
             flex-direction: column;
             align-items: center;
             text-align: center;
+            position: relative;
+            z-index: 1;
           }
 
           .testimonial-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(66, 165, 255, 0.5);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2), 0 0 20px ${COLORS.light}80;
           }
 
           .testimonial-icon {
             font-size: 2.5rem;
-            color: #42a5ff;
+            color: ${COLORS.primary};
             margin-bottom: 15px;
-            background: rgba(255, 255, 255, 0.2);
+            background: ${COLORS.light}40;
             border-radius: 50%;
             padding: 10px;
           }
@@ -259,14 +272,14 @@ const Feedback = () => {
           .testimonial-card h4 {
             font-size: 1.5rem;
             font-family: 'Poppins', sans-serif;
-            color: #0056b3;
+            color: ${COLORS.dark};
             margin-bottom: 10px;
           }
 
           .testimonial-card p {
             font-size: 1rem;
             font-family: 'Roboto', sans-serif;
-            color: #555;
+            color: ${COLORS.dark}CC;
             margin-bottom: 15px;
             line-height: 1.5;
           }
@@ -283,32 +296,34 @@ const Feedback = () => {
           }
 
           .testimonial-star.filled {
-            color: rgb(241, 233, 77);
+            color: ${COLORS.light};
           }
 
           .testimonial-date {
             font-size: 0.9rem;
             font-family: 'Roboto', sans-serif;
             font-style: italic;
-            color: rgb(142, 185, 193);
+            color: ${COLORS.secondary};
           }
 
           .feedback-form {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             border-radius: 20px;
             padding: 40px;
             max-width: 600px;
             margin: 0 auto;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.3);
             animation: fadeInUp 0.6s ease forwards;
+            position: relative;
+            z-index: 1;
           }
 
           .feedback-form h3 {
             font-size: 2rem;
             font-family: 'Poppins', sans-serif;
-            color: #0056b3;
+            color: ${COLORS.dark};
             margin-bottom: 20px;
           }
 
@@ -321,7 +336,7 @@ const Feedback = () => {
             display: block;
             font-size: 1.1rem;
             font-family: 'Roboto', sans-serif;
-            color: #333;
+            color: ${COLORS.dark};
             margin-bottom: 8px;
             font-weight: 500;
           }
@@ -330,11 +345,11 @@ const Feedback = () => {
             width: 100%;
             padding: 12px 15px;
             border-radius: 8px;
-            border: 1px solid rgba(66, 165, 255, 0.3);
-            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid ${COLORS.secondary}80;
+            background: rgba(255, 255, 255, 0.8);
             font-family: 'Roboto', sans-serif;
             font-size: 1rem;
-            color: #333;
+            color: ${COLORS.dark};
             transition: all 0.3s ease;
             resize: vertical;
             min-height: 120px;
@@ -342,8 +357,8 @@ const Feedback = () => {
 
           .form-group textarea:focus {
             outline: none;
-            border-color: #42a5ff;
-            box-shadow: 0 0 10px rgba(66, 165, 255, 0.3);
+            border-color: ${COLORS.primary};
+            box-shadow: 0 0 10px ${COLORS.primary}40;
           }
 
           .rating-group {
@@ -363,13 +378,13 @@ const Feedback = () => {
           .rating-star.filled,
           .rating-star:hover,
           .rating-star:hover ~ .rating-star {
-            color: rgb(247, 234, 134);
+            color: ${COLORS.light};
           }
 
           .submit-btn {
             display: inline-flex;
             align-items: center;
-            background-color: #42a5ff;
+            background-color: ${COLORS.primary};
             color: white;
             padding: 12px 24px;
             border-radius: 30px;
@@ -377,15 +392,15 @@ const Feedback = () => {
             font-weight: 600;
             text-decoration: none;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(66, 165, 255, 0.3);
+            box-shadow: 0 4px 15px ${COLORS.primary}40;
             border: none;
             cursor: pointer;
           }
 
           .submit-btn:hover {
-            background-color: #0056b3;
+            background-color: ${COLORS.dark};
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(66, 165, 255, 0.4);
+            box-shadow: 0 6px 20px ${COLORS.primary}60;
           }
 
           .btn-icon {
@@ -394,7 +409,7 @@ const Feedback = () => {
           }
 
           .user-feedback-message {
-            background: rgba(255, 255, 255, 0.2);
+            background: ${COLORS.light}40;
             padding: 20px;
             border-radius: 10px;
             margin-top: 20px;
@@ -418,6 +433,7 @@ const Feedback = () => {
             align-items: center;
             height: 100vh;
             font-size: 1.5rem;
+            color: ${COLORS.primary};
           }
 
           @keyframes fadeInUp {
@@ -478,6 +494,8 @@ const Feedback = () => {
         `}
       </style>
 
+      <canvas className="particles-canvas"></canvas>
+      
       <section className="feedback-section">
         <div className="section-header">
           <h2>Patient Feedback</h2>
@@ -486,37 +504,32 @@ const Feedback = () => {
 
         <div className="testimonials-grid">
           {feedbacks.map((feedback, index) => (
-            <div key={feedback._id} className="testimonial-card" style={{ '--card-index': index }}>
+            <div key={feedback._id} className="testimonial-card" style={{ "--card-index": index }}>
               {feedback.user?.profileImage ? (
-                <img 
-                  src={feedback.user.profileImage} 
-                  alt={feedback.user.username} 
+                <img
+                  src={feedback.user.profileImage || "/placeholder.svg"}
+                  alt={feedback.user.username}
                   className="testimonial-icon"
-                  style={{ borderRadius: '50%', width: '60px', height: '60px', objectFit: 'cover' }}
+                  style={{ borderRadius: "50%", width: "60px", height: "60px", objectFit: "cover" }}
                 />
               ) : (
                 <MdPerson className="testimonial-icon" />
               )}
-              <h4>{feedback.user?.username || 'Anonymous'}</h4>
+              <h4>{feedback.user?.username || "Anonymous"}</h4>
               {feedback.user?.role && (
-                <small style={{ color: '#666', marginBottom: '5px' }}>
-                  {feedback.user.role}
-                </small>
+                <small style={{ color: COLORS.dark + "99", marginBottom: "5px" }}>{feedback.user.role}</small>
               )}
               <div className="testimonial-rating">
                 {[...Array(5)].map((_, i) => (
-                  <FaStar
-                    key={i}
-                    className={`testimonial-star ${i < feedback.rating ? "filled" : ""}`}
-                  />
+                  <FaStar key={i} className={`testimonial-star ${i < feedback.rating ? "filled" : ""}`} />
                 ))}
               </div>
               <p>{feedback.feedback}</p>
               <div className="testimonial-date">
-                {new Date(feedback.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
+                {new Date(feedback.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
                 })}
               </div>
             </div>
@@ -525,47 +538,43 @@ const Feedback = () => {
 
         <div className="feedback-form">
           <h3>Share Your Feedback</h3>
-          { (
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="feedback">Your Feedback</label>
-                <textarea
-                  id="feedback"
-                  name="feedback"
-                  value={formData.feedback}
-                  onChange={handleChange}
-                  placeholder="Tell us about your experience..."
-                  required
-                ></textarea>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="feedback">Your Feedback</label>
+              <textarea
+                id="feedback"
+                name="feedback"
+                value={formData.feedback}
+                onChange={handleChange}
+                placeholder="Tell us about your experience..."
+                required
+              ></textarea>
+            </div>
+            <div className="form-group">
+              <label>Rate Your Experience</label>
+              <div className="rating-group">
+                {[...Array(5)].map((_, i) => {
+                  const ratingValue = i + 1
+                  return (
+                    <FaStar
+                      key={i}
+                      className={`rating-star ${ratingValue <= (hoverRating || formData.rating) ? "filled" : ""}`}
+                      onClick={() => handleRatingClick(ratingValue)}
+                      onMouseEnter={() => setHoverRating(ratingValue)}
+                      onMouseLeave={() => setHoverRating(0)}
+                    />
+                  )
+                })}
               </div>
-              <div className="form-group">
-                <label>Rate Your Experience</label>
-                <div className="rating-group">
-                  {[...Array(5)].map((_, i) => {
-                    const ratingValue = i + 1;
-                    return (
-                      <FaStar
-                        key={i}
-                        className={`rating-star ${ratingValue <= (hoverRating || formData.rating) ? "filled" : ""}`}
-                        onClick={() => handleRatingClick(ratingValue)}
-                        onMouseEnter={() => setHoverRating(ratingValue)}
-                        onMouseLeave={() => setHoverRating(0)}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-              <button type="submit" className="submit-btn">
-                <MdFeedback className="btn-icon" /> Submit Feedback
-              </button>
-            </form>
-          )}
+            </div>
+            <button type="submit" className="submit-btn">
+              <MdFeedback className="btn-icon" /> Submit Feedback
+            </button>
+          </form>
         </div>
       </section>
-      <canvas className="particles-canvas"></canvas>
     </div>
- 
-  );
-};
+  )
+}
 
-export default Feedback;
+export default Feedback
