@@ -1,3 +1,5 @@
+// src/pages/MedicalRecordDetails.jsx
+
 "use client"
 
 import { Input } from "@/components/ui/input"
@@ -7,6 +9,9 @@ import axios from "axios"
 import { Upload } from "lucide-react"
 import { useParams } from "react-router-dom"
 import Cookies from "js-cookie"
+// --- IMPORTATION DU CHATBOT ---
+import StaffChatAssistant from '../components/StaffChatAssistant'; // <-- Assurez-vous que ce chemin est correct
+// --- FIN IMPORTATION ---
 import {
   Activity,
   AlertCircle,
@@ -38,11 +43,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 
-// Import the AddPatientFileModal component
 import AddPatientFileModal from "./AddPatientFileModal"
 import ShareMedicalRecordButton from "./ShareMedicalRecordButton"
-
-// Add these imports at the top of the file
 import AnnotationDialog from "./annotation/AnnotationDialog"
 import AnnotationList from "./annotation/AnnotationList"
 import AnnotationMarker from "./annotation/AnnotationMarker"
@@ -50,7 +52,7 @@ import ArchiveDialog from "./archive/ArchiveDialog"
 import ArchivedFilesList from "./archive/ArchivedFilesList"
 
 const MedicalRecordDetails = () => {
-  const { id } = useParams()
+  const { id } = useParams() // id est l'ID du MedicalRecord
   const [medicalRecord, setMedicalRecord] = useState(null)
   const [patientFiles, setPatientFiles] = useState([])
   const [loading, setLoading] = useState(true)
@@ -62,7 +64,6 @@ const MedicalRecordDetails = () => {
   const [fileToDelete, setFileToDelete] = useState(null)
   const [activeTab, setActiveTab] = useState("all")
 
-  // Add these state variables inside the component
   const [showAnnotationDialog, setShowAnnotationDialog] = useState(false)
   const [showArchiveDialog, setShowArchiveDialog] = useState(false)
   const [selectedAnnotation, setSelectedAnnotation] = useState(null)
@@ -78,6 +79,8 @@ const MedicalRecordDetails = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true); // Mettre loading à true au début
+        setError(""); // Réinitialiser les erreurs
         const token = Cookies.get("token")
         const [recordRes, filesRes] = await Promise.all([
           axios.get(`http://localhost:8089/api/medical-records/${id}`, {
@@ -88,7 +91,6 @@ const MedicalRecordDetails = () => {
           }),
         ])
 
-        // Add error handling for responses
         if (recordRes.status !== 200 || filesRes.status !== 200) {
           throw new Error("Failed to fetch data")
         }
@@ -98,8 +100,6 @@ const MedicalRecordDetails = () => {
       } catch (err) {
         console.error("Fetch error:", err)
         setError(err.response?.data?.message || "Error loading data")
-
-        // If 404, redirect or show not found message
         if (err.response?.status === 404) {
           setError("Medical record not found")
         }
@@ -108,9 +108,15 @@ const MedicalRecordDetails = () => {
       }
     }
 
-    fetchData()
+    if (id) { // S'assurer que l'ID existe avant de fetcher
+        fetchData()
+    } else {
+        setError("Medical record ID is missing.");
+        setLoading(false);
+    }
   }, [id])
 
+  // ... (toutes vos autres fonctions handleAddFile, handleUpdateFile, etc. restent ici)
   const handleAddFile = async (newFile) => {
     try {
       const token = Cookies.get("token")
@@ -205,9 +211,7 @@ const MedicalRecordDetails = () => {
     }
   }
 
-  // Add this function inside the component
   const handleAddAnnotation = (file, event) => {
-    // Calculate position as percentage of the container
     const rect = event.currentTarget.getBoundingClientRect()
     const x = ((event.clientX - rect.left) / rect.width) * 100
     const y = ((event.clientY - rect.top) / rect.height) * 100
@@ -246,7 +250,7 @@ const MedicalRecordDetails = () => {
     if (!file) return
 
     const formData = new FormData()
-    formData.append("medicalImage", file) // Correct field name
+    formData.append("medicalImage", file) 
     formData.append("medicalRecordId", id)
 
     try {
@@ -255,7 +259,7 @@ const MedicalRecordDetails = () => {
 
       const token = Cookies.get("token")
       const response = await axios.post(
-        "http://localhost:8089/api/ocr/process-image", // Correct endpoint
+        "http://localhost:8089/api/ocr/process-image", 
         formData,
         {
           headers: {
@@ -264,12 +268,9 @@ const MedicalRecordDetails = () => {
           },
         },
       )
-
-      // Verify extracted data
       if (!response.data.data?.extractedData?.patientName || !response.data.data?.extractedData?.diagnosis) {
         throw new Error("Essential information could not be extracted from the image")
       }
-
       setOcrResult(response.data.data)
     } catch (err) {
       setOcrError(err.response?.data?.error || err.message || "Error during OCR processing")
@@ -281,6 +282,7 @@ const MedicalRecordDetails = () => {
   }
 
   const renderFileDetails = (file) => {
+    // ... (votre logique renderFileDetails actuelle, inchangée)
     switch (file.type) {
       case "Prescription":
         return (
@@ -694,6 +696,7 @@ const MedicalRecordDetails = () => {
     }
   }
 
+
   const filteredFiles = () => {
     if (activeTab === "all") return patientFiles
     return patientFiles.filter((file) => file.type === activeTab)
@@ -703,6 +706,7 @@ const MedicalRecordDetails = () => {
     return (
       <div className="min-h-screen bg-slate-50 p-6">
         <div className="max-w-7xl mx-auto">
+          {/* ... Skeleton UI ... */}
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="p-6 border-b">
               <Skeleton className="h-8 w-[250px]" />
@@ -773,10 +777,18 @@ const MedicalRecordDetails = () => {
       </div>
     )
   }
+  
+  // --- CALCUL DE L'ID PATIENT POUR LE CHATBOT ---
+  // 'id' de useParams est l'ID du MedicalRecord.
+  // On a besoin de l'ID du patient (EmergencyPatient) qui est dans medicalRecord.patientId
+  // Cet ID patient est celui qui sera passé au StaffChatAssistant
+  const patientIdForChatbot = medicalRecord?.patientId?._id || medicalRecord?.patientId;
+
 
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6">
+        {/* ... (CardHeader, CardContent for patient info, etc.) ... */}
         <Card className="shadow-sm overflow-hidden">
           <CardHeader className="bg-white border-b p-6">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -861,18 +873,19 @@ const MedicalRecordDetails = () => {
             </div>
 
             {patientFiles.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-lg border">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
-                  <FileText className="h-8 w-8 text-slate-400" />
-                </div>
-                <h3 className="text-lg font-medium text-slate-900">No documents</h3>
-                <p className="text-slate-500 mt-1 max-w-md mx-auto">
-                  This medical record does not contain any documents yet. Click "Add Document" to start creating the
-                  record.
-                </p>
-              </div>
+                 <div className="text-center py-12 bg-white rounded-lg border">
+                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+                   <FileText className="h-8 w-8 text-slate-400" />
+                 </div>
+                 <h3 className="text-lg font-medium text-slate-900">No documents</h3>
+                 <p className="text-slate-500 mt-1 max-w-md mx-auto">
+                   This medical record does not contain any documents yet. Click "Add Document" to start creating the
+                   record.
+                 </p>
+               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* ... (Liste des documents et affichage du document sélectionné) ... */}
                 <div className="lg:col-span-1 bg-white rounded-lg border h-fit">
                   <div className="p-4 border-b">
                     <h4 className="font-medium text-slate-800">Document List</h4>
@@ -1014,25 +1027,43 @@ const MedicalRecordDetails = () => {
             )}
           </CardContent>
         </Card>
-      </div>
-      <Tabs defaultValue="annotations" className="w-full">
-        <TabsList>
-          <TabsTrigger value="annotations">Annotations</TabsTrigger>
-          <TabsTrigger value="archived">Archived Files</TabsTrigger>
-        </TabsList>
 
-        <TabsContent value="annotations">
-          <AnnotationList
-            patientFileId={selectedFile?._id}
-            onAnnotationDeleted={handleAnnotationDeleted}
-            onAnnotationUpdated={handleAnnotationUpdated}
+        {/* --- AJOUT DU CHATBOT ICI --- */}
+        {/* Le chatbot est conditionnellement rendu si medicalRecord et medicalRecord.patientId existent */}
+        {/* Il est placé APRÈS la carte principale du dossier médical, flottant potentiellement */}
+        {medicalRecord && patientIdForChatbot && (
+          <StaffChatAssistant 
+            targetType="patient" 
+            targetId={patientIdForChatbot} // Utilisation de l'ID patient extrait
+            initialPrompt={medicalRecord.patientId?.firstName ? `Posez une question sur ${medicalRecord.patientId.firstName} ${medicalRecord.patientId.lastName}...` : "Posez une question sur ce patient..."}
           />
-        </TabsContent>
+        )}
+        {/* --- FIN AJOUT CHATBOT --- */}
+      </div>
+      
+      {/* Les onglets pour Annotations et Fichiers Archivés */}
+      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6">
+        <Tabs defaultValue="annotations" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="annotations">Annotations</TabsTrigger>
+            <TabsTrigger value="archived">Fichiers Archivés</TabsTrigger>
+            </TabsList>
+            <TabsContent value="annotations" className="mt-4">
+            <AnnotationList
+                patientFileId={selectedFile?._id} // Assurez-vous que selectedFile est bien l'ID du fichier patient, pas du dossier médical
+                onAnnotationDeleted={handleAnnotationDeleted}
+                onAnnotationUpdated={handleAnnotationUpdated}
+            />
+            </TabsContent>
+            <TabsContent value="archived" className="mt-4">
+             {/* 'id' ici est l'ID du dossier médical, ce qui est correct pour ArchivedFilesList */}
+            <ArchivedFilesList medicalRecordId={id} />
+            </TabsContent>
+        </Tabs>
+      </div>
 
-        <TabsContent value="archived">
-          <ArchivedFilesList medicalRecordId={id} />
-        </TabsContent>
-      </Tabs>
+
+      {/* Modals and Dialogs */}
       {showAddModal && (
         <AddPatientFileModal
           medicalRecordId={id}
@@ -1044,6 +1075,7 @@ const MedicalRecordDetails = () => {
           onSubmit={editFile ? handleUpdateFile : handleAddFile}
         />
       )}
+      {/* ... (vos autres modales: ocrLoading, showDeleteDialog, showAnnotationDialog, showArchiveDialog, ocrResult Dialog) ... */}
       {ocrLoading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
           <div className="bg-white p-4 rounded-lg">
@@ -1183,6 +1215,7 @@ const MedicalRecordDetails = () => {
           )}
         </DialogContent>
       </Dialog>
+
     </div>
   )
 }
