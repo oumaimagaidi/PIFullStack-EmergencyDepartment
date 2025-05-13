@@ -7,6 +7,20 @@ pipeline {
     }
 
     stages {
+        stage('Teardown & Clean') {
+      steps {
+        echo 'Stopping existing Docker Compose services and cleaning data…'
+        sh 'docker-compose down'
+        sh 'rm -rf data'
+      }
+    }
+
+    stage('Start Nexus & Sonar') {
+      steps {
+        echo 'Starting Nexus and Sonar services…'
+        sh 'docker start nexus sonar'
+      }
+    }
         stage('Install Dependencies') {
             steps {
                 script {
