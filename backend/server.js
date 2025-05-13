@@ -30,7 +30,7 @@ import archiveRoutes from "./routes/archive.js";
 import ambulanceRequestRoutes from "./routes/ambulanceRequests.js";
 import Ambulance from "./models/Ambulance.js";
 import AmbulanceRequest from "./models/AmbulanceRequest.js";
-import patientRoutes from "./routes/patient.js";
+
 
 import Feedback from "./models/FeedBack.js";
 import feedbackRoutes from "./routes/feedback.js";
