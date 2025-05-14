@@ -1,5 +1,5 @@
 import express from "express";
-import Feedback from "../models/FeedBack.js";
+import Feedback from "../models/Feedback.js";
 import { authenticateToken, authorize } from "../middleware/authMiddleware.js";
 import { User } from "../models/User.js";
 const router = express.Router();

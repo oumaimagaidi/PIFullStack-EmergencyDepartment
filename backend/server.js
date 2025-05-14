@@ -22,20 +22,21 @@ import medicalRecordRoutes from "./routes/medicalRecords.js";
 import patientFileRoutes from "./routes/patientFile.js";
 import alertsRoutes from "./routes/alerts.js";
 import notificationRoutes from './routes/notifications.js';
+import staffChatbotRoutes from './routes/chatbot.js';
 
 // --- Model Imports ---
 import annotationsRoutes from "./routes/annotation.js";
 import archiveRoutes from "./routes/archive.js";
 import ambulanceRequestRoutes from "./routes/ambulanceRequests.js";
 import Ambulance from "./models/Ambulance.js";
-import AmbulanceRequest from "./models/AmbulanceRequest.js";
-import patientRoutes from "./routes/patient.js";
+import AmbulanceRequest from "./models/AmbulanceRequest.js"
 
-import Feedback from "./models/FeedBack.js";
+import Feedback from "./models/Feedback.js";
 import feedbackRoutes from "./routes/feedback.js";
 import { User } from "./models/User.js";
 import Alert from "./models/Alert.js";
 import Resource from "./routes/resource.js";
+import patientRoutes from "./routes/patient.js"
 import bloodRequestRoutes from "./routes/bloodRequests.js";
 // --- Helpers ---
 dotenv.config();
@@ -65,7 +66,7 @@ app.use(
   cors({
     origin: "http://localhost:3000",
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"," PATCH", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", " PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
@@ -100,16 +101,20 @@ app.use("/api/patients", patientRoutes);
 app.use("/api/ai", aiRoutes); // Note: Remove duplicate aiRoutes entries
 
 // Socket.IO Authentication Middleware
-app.use("/api/resources",Resource );
+app.use("/api/resources", Resource);
 app.use('/api/ocr', ocrRouter); // Mount the router under /api/ocr
-app.use('/api/patients',patientRoutes );
-app.use('/api/feedback',feedbackRoutes);
+app.use('/api/patients', patientRoutes);
+app.use('/api/feedback', feedbackRoutes);
 app.use('/api/ai', aiRoutes);
-app.use("/api/blood-requests", bloodRequestRoutes); 
+app.use('/api/chatbot', staffChatbotRoutes);
+
+
+app.use("/api/blood-requests", bloodRequestRoutes);
+
 app.use('/api/ai', aiRoutes);
 
 app.use('/api/ai', aiRoutes);
-app.use('/api/notifications', notificationRoutes); 
+app.use('/api/notifications', notificationRoutes);
 
 // --- ✨ Socket.IO Authentication Middleware ---
 io.use((socket, next) => {
