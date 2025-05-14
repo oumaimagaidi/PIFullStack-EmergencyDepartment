@@ -31,7 +31,7 @@ import ambulanceRequestRoutes from "./routes/ambulanceRequests.js";
 import Ambulance from "./models/Ambulance.js";
 import AmbulanceRequest from "./models/AmbulanceRequest.js"
 
-import Feedback from "./models/FeedBack.js";
+import Feedback from "./models/Feedback.js";
 import feedbackRoutes from "./routes/feedback.js";
 import { User } from "./models/User.js";
 import Alert from "./models/Alert.js";
