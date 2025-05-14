@@ -25,8 +25,11 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+    # switch here from bind-mount to named volume:
     volumes:
-      - ./data:/data/db
+      - mongo-data:/data/db
 
 volumes:
+  # declare the named volume:
   mongo-data:
+    driver: local
