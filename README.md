@@ -2,10 +2,10 @@
 
 [![GitHub Branches](https://img.shields.io/badge/branches-multiple-blue)](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/branches)
 [![MERN Stack](https://img.shields.io/badge/stack-MERN-brightgreen)](https://www.mongodb.com/mern-stack)
-[![Accessibility](https://img.shields.io/badge/accessibility-WCAG%20Partial-yellow)](https://www.w3.org/WAI/standards-guidelines/wcag/) <!-- Ajout d'un badge accessibilité -->
+[![Accessibility](https://img.shields.io/badge/accessibility-WCAG%20Partial-yellow)](https://www.w3.org/WAI/standards-guidelines/wcag/)
 
 ## Project Overview 🚨
-A comprehensive system for managing emergency department operations, aiming to improve efficiency, communication, and patient care outcomes. This system covers patient registration and tracking, medical record management with advanced features, ambulance dispatch and coordination, staff management, and includes dedicated accessibility features for a more inclusive user experience.
+A comprehensive system for managing emergency department operations, aiming to improve efficiency, communication, and patient care outcomes. **This project was developed as the final project for the Full-Stack Development course at Esprit School of Engineering, demonstrating advanced skills in MERN stack development and modern healthcare technology.** This system covers patient registration and tracking, medical record management with advanced features, ambulance dispatch and coordination, staff management, and includes dedicated accessibility features for a more inclusive user experience.
 
 ## Technology Stack 🚀
 
@@ -95,6 +95,9 @@ A comprehensive system for managing emergency department operations, aiming to i
 | Ahmed N. A. Mejri     | Ambulance Coordinator         | Ambulance Request/Tracking, Location Services, Dispatch        | [ambulance-check](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/tree/dashboard) |
 | *Collaboration*       | Accessibility & Integrations/ Dashboard & Analytics    | TTS, Notifications, Chatbot, Cross-Module Integrations         | *(Across multiple branches)*                                                |
 
+## Acknowledgments 🏆
+
+This project was proudly developed as part of the curriculum at **Esprit School of Engineering** under the guidance of Mrs.Abidi Sarra. It served as the final project for the Full-Stack Development course.
 
 ## Getting Started 🚦
 1.  **Clone the repository:**
@@ -116,3 +119,4 @@ A comprehensive system for managing emergency department operations, aiming to i
 4.  **Access the Application:** Open your browser to `http://localhost:3000` (or the port specified by your frontend Vite config).
 5.  **Ensure MongoDB is running:** Make sure your MongoDB server is running and accessible at the URI specified in the backend's `.env`.
 6.  **Check Browser Console:** Look for any `ERR_CONNECTION_REFUSED` or other errors indicating the frontend cannot reach the backend.
+7.  **(Optional) Hosting:** If you have access to hosting services via [GitHub Education](https://education.github.com/pack), you can deploy your application. Consider services like Heroku, DigitalOcean, or Namecheap (often included in the pack). Add a "Deployment" section here with the live URL if hosted.
