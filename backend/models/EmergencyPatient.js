@@ -27,6 +27,7 @@ const emergencyPatientSchema = new mongoose.Schema({
     painLevel: { type: String, required: true, enum: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] },
     emergencyLevel: { type: String, required: true, enum: ['low', 'medium', 'high', 'critical'] },
     status: { type: String, default: 'Demande Enregistrée' },
+    prediction: { type: String, enum: ['Admit', 'Discharge'], default: null },
     assignedDoctor: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
