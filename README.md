@@ -90,11 +90,10 @@ A comprehensive system for managing emergency department operations, aiming to i
 
 | Member                | Role                          | Focus Areas                                                    | Branch Link                                                                 |
 |-----------------------|-------------------------------|----------------------------------------------------------------|-----------------------------------------------------------------------------|
-| Emna Ouerghemmi       | EMR Specialist                | Medical Records, Patient Files, OCR, Sharing, Archiving          | [integrations8](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/tree/integrations8) |
-| Oumaima Gaidi         | Patient Flow & Registration   | Emergency Patient Reg./Tracking, Wait Time, Patient Experience | [profile](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/tree/profile) |
-| Ahmed N. A. Mejri     | Ambulance Coordinator         | Ambulance Request/Tracking, Location Services, Dispatch        | [ambulance-check](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/tree/integrationS8) |
-| Ghada                 | Dashboard & Analytics         | Dashboard Views, Statistics, Resource Management, Staff Directory | [dashboard](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/tree/dashboard) |
-| *Collaboration*       | Accessibility & Integrations  | TTS, Notifications, Chatbot, Cross-Module Integrations         | *(Across multiple branches)*                                                |
+| Emna Ouerghemmi       | EMR Specialist                | Medical Records, Patient Files, OCR, Sharing, Archiving, Dashboard Views, Statistics, Resource Management, Staff Directory          | [integrations8](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/tree/profile) |
+| Oumaima Gaidi         | Patient Flow & Registration   | Emergency Patient Reg./Tracking, Wait Time, Patient Experience, Dashboard Views, Statistics, Resource Management, Staff Directory | [profile](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/tree/profile) |
+| Ahmed N. A. Mejri     | Ambulance Coordinator         | Ambulance Request/Tracking, Location Services, Dispatch        | [ambulance-check](https://github.com/oumaimagaidi/PIFullStack-EmergencyDepartment/tree/dashboard) |
+| *Collaboration*       | Accessibility & Integrations/ Dashboard & Analytics    | TTS, Notifications, Chatbot, Cross-Module Integrations         | *(Across multiple branches)*                                                |
 
 
 ## Getting Started 🚦
