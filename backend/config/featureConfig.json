@@ -1,0 +1,44 @@
+{
+  "cc_labels": [
+    "abdominal pain","abdominal cramping","abdominal distention","abdominal pain pregnant","abnormal lab","abscess",
+    "addiction problem","agitation","alcohol intoxication","alcohol problem","allergic reaction","altered mental status",
+    "animal bite","ankle injury","ankle pain","anxiety","arm injury","arm pain","arm swelling","assault victim",
+    "asthma","back pain","bleeding/bruising","blurred vision","body fluid exposure","breast pain","breathing difficulty",
+    "breathing problem","burn","cardiac arrest","cellulitis","chest pain","chest tightness","chills","cold-like symptoms",
+    "confusion","conjunctivitis","constipation","cough","cyst","decreased blood sugar-symptomatic","dehydration","dental pain",
+    "depression","detox evaluation","diarrhea","dizziness","drug/alcohol assessment","drug problem","dyspnea","dysuria",
+    "ear pain","ear problem","edema","elbow pain","elevated blood sugar-nosymptoms","elevated blood sugar-symptomatic",
+    "emesis","epigastric pain","epistaxis","exposure to std","extremity laceration","extremity weakness","eye injury","eye pain",
+    "eye problem","eye redness","facial injury","facial laceration","facial pain","facial swelling","fall","fall>65","fatigue",
+    "female gu problem","fever","fever-75 years or older","fever-9 weeks to 74 years","fever immunocompromised","finger injury",
+    "finger pain","finger swelling","flank pain","follow-up cellulitis","foot injury","foot pain","foot swelling","foreign body in eye",
+    "full trauma","generalized body aches","gi bleeding","gi problem","groin pain","hallucinations","hand injury","hand pain","headache",
+    "headache-new onset or new symptoms","headache-recurrent or known dx migraines","headache re-evaluation","head injury","head laceration",
+    "hematuria","hemoptysis","hip pain","homicidal","hyperglycemia","hypertension","hypotension","influenza","ingestion","insect bite",
+    "irregular heartbeat","jaw pain","joint swelling","knee injury","knee pain","laceration","leg injury","leg pain","leg swelling",
+    "lethargy","loss of consciousness","male gu problem","mass","medical problem","medical screening","medication problem","medication refill",
+    "migraine","modified trauma","motorcycle crash","motor vehicle crash","multiple falls","nasal congestion","nausea","near syncope",
+    "neck pain","neurologic problem","numbness","oral swelling","otalgia","other","overdose-accidental","overdose-intentional","pain",
+    "palpitations","panic attack","pelvic pain","poisoning","post-op problem","psychiatric evaluation","psychotic symptoms","rapid heart rate",
+    "rash","rectal bleeding","rectal pain","respiratory distress","rib injury","rib pain","seizure-new onset","seizure-prior hx of","seizures",
+    "shortness of breath","shoulder injury","shoulder pain","sickle cell pain","sinus problem","skin irritation","skin problem","sore throat",
+    "std check","stroke alert","suicidal","suture/staple removal","swallowed foreign body","syncope","tachycardia","testicle pain","thumb injury",
+    "tick removal","toe injury","toe pain","trauma","unresponsive","uri","urinary frequency","urinary retention","urinary tract infection",
+    "vaginal bleeding","vaginal discharge","vaginal pain","weakness","wheezing","withdrawal-alcohol","wound check","wound infection",
+    "wound re-evaluation","wrist injury","wrist pain"
+  ],
+  "meds_labels": [
+    "analgesic and antihistamine combination","analgesics","anesthetics","anti-obesity drugs","antiallergy","antiarthritics",
+    "antiasthmatics","antibiotics","anticoagulants","antidotes","antifungals","antihistamine and decongestant combination",
+    "antihistamines","antihyperglycemics","antiinfectives","antiinfectives/miscellaneous","antineoplastics","antiparkinson drugs",
+    "antiplatelet drugs","antivirals","autonomic drugs","biologicals","blood","cardiac drugs","cardiovascular","cns drugs",
+    "colony stimulating factors","contraceptives","cough/cold preparations","diagnostic","diuretics","eent preps","elect/caloric/h2o",
+    "gastrointestinal","herbals","hormones","immunosuppressants","investigational","miscellaneous medical supplies devices non-drug",
+    "muscle relaxants","pre-natal vitamins","psychotherapeutic drugs","sedative/hypnotics","skin preps","smoking deterrents",
+    "thyroid preps","unclassified drug products","vitamins"
+  ],
+  "numeric_vitals": [
+    "triage_vital_hr","triage_vital_sbp","triage_vital_dbp","triage_vital_rr",
+    "triage_vital_o2","triage_vital_o2_device","triage_vital_temp"
+  ]
+}
