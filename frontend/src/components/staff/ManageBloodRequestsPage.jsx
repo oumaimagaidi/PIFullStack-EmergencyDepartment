@@ -188,7 +188,7 @@ const ManageBloodRequestsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#ECEFCA]/20 p-4 md:p-6">
+    <div className=" bg-[#ECEFCA]/20 ">
       <div className="container mx-auto">
         {/* ... (Header and Filters UI same) ... */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
