@@ -7,6 +7,8 @@ import PatientFile from '../models/PatientFile.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import sendSMS from '../sendSMS.js';
 import { getEstimatedWaitTime } from '../services/waitTimeService.js';
+import { getPredictionForPatient } from '../services/predictionService.js';
+
 
 const router = express.Router();
 
@@ -40,6 +42,7 @@ router.post('/', async (req, res) => {
 
     if (existingPatient) {
       console.log(`Patient ${firstName} ${lastName} existe déjà. Mise à jour.`);
+
       patient = await EmergencyPatient.findByIdAndUpdate(
         existingPatient._id,
         {
@@ -56,10 +59,17 @@ router.post('/', async (req, res) => {
         },
         { new: true }
       );
+      const { prediction, probability } = await getPredictionForPatient(existingPatient._id);
+      existingPatient.prediction = prediction;
+      await existingPatient.save();
     } else {
       console.log(`Nouveau patient: ${firstName} ${lastName}. Création.`);
       patient = new EmergencyPatient({ ...req.body, isNewPatient: true });
+      
       await patient.save();
+      const { prediction, probability } = await getPredictionForPatient(patient._id);
+      patient.prediction = prediction;
+      patient.save();
     }
 
     const availableDoctor = await findAvailableDoctor();
