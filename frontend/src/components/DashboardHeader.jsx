@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Bell, PanelLeft, Trash2, User, CheckCheck, MailOpen, MessageSquare, AlertTriangle, Activity, Pill, Stethoscope, Clipboard as ClipboardIcon } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useSidebar } from "@/components/ui/sidebar"; // Assurez-vous que ce hook/contexte existe et est correctement importé
+import { useSidebar } from "@/components/ui/sidebar"; 
+import { Volume2, VolumeX } from 'lucide-react'; 
+import { useAccessibility } from '../context/AccessibilityContext';     
 import {
     Tooltip,
     TooltipContent,
@@ -92,6 +94,7 @@ const DashboardHeader = () => {
     } = useNotifications();
     const navigate = useNavigate();
     const [currentUser, setCurrentUser] = useState(null);
+     const { isTTSActive, setIsTTSActive } = useAccessibility(); 
 
     useEffect(() => {
         // Il est bon de fetch les notifications après que l'utilisateur soit potentiellement chargé
@@ -165,6 +168,27 @@ const DashboardHeader = () => {
 
                 {/* Right Side: Actions & Profile */}
                 <div className="flex items-center space-x-2 sm:space-x-4">
+                     {/* Nouveau Bouton TTS */}
+                     <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="text-foreground hover:bg-accent"
+                                    onClick={() => setIsTTSActive(!isTTSActive)} // <-- Toggle TTS
+                                    aria-label={isTTSActive ? 'Désactiver la lecture vocale' : 'Activer la lecture vocale'} // <-- Label ARIA
+                                >
+                                    {isTTSActive ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />} {/* Icône dynamique */}
+                                    <span className="sr-only">{isTTSActive ? 'Désactiver la lecture vocale' : 'Activer la lecture vocale'}</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {isTTSActive ? 'Désactiver la lecture vocale' : 'Activer la lecture vocale'} {/* Texte du Tooltip */}
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
                     {/* Placeholder pour le sélecteur de langue - vous devrez implémenter la logique */}
                     <TooltipProvider>
                         <Tooltip>
