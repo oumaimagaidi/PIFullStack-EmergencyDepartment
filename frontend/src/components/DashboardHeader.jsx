@@ -1,10 +1,10 @@
-
+// src/components/DashboardHeader.jsx
 import React, { useEffect, useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Bell, PanelLeft, Trash2, User, CheckCheck, MailOpen, MessageSquare, AlertTriangle, Activity, Pill, Stethoscope, Clipboard as ClipboardIcon } from "lucide-react";
+import { Search, Bell, PanelLeft, Trash2, User, CheckCheck, MailOpen, MessageSquare, AlertTriangle, Activity, Pill, Stethoscope, Clipboard as ClipboardIcon, Home } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useSidebar } from "@/components/ui/sidebar"; // Assurez-vous que ce hook/contexte existe et est correctement importé
+import { useSidebar } from "@/components/ui/sidebar";
 import {
     Tooltip,
     TooltipContent,
@@ -19,7 +19,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { useNotifications } from '@/context/NotificationContext'; // Assurez-vous que le chemin est correct
+import { useNotifications } from '@/context/NotificationContext';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from 'react-router-dom';
@@ -54,39 +54,35 @@ const getNotificationPresentation = (type) => {
         case 'patient_status_update':
             return { Icon: Activity, title: '🔄 Patient Status Update', color: 'text-amber-600', iconBg: 'bg-amber-100' };
         case 'new_emergency_case':
-        case 'unassigned_emergency_case': // Regrouper car l'icône et la couleur pourraient être similaires pour de nouveaux cas
             return { Icon: AlertTriangle, title: '🚨 New Emergency Case', color: 'text-red-600', iconBg: 'bg-red-100' };
-        case 'patient_assigned_to_doctor': // For nurses
+        case 'patient_assigned_to_doctor':
             return { Icon: User, title: 'ℹ️ Patient Assigned to Dr.', color: 'text-sky-600', iconBg: 'bg-sky-100' };
-        // 'unassigned_emergency_case' a été fusionné avec 'new_emergency_case' ci-dessus. 
-        // Si vous voulez une présentation distincte, remettez-la ici :
-        // case 'unassigned_emergency_case':
-        //      return { Icon: MessageSquare, title: '⚠️ Patient Awaiting Doctor', color: 'text-orange-600', iconBg: 'bg-orange-100' };
+        case 'unassigned_emergency_case':
+            return { Icon: MessageSquare, title: '⚠️ Patient Awaiting Doctor', color: 'text-orange-600', iconBg: 'bg-orange-100' };
         case 'ambulance_alert':
             return { Icon: Bell, title: '🚑 Ambulance Alert', color: 'text-fuchsia-600', iconBg: 'bg-fuchsia-100' };
-        case 'availability_update': 
+        case 'availability_update':
             return { Icon: CheckCheck, title: '✅ Availability Updated', color: 'text-green-600', iconBg: 'bg-green-100' };
-        case 'admin_log': 
+        case 'admin_log':
             return { Icon: ClipboardIcon, title: '📋 Admin Log', color: 'text-gray-600', iconBg: 'bg-gray-100' };
         case 'patient_file_created':
             return { Icon: Pill, title: '📄 New Document Added', color: 'text-emerald-600', iconBg: 'bg-emerald-100' };
         case 'patient_file_updated':
             return { Icon: Stethoscope, title: '📝 Document Updated', color: 'text-violet-600', iconBg: 'bg-violet-100' };
-        case 'generic': 
+        case 'generic':
         default:
             return { Icon: Bell, title: '🔔 Notification', color: 'text-slate-600', iconBg: 'bg-slate-100' };
     }
 };
 
-
 const DashboardHeader = () => {
-    const { toggleSidebar } = useSidebar(); // Assurez-vous que useSidebar est bien défini et exporté par son provider
+    const { toggleSidebar } = useSidebar();
     const {
         notifications,
         unreadCount,
         isLoading,
         markOneAsRead,
-        markAllAsRead, // Doit correspondre au nom exposé par NotificationContext
+        markAllAsRead,
         clearAllNotifications,
         fetchNotifications
     } = useNotifications();
@@ -94,8 +90,7 @@ const DashboardHeader = () => {
     const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
-        // Il est bon de fetch les notifications après que l'utilisateur soit potentiellement chargé
-        // pour s'assurer que les appels API faits par fetchNotifications ont le contexte utilisateur si nécessaire (ex: token)
+        fetchNotifications();
         const storedUser = sessionStorage.getItem("user");
         if (storedUser) {
             try {
@@ -104,32 +99,26 @@ const DashboardHeader = () => {
                 console.error("Failed to parse user from sessionStorage for header:", e);
             }
         }
-        fetchNotifications(); // Appeler après avoir potentiellement défini currentUser
-    }, [fetchNotifications]); // fetchNotifications est memoized par useCallback, donc stable en tant que dépendance
+    }, [fetchNotifications]);
 
     const handleOpenChange = (open) => {
         if (open) {
-            // Optionnel: recharger les notifications à chaque ouverture du dropdown
-            // fetchNotifications(); 
+            // fetchNotifications(); // Optionnel: recharger à chaque ouverture
         }
     };
 
     const handleNotificationClick = (notification) => {
-        // Marquer comme lue seulement si elle n'est pas déjà lue
         if (!notification.isRead) {
-            markOneAsRead(notification._id); // Appeler la fonction du contexte
+            markOneAsRead(notification._id);
         }
-
-        // Logique de navigation
         if (notification.relatedEntityId && notification.relatedEntityType) {
             switch (notification.relatedEntityType) {
                 case 'EmergencyPatient':
                     navigate(`/emergency-status`, { state: { patientId: notification.relatedEntityId } });
                     break;
                 case 'Ambulance':
-                    navigate('/ambulance'); // Exemple, adaptez selon vos routes
+                    navigate('/ambulance');
                     break;
-                // Ajoutez d'autres cas pour d'autres relatedEntityType si nécessaire
                 default:
                     console.log("Clicked notification, no specific navigation for type:", notification.relatedEntityType);
             }
@@ -139,14 +128,14 @@ const DashboardHeader = () => {
     };
 
     return (
-        <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-40 w-full border-b dark:border-slate-700">
+        <div className="sticky top-0 bg-background/95 z-40 w-full border-b">
             <div className="mx-auto h-16 max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
                 {/* Left Side: Search & Sidebar Toggle */}
                 <div className="flex-1 flex items-center">
-                     <TooltipProvider>
+                    <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-4 text-foreground hover:bg-accent">
+                                <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-4">
                                     <PanelLeft className="h-5 w-5" />
                                     <span className="sr-only">Toggle Sidebar</span>
                                 </Button>
@@ -158,20 +147,37 @@ const DashboardHeader = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Search patients, records..."
-                            className="pl-10 h-9 rounded-md bg-muted/50 dark:bg-slate-800 border-slate-300 dark:border-slate-700 focus:border-primary"
+                            className="pl-10 h-9 rounded-md"
                         />
                     </div>
                 </div>
 
                 {/* Right Side: Actions & Profile */}
-                <div className="flex items-center space-x-2 sm:space-x-4">
-                    {/* Placeholder pour le sélecteur de langue - vous devrez implémenter la logique */}
+                <div className="flex items-center space-x-4">
+                    {/* Home Button */}
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent">
-                                    {/* <Globe className="h-5 w-5" />  Exemple avec Lucide Icon */}
-                                    <span className="fi fi-us fis"></span> {/* Si vous utilisez flag-icons */}
+                                <Button
+                                    onClick={() => navigate("/home")}
+                                    variant="ghost"
+                                    size="icon"
+                                    className="rounded-full"
+                                >
+                                    <Home className="h-5 w-5 text-blue-600 hover:text-blue-700" />
+                                    <span className="sr-only">Home</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Home</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
+                    {/* Language Selector */}
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <span className="fi fi-us fis"></span>
                                     <span className="sr-only">Select Language</span>
                                 </Button>
                             </TooltipTrigger>
@@ -179,12 +185,13 @@ const DashboardHeader = () => {
                         </Tooltip>
                     </TooltipProvider>
 
+                    {/* Notifications */}
                     <DropdownMenu onOpenChange={handleOpenChange}>
                         <TooltipProvider>
-                             <Tooltip>
+                            <Tooltip>
                                 <TooltipTrigger asChild>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="relative text-foreground hover:bg-accent">
+                                        <Button variant="ghost" size="icon" className="relative">
                                             <Bell className="h-5 w-5" />
                                             {unreadCount > 0 && (
                                                 <Badge
@@ -202,115 +209,92 @@ const DashboardHeader = () => {
                             </Tooltip>
                         </TooltipProvider>
 
-                        <DropdownMenuContent align="end" className="w-80 sm:w-96 p-0 shadow-xl bg-card border dark:border-slate-700">
-                            <DropdownMenuLabel className="flex justify-between items-center px-3 py-2.5 border-b dark:border-slate-700">
-                                <span className="font-semibold text-sm text-popover-foreground">
-                                    Notifications ({unreadCount > 0 ? `${unreadCount} unread` : 'No unread'})
-                                </span>
+                        <DropdownMenuContent align="end" className="w-96 p-0 shadow-xl">
+                            <DropdownMenuLabel className="flex justify-between items-center px-3 py-2.5 border-b">
+                                <span className="font-semibold text-sm">Notifications ({unreadCount > 0 ? `${unreadCount} non lues` : 'Aucune non lue'})</span>
                                 {notifications.length > 0 && unreadCount > 0 && (
-                                     <Button 
-                                        variant="link" 
-                                        size="sm" 
-                                        className="h-auto p-0 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300" 
-                                        onClick={(e) => {
-                                            e.stopPropagation(); 
-                                            markAllAsRead(); // Appel de la fonction du contexte
-                                        }}
-                                     >
-                                         <CheckCheck className="h-3.5 w-3.5 mr-1"/>Mark all as read
-                                     </Button>
+                                    <Button variant="link" size="sm" className="h-auto p-0 text-xs text-blue-600 hover:text-blue-700" onClick={(e) => {e.stopPropagation(); markAllAsRead();}}>
+                                        <CheckCheck className="h-3.5 w-3.5 mr-1"/>Marquer tout comme lu
+                                    </Button>
                                 )}
                             </DropdownMenuLabel>
 
-                             <ScrollArea className="h-[300px] sm:h-[350px]">
+                            <ScrollArea className="h-[350px]">
                                 {(isLoading && notifications.length === 0) ? (
                                     <div className="p-3 space-y-2.5">
-                                        {[...Array(3)].map((_, i) => ( // Moins de skeletons par défaut
+                                        {[...Array(4)].map((_, i) => (
                                             <div key={i} className="flex items-center space-x-2.5 p-1.5">
-                                                <Skeleton className="h-7 w-7 rounded-full bg-muted" />
+                                                <Skeleton className="h-7 w-7 rounded-full" />
                                                 <div className="space-y-1 flex-1">
-                                                    <Skeleton className="h-2.5 w-3/4 bg-muted" />
-                                                    <Skeleton className="h-2 w-1/2 bg-muted" />
+                                                    <Skeleton className="h-2.5 w-3/4" />
+                                                    <Skeleton className="h-2 w-1/2" />
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
                                 ) : notifications.length === 0 ? (
                                     <div className="p-6 text-center text-sm text-muted-foreground flex flex-col items-center justify-center h-full">
-                                        <MailOpen className="h-10 w-10 sm:h-12 sm:w-12 text-slate-400 dark:text-slate-500 mb-3"/>
-                                        No notifications at the moment.
+                                        <MailOpen className="h-12 w-12 text-slate-300 mb-3"/>
+                                        Aucune notification pour le moment.
                                     </div>
                                 ) : (
-                                    <div className="divide-y divide-border dark:divide-slate-700">
-                                    {notifications.map((notif) => {
-                                        const { Icon: NotifIcon, title: notifTitle, color: notifColor, iconBg } = getNotificationPresentation(notif.type);
-                                        return (
-                                            <DropdownMenuItem
-                                                key={notif._id || `${notif.message}-${notif.createdAt}`} // Clé plus robuste
-                                                className={`flex items-start p-2.5 gap-2.5 whitespace-normal cursor-pointer 
-                                                            focus:bg-accent dark:focus:bg-slate-700/80
-                                                            data-[disabled]:opacity-50 data-[disabled]:pointer-events-none 
-                                                            transition-colors duration-150 ease-in-out 
-                                                            ${!notif.isRead 
-                                                                ? 'bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 focus:bg-blue-100 dark:focus:bg-blue-900/50' 
-                                                                : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 focus:bg-slate-50 dark:focus:bg-slate-800/50'
-                                                            }`}
-                                                onClick={() => handleNotificationClick(notif)}
-                                            >
-                                                <div className={`flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center ${iconBg} ${notif.isRead ? 'opacity-70' : ''} mt-0.5`}>
-                                                    <NotifIcon className={`h-3.5 w-3.5 ${notifColor}`} />
-                                                </div>
-                                                <div className="flex-grow min-w-0">
-                                                    <div className="flex justify-between items-start mb-0">
-                                                        <p className={`text-xs font-semibold leading-snug ${!notif.isRead ? 'text-primary dark:text-blue-400' : 'text-foreground'}`}>
-                                                            {notifTitle}
-                                                        </p>
-                                                        {!notif.isRead && (
-                                                            <span className="h-1.5 w-1.5 bg-blue-500 dark:bg-blue-400 rounded-full flex-shrink-0 ml-2 mt-1" aria-label="Unread"></span>
-                                                        )}
+                                    <div className="divide-y divide-border">
+                                        {notifications.map((notif) => {
+                                            const { Icon: NotifIcon, title: notifTitle, color: notifColor, iconBg } = getNotificationPresentation(notif.type);
+                                            return (
+                                                <DropdownMenuItem
+                                                    key={notif._id}
+                                                    className={`flex items-start p-2.5 gap-2.5 whitespace-normal cursor-pointer focus:bg-accent data-[disabled]:opacity-50 data-[disabled]:pointer-events-none transition-colors duration-150 ease-in-out 
+                                                                ${!notif.isRead ? 'bg-blue-50 hover:bg-blue-100 focus:bg-blue-100' : 'hover:bg-slate-50 focus:bg-slate-50'}`}
+                                                    onClick={() => handleNotificationClick(notif)}
+                                                >
+                                                    <div className={`flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center ${iconBg} ${notif.isRead ? 'opacity-70' : ''} mt-0.5`}>
+                                                        <NotifIcon className={`h-3.5 w-3.5 ${notifColor}`} />
                                                     </div>
-                                                    <p className={`text-xs ${notif.isRead ? 'text-muted-foreground' : 'text-foreground/90 dark:text-slate-300'} leading-normal line-clamp-2`}>
-                                                        {notif.message}
-                                                    </p>
-                                                    <p className="text-[10px] text-muted-foreground/80 dark:text-slate-500 mt-0.5 text-right">
-                                                        {timeAgo(notif.createdAt)}
-                                                    </p>
-                                                </div>
-                                            </DropdownMenuItem>
-                                        );
-                                    })}
+                                                    <div className="flex-grow min-w-0">
+                                                        <div className="flex justify-between items-start mb-0">
+                                                            <p className={`text-xs font-semibold leading-snug ${!notif.isRead ? 'text-primary' : 'text-foreground'}`}>
+                                                                {notifTitle}
+                                                            </p>
+                                                            {!notif.isRead && (
+                                                                <span className="h-1.5 w-1.5 bg-blue-500 rounded-full flex-shrink-0 ml-2 mt-1" aria-label="Unread"></span>
+                                                            )}
+                                                        </div>
+                                                        <p className={`text-xs ${notif.isRead ? 'text-muted-foreground' : 'text-foreground/90'} leading-normal line-clamp-2`}>
+                                                            {notif.message}
+                                                        </p>
+                                                        <p className="text-[10px] text-muted-foreground/80 mt-0.5 text-right">
+                                                            {timeAgo(notif.createdAt)}
+                                                        </p>
+                                                    </div>
+                                                </DropdownMenuItem>
+                                            );
+                                        })}
                                     </div>
                                 )}
-                             </ScrollArea>
+                            </ScrollArea>
                             {notifications.length > 0 && (
-                                 <div className="px-3 py-1.5 border-t dark:border-slate-700 text-center">
-                                     <Button 
-                                        variant="ghost" 
-                                        size="sm" 
-                                        className="w-full text-xs text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300" 
-                                        onClick={(e) => { 
-                                            e.stopPropagation(); 
-                                            clearAllNotifications();
-                                        }}
-                                     >
-                                         <Trash2 className="h-3 w-3 mr-1"/> Clear all notifications
-                                     </Button>
-                                 </div>
-                             )}
+                                <div className="px-3 py-1.5 border-t text-center">
+                                    <Button variant="ghost" size="sm" className="w-full text-xs text-red-600 hover:bg-red-50 hover:text-red-700" onClick={(e) => { e.stopPropagation(); clearAllNotifications();}}>
+                                        <Trash2 className="h-3 w-3 mr-1"/> Effacer toutes les notifications
+                                    </Button>
+                                </div>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                   <TooltipProvider>
+                    {/* User Profile */}
+                    <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" className="p-0 h-8 w-8 rounded-full text-foreground hover:bg-accent">
+                                <Button variant="ghost" className="p-0 h-8 w-8 rounded-full">
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage 
                                             src={currentUser?.profileImage ? `http://localhost:8089${currentUser.profileImage.startsWith('/') ? currentUser.profileImage : '/' + currentUser.profileImage}` : "https://github.com/shadcn.png"} 
                                             alt={currentUser?.username || "User"}
                                             onError={(e) => { e.target.src = "https://github.com/shadcn.png"; }}
                                         />
-                                        <AvatarFallback className="bg-muted"> {/* Fallback avec fond neutre */}
+                                        <AvatarFallback>
                                             {currentUser?.username ? currentUser.username.substring(0,2).toUpperCase() : "U"}
                                         </AvatarFallback>
                                     </Avatar>
@@ -319,10 +303,10 @@ const DashboardHeader = () => {
                             </TooltipTrigger>
                             <TooltipContent>
                                 <div className="font-medium">
-                                    {currentUser?.username || "User"}
+                                    {currentUser?.username || "Utilisateur"}
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                    {currentUser?.role || "Role"}
+                                    {currentUser?.role || "Rôle"}
                                 </p>
                             </TooltipContent>
                         </Tooltip>

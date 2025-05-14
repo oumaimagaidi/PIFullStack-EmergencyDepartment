@@ -30,6 +30,7 @@ import {
   ChevronRight,
   Moon,
   Sun,
+   ListChecks
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 
@@ -42,7 +43,9 @@ const DashboardSidebar = () => {
   const mainMenuItems = [
     { title: "Dashboard", icon: Home, path: "/dashboard" },
     { title: "Calendar", icon: Calendar, path: "/calendar" },
+     { title: "Manage Blood Requests", icon: ListChecks, path: "/staff/blood-requests/manage" },
     { title: "Alerts", icon: Bell, path: "/alerts" },
+
   ];
 
   const medicalMenuItems = [

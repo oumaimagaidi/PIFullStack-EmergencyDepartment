@@ -12,7 +12,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <SocketProvider>        {/* Add SocketProvider */}
         <NotificationProvider> {/* Add NotificationProvider */}
           <App />
-          <Toaster position="top-right" richColors /> {/* Add Sonner Toaster here */}
         </NotificationProvider>
       </SocketProvider>
     </BrowserRouter>
