@@ -6,9 +6,9 @@ import Cookies from "js-cookie"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Card, CardContent } from "@/components/ui/card" // Removed unused Card sub-components
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge" // Keep if you use its variants structurally
 import {
   Edit,
   Trash2,
@@ -16,17 +16,42 @@ import {
   Droplets,
   Eye,
   Search,
-  ClubIcon as PledgersIcon,
+  Users as PledgersIcon, // Changed icon for clarity
   ChevronDown,
   ChevronUp,
   CheckCircle,
   XCircle,
+  Loader2, // For loading indicators
+  ShieldAlert, // For error display
 } from "lucide-react"
 import CreateBloodRequestForm from "@/components/blood/CreateBloodRequestForm"
 import UpdateBloodRequestForm from "@/components/blood/UpdateBloodRequestForm"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
+
+// Palette definition
+const PALETTE = {
+  primaryDark: "#213448",
+  secondaryMuted: "#547792",
+  lightAccent: "#ECEFCA",
+  subtleMidTone: "#94B4C1",
+  pageBackground: "#F8F9FA", // Very light off-white, similar to ECEFCA/20
+  cardBackground: "#FFFFFF",
+  textPrimary: "text-[#213448]",
+  textSecondary: "text-[#547792]",
+  textLight: "text-[#ECEFCA]",
+  borderSubtle: "border-[#94B4C1]/50",
+  borderFocus: "focus:ring-[#547792]",
+  buttonPrimaryBg: "bg-[#547792]",
+  buttonPrimaryHoverBg: "hover:bg-[#213448]",
+  buttonOutlineBorder: "border-[#94B4C1]",
+  buttonOutlineText: "text-[#547792]",
+  buttonOutlineHoverBg: "hover:bg-[#ECEFCA]/40",
+  actionIconDefault: "text-[#547792]",
+  actionIconEdit: "text-yellow-600", // Semantic
+  actionIconDelete: "text-red-600",   // Semantic
+};
 
 const ManageBloodRequestsPage = () => {
   const [requests, setRequests] = useState([])
@@ -41,12 +66,11 @@ const ManageBloodRequestsPage = () => {
 
   const [pledgesMap, setPledgesMap] = useState({})
   const [expandedPledges, setExpandedPledges] = useState({})
-  const [updatingPledgeId, setUpdatingPledgeId] = useState(null) // For loading state on individual pledge update
+  const [updatingPledgeId, setUpdatingPledgeId] = useState(null)
 
   const statuses = ["All", "Open", "Partially Fulfilled", "Fulfilled", "Closed", "Cancelled"]
 
   const fetchAllRequests = async () => {
-    // ... (same)
     setLoading(true)
     setError(null)
     try {
@@ -59,6 +83,7 @@ const ManageBloodRequestsPage = () => {
     } catch (err) {
       console.error("Error fetching all blood requests:", err)
       setError(err.response?.data?.message || "Failed to load blood requests.")
+      toast.error(err.response?.data?.message || "Failed to load blood requests.")
     } finally {
       setLoading(false)
     }
@@ -69,7 +94,6 @@ const ManageBloodRequestsPage = () => {
   }, [])
 
   useEffect(() => {
-    // ... (filtering logic same)
     let currentFiltered = requests
     if (searchTerm) {
       currentFiltered = currentFiltered.filter(
@@ -87,7 +111,6 @@ const ManageBloodRequestsPage = () => {
   }, [searchTerm, filterStatus, requests])
 
   const fetchPledgesForRequest = async (requestId) => {
-    // ... (same)
     if (pledgesMap[requestId] && pledgesMap[requestId] !== "loading") return
     setPledgesMap((prev) => ({ ...prev, [requestId]: "loading" }))
     try {
@@ -98,13 +121,12 @@ const ManageBloodRequestsPage = () => {
       setPledgesMap((prev) => ({ ...prev, [requestId]: response.data || [] }))
     } catch (error) {
       console.error(`Error fetching pledges for request ${requestId}:`, error)
-      setPledgesMap((prev) => ({ ...prev, [requestId]: [] }))
+      setPledgesMap((prev) => ({ ...prev, [requestId]: [] })) // Set to empty array on error
       toast.error(`Could not load pledges for request ${requestId}.`)
     }
   }
 
   const togglePledgesView = (requestId) => {
-    // ... (same)
     const isCurrentlyExpanded = expandedPledges[requestId]
     setExpandedPledges((prev) => ({ ...prev, [requestId]: !isCurrentlyExpanded }))
     if (!isCurrentlyExpanded && (!pledgesMap[requestId] || pledgesMap[requestId] === "loading")) {
@@ -113,63 +135,71 @@ const ManageBloodRequestsPage = () => {
   }
 
   const handleDeleteRequest = async (requestId) => {
-    /* ... (same) ... */
+    if (!window.confirm("Are you sure you want to delete this blood request? This action cannot be undone.")) {
+        return;
+    }
+    try {
+        const token = Cookies.get("token");
+        await axios.delete(`http://localhost:8089/api/blood-requests/${requestId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Blood request deleted successfully!");
+        fetchAllRequests(); // Refresh the list
+    } catch (error) {
+        console.error("Error deleting blood request:", error);
+        toast.error(error.response?.data?.message || "Failed to delete blood request.");
+    }
   }
   const handleUpdateRequest = (request) => {
-    /* ... (same) ... */
+    setSelectedRequest(request)
+    setShowUpdateModal(true)
   }
 
-  // Updated color scheme for urgency badges
   const getUrgencyBadgeClasses = (urgency) => {
+    // These classes directly use Tailwind, no need for PALETTE object for these specific visual badges
     switch (urgency) {
-      case "Critical":
-        return "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#213448] text-[#ECEFCA]"
-      case "High":
-        return "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#547792] text-white"
-      case "Medium":
-        return "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#94B4C1] text-[#213448]"
-      case "Low":
-        return "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#ECEFCA] text-[#213448]"
-      default:
-        return "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800"
+      case "Critical": return "bg-red-600 text-white";
+      case "Urgent": return "bg-orange-500 text-white"; // Changed "High" to "Urgent" to match schema
+      case "Standard": return "bg-yellow-400 text-gray-800"; // Changed "Medium" to "Standard"
+      // Removed "Low" as it's not in the schema, adjust if your schema is different
+      default: return "bg-gray-400 text-white";
     }
   }
 
-  // Updated color scheme for status badges
   const getStatusBadgeClasses = (status) => {
     switch (status) {
-      case "Open":
-        return "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#94B4C1] text-[#213448]"
-      case "Partially Fulfilled":
-        return "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#DDA853] text-[#213448]"
-      case "Fulfilled":
-        return "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#ECEFCA] text-[#213448]"
-      case "Closed":
-        return "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#213448] text-[#ECEFCA]"
-      case "Cancelled":
-        return "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#547792] text-white"
-      default:
-        return "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800"
+      case "Open": return `bg-sky-500 ${PALETTE.textLight}`;
+      case "Partially Fulfilled": return `bg-amber-500 ${PALETTE.textPrimary}`;
+      case "Fulfilled": return `bg-green-500 ${PALETTE.textLight}`;
+      case "Closed": return `bg-[${PALETTE.primaryDark}] ${PALETTE.textLight}`;
+      case "Cancelled": return `bg-slate-500 ${PALETTE.textLight}`;
+      default: return "bg-gray-400 text-white";
     }
   }
+  
+  const getPledgeStatusBadgeStyle = (status) => {
+      switch (status) {
+          case "Donated": return { bg: `bg-[${PALETTE.lightAccent}]`, text: PALETTE.textPrimary, border: `border-[${PALETTE.subtleMidTone}]` };
+          case "Pledged": return { bg: "bg-blue-100", text: "text-blue-700", border: "border-blue-300" }; // Or use palette
+          case "Cancelled": return { bg: `bg-[${PALETTE.primaryDark}]/80`, text: PALETTE.textLight, border: `border-[${PALETTE.secondaryMuted}]` };
+          default: return { bg: "bg-gray-100", text: "text-gray-700", border: "border-gray-300" };
+      }
+  }
 
-  // --- NEW: Handle Pledge Status Update ---
+
   const handlePledgeStatusUpdate = async (pledgeId, newStatus, requestId) => {
     setUpdatingPledgeId(pledgeId)
     try {
       const token = Cookies.get("token")
-      const response = await axios.put(
+      await axios.put(
         `http://localhost:8089/api/blood-requests/pledges/${pledgeId}/status`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } },
       )
-      toast.success("Pledge status updated!")
-      // Update the specific pledge in the pledgesMap
-      setPledgesMap((prevMap) => ({
-        ...prevMap,
-        [requestId]: prevMap[requestId].map((p) => (p._id === pledgeId ? response.data.pledge : p)),
-      }))
-      // Refresh the main blood request list to reflect changes in quantityFulfilled and status
+      toast.success("Pledge status updated successfully!")
+      // Refresh pledges for the specific request
+      await fetchPledgesForRequest(requestId); // Refetch pledges for the current request
+      // Also refresh the main request list as quantityFulfilled might have changed
       fetchAllRequests()
     } catch (error) {
       console.error("Error updating pledge status:", error)
@@ -178,53 +208,64 @@ const ManageBloodRequestsPage = () => {
       setUpdatingPledgeId(null)
     }
   }
-  // --- END: Handle Pledge Status Update ---
 
   if (loading && requests.length === 0) {
-    /* ... (loading skeleton same) ... */
+    return (
+      <div className={`min-h-screen bg-[${PALETTE.pageBackground}] p-4 md:p-6 flex flex-col items-center justify-center`}>
+        <Loader2 className={`h-12 w-12 animate-spin ${PALETTE.textSecondary}`} />
+        <p className={`mt-4 text-lg ${PALETTE.textSecondary}`}>Loading Blood Requests...</p>
+      </div>
+    );
   }
-  if (error) {
-    /* ... (error display same) ... */
+  if (error && requests.length === 0) { // Only show full page error if no data at all
+    return (
+      <div className={`min-h-screen bg-[${PALETTE.pageBackground}] p-4 md:p-6 flex flex-col items-center justify-center text-center`}>
+        <ShieldAlert className={`h-16 w-16 text-red-500 mb-4`} />
+        <h2 className={`text-2xl font-semibold ${PALETTE.textPrimary} mb-2`}>Error Loading Data</h2>
+        <p className={`${PALETTE.textSecondary} mb-6`}>{error}</p>
+        <Button onClick={fetchAllRequests} className={`${PALETTE.buttonPrimaryBg} ${PALETTE.buttonPrimaryHoverBg} text-white`}>
+          Try Again
+        </Button>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-[#ECEFCA]/20 p-4 md:p-6">
+    <div className={`min-h-screen bg-[${PALETTE.pageBackground}] p-4 md:p-6`}>
       <div className="container mx-auto">
-        {/* ... (Header and Filters UI same) ... */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-[#213448] flex items-center">
-              <Droplets className="mr-2 h-7 w-7 text-[#547792]" /> Manage Blood Requests
+            <h1 className={`text-2xl md:text-3xl font-bold ${PALETTE.textPrimary} flex items-center`}>
+              <Droplets className={`mr-2 h-7 w-7 ${PALETTE.textSecondary}`} /> Manage Blood Requests
             </h1>
-            <p className="text-sm text-[#547792]">Oversee and update all blood donation requests.</p>
+            <p className={`text-sm ${PALETTE.textSecondary}`}>Oversee and update all blood donation requests.</p>
           </div>
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="w-full sm:w-auto bg-[#547792] hover:bg-[#213448] text-white"
+            className={`w-full sm:w-auto ${PALETTE.buttonPrimaryBg} ${PALETTE.buttonPrimaryHoverBg} text-white py-2.5`}
           >
             <PlusCircle className="mr-2 h-4 w-4" /> Create New Request
           </Button>
         </div>
 
-        {/* Filters */}
-        <div className="mb-6 p-4 bg-white rounded-lg shadow flex flex-col sm:flex-row gap-4 items-center">
+        <div className={`mb-6 p-4 bg-[${PALETTE.cardBackground}] rounded-lg shadow flex flex-col sm:flex-row gap-4 items-center ${PALETTE.borderSubtle} border`}>
           <div className="relative flex-grow w-full sm:w-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#547792]" />
+            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${PALETTE.textSecondary}`} />
             <Input
               type="text"
               placeholder="Search by patient, blood type, location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full py-2 px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#547792]"
+              className={`pl-10 w-full py-2 px-3 border rounded-md ${PALETTE.borderSubtle} ${PALETTE.borderFocus} ${PALETTE.textPrimary}`}
             />
           </div>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-full sm:w-[180px] py-2 px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#547792]">
+            <SelectTrigger className={`w-full sm:w-[200px] py-2 px-3 border rounded-md ${PALETTE.borderSubtle} ${PALETTE.borderFocus} ${PALETTE.textPrimary}`}>
               <SelectValue placeholder="Filter by Status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className={`bg-[${PALETTE.cardBackground}] border ${PALETTE.borderSubtle}`}>
               {statuses.map((status) => (
-                <SelectItem key={status} value={status}>
+                <SelectItem key={status} value={status} className={`${PALETTE.textPrimary}`}>
                   {status}
                 </SelectItem>
               ))}
@@ -232,50 +273,41 @@ const ManageBloodRequestsPage = () => {
           </Select>
         </div>
 
-        {loading && requests.length > 0 && <p className="text-center text-[#547792] my-4">Refreshing data...</p>}
+        {loading && requests.length > 0 && (
+            <div className="flex justify-center items-center my-4">
+                <Loader2 className={`h-5 w-5 animate-spin ${PALETTE.textSecondary} mr-2`} />
+                <p className={`${PALETTE.textSecondary}`}>Refreshing data...</p>
+            </div>
+        )}
+        {error && requests.length > 0 && ( // Show inline error if some data is already displayed
+            <div className={`my-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-md text-sm`}>
+                {error} <Button variant="link" size="sm" onClick={fetchAllRequests} className="text-red-700 underline">Try refreshing.</Button>
+            </div>
+        )}
 
-        <Card className="shadow-md">
+
+        <Card className={`shadow-lg bg-[${PALETTE.cardBackground}] border ${PALETTE.borderSubtle}`}>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
-                {/* ... (TableHeader same) ... */}
-                <TableHeader className="bg-[#213448]">
+                <TableHeader className={`bg-[${PALETTE.primaryDark}]`}>
                   <TableRow>
-                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-[#ECEFCA] uppercase tracking-wider">
-                      Patient
-                    </TableHead>
-                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-[#ECEFCA] uppercase tracking-wider">
-                      Blood Type
-                    </TableHead>
-                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-[#ECEFCA] uppercase tracking-wider">
-                      Quantity (Donated/Needed)
-                    </TableHead>{" "}
-                    {/* Changed */}
-                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-[#ECEFCA] uppercase tracking-wider">
-                      Urgency
-                    </TableHead>
-                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-[#ECEFCA] uppercase tracking-wider">
-                      Status
-                    </TableHead>
-                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-[#ECEFCA] uppercase tracking-wider">
-                      Requested By
-                    </TableHead>
-                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-[#ECEFCA] uppercase tracking-wider">
-                      Date
-                    </TableHead>
-                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-[#ECEFCA] uppercase tracking-wider">
-                      Pledges
-                    </TableHead>
-                    <TableHead className="px-6 py-3 text-right text-xs font-medium text-[#ECEFCA] uppercase tracking-wider">
-                      Actions
-                    </TableHead>
+                    <TableHead className={`px-4 py-3 text-left text-xs font-medium ${PALETTE.textLight} uppercase tracking-wider`}>Patient</TableHead>
+                    <TableHead className={`px-4 py-3 text-left text-xs font-medium ${PALETTE.textLight} uppercase tracking-wider`}>Blood Type</TableHead>
+                    <TableHead className={`px-4 py-3 text-left text-xs font-medium ${PALETTE.textLight} uppercase tracking-wider`}>Qty (Fulfilled/Needed)</TableHead>
+                    <TableHead className={`px-4 py-3 text-left text-xs font-medium ${PALETTE.textLight} uppercase tracking-wider`}>Urgency</TableHead>
+                    <TableHead className={`px-4 py-3 text-left text-xs font-medium ${PALETTE.textLight} uppercase tracking-wider`}>Status</TableHead>
+                    <TableHead className={`px-4 py-3 text-left text-xs font-medium ${PALETTE.textLight} uppercase tracking-wider`}>Requester</TableHead>
+                    <TableHead className={`px-4 py-3 text-left text-xs font-medium ${PALETTE.textLight} uppercase tracking-wider`}>Date</TableHead>
+                    <TableHead className={`px-4 py-3 text-center text-xs font-medium ${PALETTE.textLight} uppercase tracking-wider`}>Pledges</TableHead>
+                    <TableHead className={`px-4 py-3 text-right text-xs font-medium ${PALETTE.textLight} uppercase tracking-wider`}>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody className="bg-white divide-y divide-[#94B4C1]/30">
+                <TableBody className={`bg-[${PALETTE.cardBackground}] divide-y ${PALETTE.borderSubtle}`}>
                   {filteredRequests.length === 0 && !loading && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-[#547792] py-10">
-                        No blood requests found.
+                      <TableCell colSpan={9} className={`text-center ${PALETTE.textSecondary} py-10`}>
+                        No blood requests match your current filters.
                       </TableCell>
                     </TableRow>
                   )}
@@ -287,178 +319,135 @@ const ManageBloodRequestsPage = () => {
                       onOpenChange={() => togglePledgesView(req._id)}
                     >
                       <>
-                        <TableRow className="hover:bg-[#ECEFCA]/20 data-[state=open]:bg-[#94B4C1]/10">
-                          {/* ... (Patient, Blood Type, Quantity, Urgency, Status, Requested By, Date cells same) ... */}
-                          <TableCell className="px-6 py-4 whitespace-nowrap">
+                        <TableRow className={`hover:bg-[${PALETTE.lightAccent}]/30 data-[state=open]:bg-[${PALETTE.subtleMidTone}]/20`}>
+                          <TableCell className={`px-4 py-3 whitespace-nowrap ${PALETTE.textPrimary}`}>
                             {req.patientId ? (
-                              <Link to={`/blood-requests/${req._id}`} className="hover:underline text-[#547792]">
+                              <Link to={`/blood-requests/${req._id}`} className={`hover:underline ${PALETTE.textSecondary} font-medium`}>
                                 {req.patientId.firstName} {req.patientId.lastName}
                               </Link>
-                            ) : (
-                              "N/A"
-                            )}
+                            ) : ( <span className={PALETTE.textSecondary}>N/A</span> )}
                           </TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap">
-                            <span className="px-2 inline-flex text-xs leading-5 font-mono font-semibold rounded-full bg-[#ECEFCA] text-[#213448]">
+                          <TableCell className={`px-4 py-3 whitespace-nowrap`}>
+                            <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-mono font-semibold rounded-full bg-[${PALETTE.lightAccent}] ${PALETTE.textPrimary}`}>
                               {req.bloodTypeNeeded}
                             </span>
                           </TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap">
-                            {req.quantityFulfilled} / {req.quantityNeeded}
+                          <TableCell className={`px-4 py-3 whitespace-nowrap ${PALETTE.textPrimary}`}>
+                            {req.quantityFulfilled || 0} / {req.quantityNeeded}
                           </TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap">
-                            <span className={getUrgencyBadgeClasses(req.urgency)}>{req.urgency}</span>
+                          <TableCell className={`px-4 py-3 whitespace-nowrap`}>
+                            <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${getUrgencyBadgeClasses(req.urgency)}`}>{req.urgency}</span>
                           </TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap">
-                            <span className={getStatusBadgeClasses(req.status)}>{req.status}</span>
+                          <TableCell className={`px-4 py-3 whitespace-nowrap`}>
+                            <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClasses(req.status)}`}>{req.status}</span>
                           </TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap">
+                          <TableCell className={`px-4 py-3 whitespace-nowrap ${PALETTE.textSecondary}`}>
                             {req.requestingStaffId?.username || "N/A"}
                           </TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap">
+                          <TableCell className={`px-4 py-3 whitespace-nowrap ${PALETTE.textSecondary}`}>
                             {new Date(req.createdAt).toLocaleDateString()}
                           </TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap">
-                            {" "}
-                            {/* Pledges Trigger */}
+                          <TableCell className={`px-4 py-3 whitespace-nowrap text-center`}>
                             <CollapsibleTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="flex items-center gap-1 text-xs text-[#547792] hover:text-[#213448] hover:bg-[#ECEFCA]/50"
+                                className={`flex items-center justify-center gap-1 text-xs ${PALETTE.textSecondary} hover:${PALETTE.textPrimary} hover:bg-[${PALETTE.lightAccent}]/50 w-full`}
                               >
-                                <PledgersIcon className="h-3.5 w-3.5" />
+                                <PledgersIcon className="h-4 w-4" />
                                 {Array.isArray(pledgesMap[req._id])
                                   ? pledgesMap[req._id].length
                                   : pledgesMap[req._id] === "loading"
-                                    ? "..."
+                                    ? <Loader2 className="h-3 w-3 animate-spin"/>
                                     : 0}
                                 {expandedPledges[req._id] ? (
-                                  <ChevronUp className="h-3.5 w-3.5" />
+                                  <ChevronUp className="h-4 w-4" />
                                 ) : (
-                                  <ChevronDown className="h-3.5 w-3.5" />
+                                  <ChevronDown className="h-4 w-4" />
                                 )}
                               </Button>
                             </CollapsibleTrigger>
                           </TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap text-right space-x-1">
-                            {" "}
-                            {/* Actions */}
-                            <Button
-                              asChild
-                              variant="ghost"
-                              size="icon"
-                              className="hover:bg-[#94B4C1]/20 text-[#547792] w-8 h-8"
-                            >
-                              <Link to={`/blood-requests/${req._id}`}>
-                                {" "}
-                                <Eye className="h-4 w-4" />{" "}
-                              </Link>
+                          <TableCell className={`px-4 py-3 whitespace-nowrap text-right space-x-1`}>
+                            <Button asChild variant="ghost" size="icon" className={`hover:bg-[${PALETTE.subtleMidTone}]/20 ${PALETTE.actionIconDefault} w-8 h-8`}>
+                              <Link to={`/blood-requests/${req._id}`}> <Eye className="h-4 w-4" /> </Link>
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleUpdateRequest(req)}
-                              className="hover:bg-[#DDA853]/20 text-[#DDA853] w-8 h-8"
-                            >
+                            <Button variant="ghost" size="icon" onClick={() => handleUpdateRequest(req)} className={`hover:bg-yellow-400/20 ${PALETTE.actionIconEdit} w-8 h-8`}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteRequest(req._id)}
-                              className="hover:bg-[#213448]/10 text-[#213448] w-8 h-8"
-                            >
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteRequest(req._id)} className={`hover:bg-red-500/10 ${PALETTE.actionIconDelete} w-8 h-8`}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TableCell>
                         </TableRow>
                         <CollapsibleContent asChild>
-                          <TableRow>
+                          <TableRow className={`bg-[${PALETTE.lightAccent}]/20`}>
                             <TableCell colSpan={9} className="p-0">
                               {expandedPledges[req._id] && (
-                                <div className="p-4 bg-[#ECEFCA]/20 border-t border-[#94B4C1]/30">
-                                  {" "}
-                                  {/* Changed bg for better contrast */}
-                                  <h4 className="font-semibold text-sm mb-3 text-[#213448]">
+                                <div className={`p-4 border-t ${PALETTE.borderSubtle}`}>
+                                  <h4 className={`font-semibold text-sm mb-3 ${PALETTE.textPrimary}`}>
                                     Pledges for this Request:
                                   </h4>
                                   {pledgesMap[req._id] === "loading" && (
-                                    <p className="text-xs text-[#547792]">Loading pledges...</p>
+                                    <div className="flex items-center text-xs text-gray-500">
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading pledges...
+                                    </div>
                                   )}
                                   {Array.isArray(pledgesMap[req._id]) && pledgesMap[req._id].length > 0 ? (
-                                    <div className="space-y-2">
-                                      {pledgesMap[req._id].map((pledge) => (
+                                    <div className="space-y-3">
+                                      {pledgesMap[req._id].map((pledge) => {
+                                        const pledgeStatusStyle = getPledgeStatusBadgeStyle(pledge.status);
+                                        return (
                                         <div
                                           key={pledge._id}
-                                          className="p-3 bg-white rounded-md shadow-sm border border-[#94B4C1]/30 text-xs"
+                                          className={`p-3 bg-[${PALETTE.cardBackground}] rounded-md shadow-sm border ${PALETTE.borderSubtle} text-xs`}
                                         >
-                                          <div className="flex justify-between items-center mb-1">
-                                            <span className="font-medium text-[#213448]">
-                                              {pledge.donorName || pledge.donorUserId?.username} (
-                                              {pledge.donorBloodType}) - {pledge.pledgedQuantity} unit(s)
+                                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1.5 gap-2">
+                                            <span className={`font-medium ${PALETTE.textPrimary}`}>
+                                              {pledge.donorName || pledge.donorUserId?.username} ({pledge.donorBloodType}) - {pledge.pledgedQuantity} unit(s)
                                             </span>
                                             <Badge
-                                              variant={
-                                                pledge.status === "Donated"
-                                                  ? "success"
-                                                  : pledge.status === "Cancelled"
-                                                    ? "destructive"
-                                                    : "outline"
-                                              }
-                                              className={
-                                                pledge.status === "Donated"
-                                                  ? "bg-[#ECEFCA] text-[#213448] hover:bg-[#ECEFCA]/80"
-                                                  : pledge.status === "Cancelled"
-                                                    ? "bg-[#213448] text-[#ECEFCA] hover:bg-[#213448]/80"
-                                                    : "border-[#94B4C1] text-[#547792]"
-                                              }
-                                              size="sm"
+                                              className={`px-2.5 py-1 text-xs ${pledgeStatusStyle.bg} ${pledgeStatusStyle.text} border ${pledgeStatusStyle.border}`}
                                             >
                                               {pledge.status}
                                             </Badge>
                                           </div>
-                                          <p className="text-[#547792]">Phone: {pledge.donorContactPhone}</p>
-                                          <p className="text-[#547792]/80 text-[11px]">
+                                          <p className={`${PALETTE.textSecondary}`}>Phone: {pledge.donorContactPhone || "N/A"}</p>
+                                          <p className={`${PALETTE.textSecondary}/80 text-[11px]`}>
                                             Pledged on: {new Date(pledge.createdAt).toLocaleDateString()}
                                           </p>
                                           {pledge.donationNotes && (
-                                            <p className="mt-1 pt-1 border-t border-[#94B4C1]/20 italic text-[#547792]/70 text-[11px]">
+                                            <p className={`mt-1 pt-1 border-t ${PALETTE.borderSubtle}/50 italic ${PALETTE.textSecondary}/70 text-[11px]`}>
                                               Note: {pledge.donationNotes}
                                             </p>
                                           )}
-
-                                          {/* --- NEW: Pledge Status Update Buttons --- */}
-                                          {pledge.status !== "Donated" && pledge.status !== "Cancelled" && (
-                                            <div className="mt-2 pt-2 border-t border-[#94B4C1]/20 flex gap-2">
+                                          {(pledge.status === "Pledged") && ( // Only show update options if status is 'Pledged'
+                                            <div className={`mt-2 pt-2 border-t ${PALETTE.borderSubtle}/50 flex flex-wrap gap-2`}>
                                               <Button
-                                                size="xs" // You might need to define a 'xs' size for Button or use p-1 text-xs
+                                                size="sm" // Use shadcn Button size
                                                 variant="outline"
-                                                className="text-[#213448] border-[#ECEFCA] bg-[#ECEFCA]/50 hover:bg-[#ECEFCA] h-7 px-2"
+                                                className={`text-green-600 border-green-300 hover:bg-green-50 h-8 px-2.5 ${PALETTE.textPrimary}`}
                                                 onClick={() => handlePledgeStatusUpdate(pledge._id, "Donated", req._id)}
                                                 disabled={updatingPledgeId === pledge._id}
                                               >
-                                                <CheckCircle className="h-3.5 w-3.5 mr-1" /> Mark as Donated
+                                                {updatingPledgeId === pledge._id && pledge.status !== "Cancelled" ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin"/> : <CheckCircle className="h-3.5 w-3.5 mr-1" />} Mark Donated
                                               </Button>
                                               <Button
-                                                size="xs"
+                                                size="sm"
                                                 variant="outline"
-                                                className="text-[#ECEFCA] border-[#213448] bg-[#213448]/50 hover:bg-[#213448] h-7 px-2"
-                                                onClick={() =>
-                                                  handlePledgeStatusUpdate(pledge._id, "Cancelled", req._id)
-                                                }
+                                                className={`text-red-600 border-red-300 hover:bg-red-50 h-8 px-2.5 ${PALETTE.textPrimary}`}
+                                                onClick={() => handlePledgeStatusUpdate(pledge._id, "Cancelled", req._id)}
                                                 disabled={updatingPledgeId === pledge._id}
                                               >
-                                                <XCircle className="h-3.5 w-3.5 mr-1" /> Mark as Cancelled
+                                                 {updatingPledgeId === pledge._id && pledge.status !== "Donated" ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin"/> : <XCircle className="h-3.5 w-3.5 mr-1" />} Mark Cancelled
                                               </Button>
                                             </div>
                                           )}
-                                          {/* --- END: Pledge Status Update Buttons --- */}
                                         </div>
-                                      ))}
+                                      )})}
                                     </div>
                                   ) : Array.isArray(pledgesMap[req._id]) ? (
-                                    <p className="text-xs text-[#547792] py-2">No pledges yet for this request.</p>
+                                    <p className={`text-xs ${PALETTE.textSecondary} py-2`}>No pledges yet for this request.</p>
                                   ) : null}
                                 </div>
                               )}
@@ -474,7 +463,6 @@ const ManageBloodRequestsPage = () => {
           </CardContent>
         </Card>
 
-        {/* Modals */}
         {showCreateModal && (
           <CreateBloodRequestForm
             isOpen={showCreateModal}
@@ -482,6 +470,7 @@ const ManageBloodRequestsPage = () => {
             onSuccessfullyCreated={() => {
               fetchAllRequests()
             }}
+            // Pass palette to modal if it needs it directly, or it will use its own
           />
         )}
         {showUpdateModal && selectedRequest && (
@@ -492,6 +481,7 @@ const ManageBloodRequestsPage = () => {
             onSuccessfullyUpdated={() => {
               fetchAllRequests()
             }}
+            // Pass palette to modal if it needs it directly
           />
         )}
       </div>

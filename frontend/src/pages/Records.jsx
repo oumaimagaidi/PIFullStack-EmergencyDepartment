@@ -1,11 +1,12 @@
+// src/pages/Records.jsx
 "use client"
-import ShareMedicalRecordButton from "./ShareMedicalRecordButton"
-import SharedRecordsTab from "./SharedRecordsTab"
+import ShareMedicalRecordButton from "./ShareMedicalRecordButton" // Assuming this is already themed or a simple button
+import SharedRecordsTab from "./SharedRecordsTab" // Assuming this is already themed or will be separately
 import { useEffect, useState } from "react"
 import axios from "axios"
 import Cookies from "js-cookie"
 import { useNavigate } from "react-router-dom"
-import { AlertCircle, FileText, User, Activity, Clock, AlertTriangle, Search } from "lucide-react"
+import { AlertCircle, FileText, User, Activity, Clock, AlertTriangle, Search, Users, Loader2, ShieldAlert } from "lucide-react"
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -14,6 +15,46 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
+
+// --- Consistent Palette ---
+const PALETTE = {
+  primaryDark: "#213448",
+  secondaryMuted: "#547792",
+  lightAccent: "#ECEFCA",
+  subtleMidTone: "#94B4C1",
+  pageGradientStart: "#F0F4F8",
+  pageGradientEnd: "#E0E8F0",
+  cardBackground: "#FFFFFF",
+  textPrimary: "text-[#213448]",
+  textSecondary: "text-[#547792]",
+  textLight: "text-[#ECEFCA]",
+  borderSubtle: "border-gray-200/90",
+  borderFocus: "focus:ring-[#547792] focus:border-[#547792]",
+  buttonPrimaryBg: "bg-[#547792]",
+  buttonPrimaryText: "text-[#213448]",
+  buttonPrimaryHoverBg: "hover:bg-[#547792]",
+  buttonOutlineBorder: "border-[#94B4C1]",
+  buttonOutlineText: "text-[#547792]",
+  buttonOutlineHoverBorder: "hover:border-[#213448]",
+  buttonOutlineHoverBg: "hover:bg-[#ECEFCA]/40",
+  // Dark mode stubs (apply with dark: prefix if needed)
+  dark: {
+    pageGradientStart: "dark:from-slate-900",
+    pageGradientEnd: "dark:to-slate-800",
+    cardBackground: "dark:bg-slate-800",
+    textPrimary: "dark:text-slate-100",
+    textSecondary: "dark:text-slate-400",
+    borderSubtle: "dark:border-slate-700",
+  }
+};
+
+// Badge Styles - more control than default variants sometimes
+const BADGE_STYLES = {
+  urgent: `bg-red-500 ${PALETTE.textLight} border-red-600`,
+  medium: `bg-amber-500 ${PALETTE.textPrimary} border-amber-600`, // Ensure contrast
+  low: `bg-sky-500 ${PALETTE.textLight} border-sky-600`,
+  default: `bg-gray-200 ${PALETTE.textPrimary} border-gray-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600`,
+};
 
 const Records = () => {
   const [patients, setPatients] = useState([])
@@ -24,124 +65,107 @@ const Records = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const navigate = useNavigate()
 
-  useEffect(() => {
+  useEffect(() => { /* ... (unchanged) ... */
     const token = Cookies.get("token")
     if (!token) {
-      setError("Médecin non connecté. Veuillez vous connecter.")
+      setError("Doctor not logged in. Please log in.") // English error
       setLoading(false)
       return
     }
-
     try {
       const payload = JSON.parse(atob(token.split(".")[1]))
       setDoctorId(payload.id)
-      console.log("ID du médecin connecté :", payload.id)
     } catch (err) {
-      setError("Erreur lors du décodage du token.")
-      console.error("Erreur de décodage du token :", err)
+      setError("Error decoding token.") // English error
+      console.error("Token decoding error:", err)
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => {
+  useEffect(() => { /* ... (unchanged) ... */
     const fetchPatients = async () => {
       if (!doctorId) return
-
       try {
         const token = Cookies.get("token")
         const res = await axios.get(`http://localhost:8089/api/emergency-patients/by-doctor/${doctorId}`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         })
-
-        console.log("Patients récupérés :", res.data)
-        setPatients(res.data)
-        setFilteredPatients(res.data)
+        const sortedPatients = (res.data || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setPatients(sortedPatients);
+        setFilteredPatients(sortedPatients);
       } catch (err) {
-        console.error("Erreur lors de la récupération des patients :", err)
-        setError("Erreur lors du chargement des dossiers des patients.")
+        console.error("Error fetching patients:", err)
+        setError("Error loading patient records.") // English error
       } finally {
         setLoading(false)
       }
     }
-
     fetchPatients()
   }, [doctorId])
 
-  useEffect(() => {
+  useEffect(() => { /* ... (unchanged) ... */
     if (searchTerm.trim() === "") {
       setFilteredPatients(patients)
     } else {
+      const lowerSearchTerm = searchTerm.toLowerCase();
       const filtered = patients.filter(
         (patient) =>
-          `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          patient.emergencyLevel?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          patient.currentSymptoms?.toLowerCase().includes(searchTerm.toLowerCase()),
+          `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(lowerSearchTerm) ||
+          patient.emergencyLevel?.toLowerCase().includes(lowerSearchTerm) ||
+          patient.currentSymptoms?.toLowerCase().includes(lowerSearchTerm) ||
+          patient.status?.toLowerCase().includes(lowerSearchTerm)
       )
       setFilteredPatients(filtered)
     }
   }, [searchTerm, patients])
 
-  const handleViewMedicalRecord = (medicalRecordId) => {
+  const handleViewMedicalRecord = (medicalRecordId) => { /* ... (unchanged) ... */
     if (medicalRecordId) {
       navigate(`/medical-records/${medicalRecordId}`)
     }
   }
-
-  const getEmergencyLevelBadge = (level) => {
+  
+  const getEmergencyLevelBadgeClasses = (level) => {
     switch (level?.toLowerCase()) {
-      case "high":
-      case "élevé":
-      case "urgent":
-        return (
-          <Badge variant="destructive" className="ml-2">
-            Urgent
-          </Badge>
-        )
-      case "medium":
-      case "moyen":
-        return (
-          <Badge variant="warning" className="ml-2 bg-amber-500">
-            Moyen
-          </Badge>
-        )
-      case "low":
-      case "faible":
-        return (
-          <Badge variant="outline" className="ml-2">
-            Faible
-          </Badge>
-        )
-      default:
-        return (
-          <Badge variant="secondary" className="ml-2">
-            Non défini
-          </Badge>
-        )
+      case "high": case "élevé": case "urgent": return BADGE_STYLES.urgent;
+      case "medium": case "moyen": return BADGE_STYLES.medium;
+      case "low": case "faible": return BADGE_STYLES.low;
+      default: return BADGE_STYLES.default;
     }
-  }
+  };
+
+  const getEmergencyLevelBorderColor = (level) => {
+    switch (level?.toLowerCase()) {
+        case "high": case "élevé": case "urgent": return "border-red-500";
+        case "medium": case "moyen": return "border-amber-500";
+        case "low": case "faible": return "border-sky-500";
+        default: return `border-[${PALETTE.subtleMidTone}] ${PALETTE.dark.borderSubtle}`;
+    }
+  };
+
 
   if (loading) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="flex items-center space-x-2 mb-6">
-          <Skeleton className="h-8 w-[250px]" />
+      <div className={`p-4 sm:p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-br from-[${PALETTE.pageGradientStart}] to-[${PALETTE.pageGradientEnd}] ${PALETTE.dark.pageGradientStart} ${PALETTE.dark.pageGradientEnd}`}>
+        <div className="flex items-center justify-between mb-6">
+          <Skeleton className={`h-10 w-[280px] bg-gray-200 ${PALETTE.dark.borderSubtle}`} />
+          <Skeleton className={`h-10 w-[200px] bg-gray-200 ${PALETTE.dark.borderSubtle}`} />
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Skeleton className={`h-10 w-[400px] mb-6 bg-gray-200 ${PALETTE.dark.borderSubtle}`} />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="overflow-hidden">
-              <CardHeader className="pb-2">
-                <Skeleton className="h-6 w-[180px]" />
+            <Card key={i} className={`overflow-hidden ${PALETTE.cardBackground} ${PALETTE.dark.cardBackground} border ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle} rounded-xl shadow`}>
+              <CardHeader className="pb-3 border-b border-gray-100 dark:border-slate-700">
+                <Skeleton className={`h-6 w-3/4 bg-gray-300 ${PALETTE.dark.borderSubtle}`} />
               </CardHeader>
-              <CardContent className="pb-2">
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-[150px]" />
-                  <Skeleton className="h-4 w-[200px]" />
-                  <Skeleton className="h-4 w-[170px]" />
-                </div>
+              <CardContent className="py-4 space-y-2">
+                <Skeleton className={`h-4 w-5/6 bg-gray-200 ${PALETTE.dark.borderSubtle}`} />
+                <Skeleton className={`h-4 w-full bg-gray-200 ${PALETTE.dark.borderSubtle}`} />
+                <Skeleton className={`h-4 w-4/5 bg-gray-200 ${PALETTE.dark.borderSubtle}`} />
               </CardContent>
-              <CardFooter>
-                <Skeleton className="h-10 w-[180px]" />
+              <CardFooter className={`pt-3 border-t border-gray-100 dark:border-slate-700`}>
+                <Skeleton className={`h-9 w-full bg-gray-300 ${PALETTE.dark.borderSubtle} rounded-md`} />
               </CardFooter>
             </Card>
           ))}
@@ -152,9 +176,9 @@ const Records = () => {
 
   if (error) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
+      <div className={`p-6 max-w-4xl mx-auto min-h-screen flex items-center justify-center bg-gradient-to-br from-[${PALETTE.pageGradientStart}] to-[${PALETTE.pageGradientEnd}] ${PALETTE.dark.pageGradientStart} ${PALETTE.dark.pageGradientEnd}`}>
+        <Alert variant="destructive" className={`bg-red-50 border-red-200 text-red-700 dark:bg-red-900/30 dark:border-red-700 dark:text-red-300 shadow-lg rounded-xl`}>
+          <ShieldAlert className="h-5 w-5" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
@@ -162,18 +186,18 @@ const Records = () => {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto bg-slate-50 min-h-screen">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+    <div className={`p-4 sm:p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-br from-[${PALETTE.pageGradientStart}] to-[${PALETTE.pageGradientEnd}] ${PALETTE.dark.pageGradientStart} ${PALETTE.dark.pageGradientEnd}`}>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800"style={{ color: '#42A5FF' }}>Dossiers Médicaux</h1>
-          <p className="text-slate-500 mt-1">Gestion des patients assignés</p>
+          <h1 className={`text-3xl md:text-4xl font-extrabold ${PALETTE.textPrimary} ${PALETTE.dark.textPrimary}`}>Medical Records</h1>
+          <p className={`${PALETTE.textSecondary} ${PALETTE.dark.textSecondary} mt-1 text-sm md:text-base`}>Manage records of assigned patients</p>
         </div>
-        <div className="relative w-full md:w-64">
-          <Search className="absolute left-0.5 top-2.5 h-4 w-4 text-slate-500" />
+        <div className="relative w-full md:w-72">
+          <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`} />
           <Input
             type="search"
-            placeholder="Rechercher un patient..."
-            className="pl-8"
+            placeholder="Search patient, level, symptoms..."
+            className={`pl-10 w-full py-2.5 ${PALETTE.borderSubtle} ${PALETTE.borderFocus} ${PALETTE.textPrimary} ${PALETTE.dark.borderSubtle} ${PALETTE.dark.textPrimary} rounded-lg shadow-sm bg-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -181,112 +205,101 @@ const Records = () => {
       </div>
 
       <Tabs defaultValue="all" className="mb-6">
-        <TabsList>
-          <TabsTrigger value="all">Tous les patients</TabsTrigger>
-          <TabsTrigger value="urgent">Urgents</TabsTrigger>
-          <TabsTrigger value="with-records">Avec dossier</TabsTrigger>
-          <TabsTrigger value="without-records">Sans dossier</TabsTrigger>
-          <TabsTrigger value="shared-with-me">Partagés avec moi</TabsTrigger>
+        <TabsList className={`grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg`}>
+          <TabsTrigger value="all" className={`data-[state=active]:${PALETTE.buttonPrimaryBg} data-[state=active]:${PALETTE.buttonPrimaryText} data-[state=active]:shadow-md dark:data-[state=active]:${PALETTE.dark.buttonPrimaryBg} dark:data-[state=active]:${PALETTE.dark.buttonPrimaryText} text-slate-600 dark:text-slate-300 rounded-md`}>All Patients</TabsTrigger>
+          <TabsTrigger value="urgent" className={`data-[state=active]:${PALETTE.buttonPrimaryBg} data-[state=active]:${PALETTE.buttonPrimaryText} data-[state=active]:shadow-md dark:data-[state=active]:${PALETTE.dark.buttonPrimaryBg} dark:data-[state=active]:${PALETTE.dark.buttonPrimaryText} text-slate-600 dark:text-slate-300 rounded-md`}>Urgent</TabsTrigger>
+          <TabsTrigger value="with-records" className={`data-[state=active]:${PALETTE.buttonPrimaryBg} data-[state=active]:${PALETTE.buttonPrimaryText} data-[state=active]:shadow-md dark:data-[state=active]:${PALETTE.dark.buttonPrimaryBg} dark:data-[state=active]:${PALETTE.dark.buttonPrimaryText} text-slate-600 dark:text-slate-300 rounded-md`}>With Record</TabsTrigger>
+          <TabsTrigger value="without-records" className={`data-[state=active]:${PALETTE.buttonPrimaryBg} data-[state=active]:${PALETTE.buttonPrimaryText} data-[state=active]:shadow-md dark:data-[state=active]:${PALETTE.dark.buttonPrimaryBg} dark:data-[state=active]:${PALETTE.dark.buttonPrimaryText} text-slate-600 dark:text-slate-300 rounded-md`}>No Record</TabsTrigger>
+          <TabsTrigger value="shared-with-me" className={`data-[state=active]:${PALETTE.buttonPrimaryBg} data-[state=active]:${PALETTE.buttonPrimaryText} data-[state=active]:shadow-md dark:data-[state=active]:${PALETTE.dark.buttonPrimaryBg} dark:data-[state=active]:${PALETTE.dark.buttonPrimaryText} text-slate-600 dark:text-slate-300 rounded-md`}>Shared With Me</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all">{renderPatientsList(filteredPatients)}</TabsContent>
-
-        <TabsContent value="urgent">
+        <TabsContent value="all" className="mt-6">{renderPatientsList(filteredPatients)}</TabsContent>
+        <TabsContent value="urgent" className="mt-6">
           {renderPatientsList(
             filteredPatients.filter(
-              (p) =>
-                p.emergencyLevel?.toLowerCase() === "high" ||
-                p.emergencyLevel?.toLowerCase() === "urgent" ||
-                p.emergencyLevel?.toLowerCase() === "élevé",
+              (p) => ["high", "urgent", "élevé"].includes(p.emergencyLevel?.toLowerCase())
             ),
           )}
         </TabsContent>
-
-        <TabsContent value="with-records">
+        <TabsContent value="with-records" className="mt-6">
           {renderPatientsList(filteredPatients.filter((p) => p.medicalRecord))}
         </TabsContent>
-
-        <TabsContent value="without-records">
+        <TabsContent value="without-records" className="mt-6">
           {renderPatientsList(filteredPatients.filter((p) => !p.medicalRecord))}
         </TabsContent>
-
-        <TabsContent value="shared-with-me">
-          <SharedRecordsTab />
+        <TabsContent value="shared-with-me" className="mt-6">
+          <SharedRecordsTab /> {/* Ensure this component is also themed */}
         </TabsContent>
       </Tabs>
+       {/* ShareMedicalRecordButton might be used within each patient card or as a general action */}
+       {/* <ShareMedicalRecordButton patientId={"somePatientId"} doctorId={doctorId} /> */}
     </div>
   )
 
   function renderPatientsList(patientsList) {
     if (patientsList.length === 0) {
       return (
-        <div className="text-center py-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
-            <User className="h-8 w-8 text-slate-400" />
+        <div className={`text-center py-12 ${PALETTE.cardBackground} ${PALETTE.dark.cardBackground} rounded-xl shadow border ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle}`}>
+          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-[${PALETTE.lightAccent}] dark:bg-slate-700 mb-4`}>
+            <Users className={`h-8 w-8 ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`} />
           </div>
-          <h3 className="text-lg font-medium text-slate-900">Aucun patient trouvé</h3>
-          <p className="text-slate-500 mt-1">Aucun patient ne correspond à ces critères.</p>
+          <h3 className={`text-lg font-medium ${PALETTE.textPrimary} ${PALETTE.dark.textPrimary}`}>No patients found</h3>
+          <p className={`${PALETTE.textSecondary} ${PALETTE.dark.textSecondary} mt-1 text-sm`}>
+            {searchTerm ? "No patients match your current search or filter." : "No patients assigned or available in this category."}
+          </p>
         </div>
       )
     }
 
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {patientsList.map((patient) => (
           <Card
             key={patient._id}
-            className="overflow-hidden border-l-4 hover:shadow-md transition-shadow"
-            style={{
-              borderLeftColor:
-                patient.emergencyLevel?.toLowerCase() === "high" ||
-                patient.emergencyLevel?.toLowerCase() === "urgent" ||
-                patient.emergencyLevel?.toLowerCase() === "élevé"
-                  ? "rgb(239, 68, 68)"
-                  : patient.emergencyLevel?.toLowerCase() === "medium" ||
-                      patient.emergencyLevel?.toLowerCase() === "moyen"
-                    ? "rgb(245, 158, 11)"
-                    : "rgb(99, 102, 241)",
-            }}
+            className={`overflow-hidden border-l-4 hover:shadow-lg transition-shadow duration-300 rounded-xl ${PALETTE.cardBackground} ${PALETTE.dark.cardBackground} border ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle} ${getEmergencyLevelBorderColor(patient.emergencyLevel)}`}
           >
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center text-xl">
-                <User className="h-5 w-5 mr-2 text-slate-500" />
+            <CardHeader className={`pb-3 border-b ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle}`}>
+              <CardTitle className={`flex items-center text-lg md:text-xl font-semibold ${PALETTE.textPrimary} ${PALETTE.dark.textPrimary}`}>
+                <User className={`h-5 w-5 mr-2 ${PALETTE.secondaryMuted} ${PALETTE.dark.textSecondary}`} />
                 {patient.firstName} {patient.lastName}
-                {getEmergencyLevelBadge(patient.emergencyLevel)}
+                <Badge className={`ml-auto text-xs px-2 py-0.5 ${getEmergencyLevelBadgeClasses(patient.emergencyLevel)}`}>
+                  {patient.emergencyLevel || "N/A"}
+                </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="pb-2">
-              <div className="space-y-2 text-sm">
-                <div className="flex items-start">
-                  <Activity className="h-4 w-4 mr-2 mt-0.5 text-slate-500" />
-                  <div>
-                    <span className="font-medium">Symptômes:</span>
-                    <p className="text-slate-600">{patient.currentSymptoms || "Non spécifiés"}</p>
-                  </div>
+            <CardContent className="py-4 space-y-2.5 text-sm">
+              <div className="flex items-start">
+                <Activity className={`h-4 w-4 mr-2 mt-0.5 ${PALETTE.secondaryMuted} ${PALETTE.dark.textSecondary} shrink-0`} />
+                <div>
+                  <span className={`font-medium ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`}>Symptoms:</span>
+                  <p className={`${PALETTE.textPrimary} ${PALETTE.dark.textPrimary} leading-relaxed`}>{patient.currentSymptoms || "Not specified"}</p>
                 </div>
-                <div className="flex items-center">
-                  <Clock className="h-4 w-4 mr-2 text-slate-500" />
-                  <span className="font-medium">Status:</span>
-                  <span className="ml-1 text-slate-600">{patient.status || "Non défini"}</span>
-                </div>
-                {!patient.medicalRecord && (
-                  <div className="flex items-center text-amber-600">
-                    <AlertTriangle className="h-4 w-4 mr-2" />
-                    <span className="text-xs">Dossier médical non créé</span>
-                  </div>
-                )}
               </div>
+              <div className="flex items-center">
+                <Clock className={`h-4 w-4 mr-2 ${PALETTE.secondaryMuted} ${PALETTE.dark.textSecondary} shrink-0`} />
+                <span className={`font-medium ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`}>Status:</span>
+                <span className={`ml-1.5 ${PALETTE.textPrimary} ${PALETTE.dark.textPrimary}`}>{patient.status || "Not defined"}</span>
+              </div>
+              {!patient.medicalRecord && (
+                <div className="flex items-center text-amber-600 dark:text-amber-400 pt-1">
+                  <AlertTriangle className="h-4 w-4 mr-2 shrink-0" />
+                  <span className="text-xs font-medium">Medical record not created</span>
+                </div>
+              )}
             </CardContent>
-            <CardFooter className="pt-2 flex gap-2">
+            <CardFooter className={`pt-3 flex gap-2 border-t ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle}`}>
               <Button
                 onClick={() => handleViewMedicalRecord(patient.medicalRecord?._id || patient.medicalRecord)}
                 disabled={!patient.medicalRecord}
-                className="bg-[#D1DEEB] text-gray-900 hover:bg-[#b8c9db] shadow-lg rounded-lg py-3 px-6 transition-colors duration-300"                variant={patient.medicalRecord ? "default" : "outline"}
+                className={`w-full ${patient.medicalRecord ? `${PALETTE.buttonPrimaryBg} ${PALETTE.buttonPrimaryText} ${PALETTE.buttonPrimaryHoverBg} ${PALETTE.dark.buttonPrimaryBg} ${PALETTE.dark.buttonPrimaryText}` : `${PALETTE.buttonOutlineBorder} ${PALETTE.buttonOutlineText} cursor-not-allowed opacity-70`} rounded-md shadow-sm`}
               >
                 <FileText className="h-4 w-4 mr-2" />
-                {patient.medicalRecord ? "Consulter le dossier" : "Dossier non disponible"}
+                {patient.medicalRecord ? "View Record" : "Record Unavailable"}
               </Button>
-            
+              {/* Example of where ShareMedicalRecordButton could go */}
+              {/* {patient.medicalRecord && doctorId && (
+                <ShareMedicalRecordButton medicalRecordId={patient.medicalRecord._id} doctorId={doctorId} />
+              )} */}
             </CardFooter>
           </Card>
         ))}

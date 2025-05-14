@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
-import { PlusCircle, Database, CheckCircle, AlertOctagon, Trash2, Edit2 } from "lucide-react";
-import { Link as LinkIcon } from "lucide-react";
+import { PlusCircle, Database, CheckCircle, AlertOctagon, Trash2, Edit2 } from 'lucide-react';
+import { LinkIcon } from 'lucide-react';
 import { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -14,8 +14,8 @@ import {
 import "../App.css";
 
 const STATUS_COLORS = {
-  available: "#00C49F",
-  "in-maintenance": "#FFBB28",
+  available: "#94B4C1",
+  "in-maintenance": "#DDA853",
 };
 
 const RESOURCE_TYPES = [
@@ -197,8 +197,8 @@ export default function ResourcesPage() {
     }
   };
 
-  if (loading) return <div>Loading resources...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
+  if (loading) return <div className="text-[#547792]">Loading resources...</div>;
+  if (error) return <div className="text-[#213448]">{error}</div>;
 
   return (
     <div className="flex items-start space-x-6">
@@ -207,16 +207,16 @@ export default function ResourcesPage() {
         {/* Allocate Modal */}
         {allocatingId && (
           <div
-            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10"
+            className="fixed inset-0 flex items-center justify-center bg-[#213448]/50 z-10"
             id="allocate-form"
           >
-            <Card className="p-6 z-20">
-              <h3 className="text-lg font-semibold mb-4">Allocate to Patient</h3>
+            <Card className="p-6 z-20 bg-white border border-[#94B4C1]/30">
+              <h3 className="text-lg font-semibold mb-4 text-[#213448]">Allocate to Patient</h3>
               <form onSubmit={submitAllocate} className="space-y-4">
                 <select
                   value={selectedPatient}
                   onChange={(e) => setSelectedPatient(e.target.value)}
-                  className="border p-2 w-full"
+                  className="border border-[#94B4C1] p-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-[#547792]"
                   required
                 >
                   <option value="" disabled>Select patient</option>
@@ -230,13 +230,13 @@ export default function ResourcesPage() {
                   <button
                     type="button"
                     onClick={cancelAllocate}
-                    className="px-4 py-2 border rounded-lg"
+                    className="px-4 py-2 border border-[#94B4C1] text-[#547792] rounded-lg hover:bg-[#ECEFCA]/50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg"
+                    className="px-4 py-2 bg-[#547792] text-[#ECEFCA] rounded-lg hover:bg-[#213448]"
                   >
                     Allocate
                   </button>
@@ -248,20 +248,20 @@ export default function ResourcesPage() {
   
         {/* Delete Modal */}
         {deleteModal.show && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
-            <Card className="p-6 z-20">
-              <h3 className="text-lg font-semibold mb-4">Confirm Deletion</h3>
-              <p className="mb-4">Are you sure you want to delete this resource?</p>
+          <div className="fixed inset-0 flex items-center justify-center bg-[#213448]/50 z-10">
+            <Card className="p-6 z-20 bg-white border border-[#94B4C1]/30">
+              <h3 className="text-lg font-semibold mb-4 text-[#213448]">Confirm Deletion</h3>
+              <p className="mb-4 text-[#547792]">Are you sure you want to delete this resource?</p>
               <div className="flex justify-end gap-2">
                 <button
                   onClick={cancelDelete}
-                  className="px-4 py-2 border rounded-lg"
+                  className="px-4 py-2 border border-[#94B4C1] text-[#547792] rounded-lg hover:bg-[#ECEFCA]/50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg"
+                  className="px-4 py-2 bg-[#213448] text-[#ECEFCA] rounded-lg hover:bg-[#213448]/80"
                 >
                   Delete
                 </button>
@@ -272,26 +272,25 @@ export default function ResourcesPage() {
   
         {/* Header */}
         <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{ color: '#42A5FF' }}>Resources Management</h1>
-        <button
-  onClick={toggleForm}
-  className="flex items-center gap-2 px-4 py-2  rounded-lg"
-  style={{ backgroundColor: '#D1DEEB' }}
->
-  <PlusCircle className="w-6 h-6" />
-  {editingId ? 'Edit Resource' : 'Add Resource'}
-</button>
+          <h1 className="text-3xl font-extrabold tracking-tight mb-2 text-[#213448]">Resources Management</h1>
+          <button
+            onClick={toggleForm}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#547792] text-[#ECEFCA] hover:bg-[#213448] transition-colors"
+          >
+            <PlusCircle className="w-6 h-6" />
+            {editingId ? 'Edit Resource' : 'Add Resource'}
+          </button>
         </div>
   
         {/* Add/Edit Form */}
-        <Card className="p-6 hidden" id="resource-form">
+        <Card className="p-6 hidden border border-[#94B4C1]/30" id="resource-form">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <select
                 name="type"
                 value={form.type}
                 onChange={handleChange}
-                className="border p-2"
+                className="border border-[#94B4C1] p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#547792]"
                 required
               >
                 <option value="" disabled>Select resource type</option>
@@ -304,19 +303,43 @@ export default function ResourcesPage() {
                 placeholder="Name (e.g., ICU Bed 1)"
                 value={form.name}
                 onChange={handleChange}
-                className="border p-2"
+                className="border border-[#94B4C1] p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#547792]"
                 required
               />
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <input type="number" name="quantity" min={1} placeholder="Quantity" value={form.quantity} onChange={handleChange} className="border p-2" required />
-              <input name="location" placeholder="Location" value={form.location} onChange={handleChange} className="border p-2" required />
-              <select name="status" value={form.status} onChange={handleChange} className="border p-2">
+              <input 
+                type="number" 
+                name="quantity" 
+                min={1} 
+                placeholder="Quantity" 
+                value={form.quantity} 
+                onChange={handleChange} 
+                className="border border-[#94B4C1] p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#547792]" 
+                required 
+              />
+              <input 
+                name="location" 
+                placeholder="Location" 
+                value={form.location} 
+                onChange={handleChange} 
+                className="border border-[#94B4C1] p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#547792]" 
+                required 
+              />
+              <select 
+                name="status" 
+                value={form.status} 
+                onChange={handleChange} 
+                className="border border-[#94B4C1] p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#547792]"
+              >
                 <option value="available">Available</option>
                 <option value="in-maintenance">In Maintenance</option>
               </select>
             </div>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg">
+            <button 
+              type="submit" 
+              className="px-4 py-2 bg-[#547792] text-[#ECEFCA] rounded-lg hover:bg-[#213448] transition-colors"
+            >
               {editingId ? 'Update Resource' : 'Create Resource'}
             </button>
           </form>
@@ -324,38 +347,38 @@ export default function ResourcesPage() {
   
         {/* Stats */}
         <div className="grid gap-6 md:grid-cols-3">
-          <Card className="p-6">
+          <Card className="p-6 border border-[#94B4C1]/30 hover:bg-[#ECEFCA]/10 transition-colors">
             <div className="flex items-center gap-4">
-              <Database className="w-8 h-8 text-blue-600" />
+              <Database className="w-8 h-8 text-[#547792]" />
               <div>
-                <p className="text-sm text-muted-foreground">Total Resources</p>
-                <h3 className="text-2xl font-bold text-blue-900">{totalCount}</h3>
+                <p className="text-sm text-[#547792]">Total Resources</p>
+                <h3 className="text-2xl font-bold text-[#213448]">{totalCount}</h3>
               </div>
             </div>
           </Card>
-          <Card className="p-6">
+          <Card className="p-6 border border-[#94B4C1]/30 hover:bg-[#ECEFCA]/10 transition-colors">
             <div className="flex items-center gap-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+              <CheckCircle className="w-8 h-8 text-[#94B4C1]" />
               <div>
-                <p className="text-sm text-muted-foreground">Available</p>
-                <h3 className="text-2xl font-bold text-blue-900">{statusCounts.available}</h3>
+                <p className="text-sm text-[#547792]">Available</p>
+                <h3 className="text-2xl font-bold text-[#213448]">{statusCounts.available || 0}</h3>
               </div>
             </div>
           </Card>
-          <Card className="p-6">
+          <Card className="p-6 border border-[#94B4C1]/30 hover:bg-[#ECEFCA]/10 transition-colors">
             <div className="flex items-center gap-4">
-              <AlertOctagon className="w-8 h-8 text-yellow-500" />
+              <AlertOctagon className="w-8 h-8 text-[#DDA853]" />
               <div>
-                <p className="text-sm text-muted-foreground">In Maintenance</p>
-                <h3 className="text-2xl font-bold text-blue-900">{statusCounts['in-maintenance']}</h3>
+                <p className="text-sm text-[#547792]">In Maintenance</p>
+                <h3 className="text-2xl font-bold text-[#213448]">{statusCounts['in-maintenance'] || 0}</h3>
               </div>
             </div>
           </Card>
         </div>
   
         {/* Pie Chart */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4 text-blue-900">Resource Status Distribution</h2>
+        <Card className="p-6 border border-[#94B4C1]/30">
+          <h2 className="text-xl font-semibold mb-4 text-[#213448]">Resource Status Distribution</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -368,45 +391,53 @@ export default function ResourcesPage() {
                 label
               >
                 {pieData.map((entry, idx) => (
-                  <Cell key={idx} fill={STATUS_COLORS[entry.status]} />
+                  <Cell key={idx} fill={STATUS_COLORS[entry.status] || "#547792"} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip contentStyle={{ backgroundColor: "#ECEFCA", borderColor: "#94B4C1" }} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
         </Card>
   
         {/* Resource Table */}
-        <Card className="p-6">
+        <Card className="p-6 border border-[#94B4C1]/30">
           <table className="w-full table-auto">
-            <thead>
+            <thead className="bg-[#213448] text-[#ECEFCA]">
               <tr>
-                <th className="px-4 py-2">Type</th>
+                <th className="px-4 py-2 rounded-tl-lg">Type</th>
                 <th className="px-4 py-2">Name</th>
                 <th className="px-4 py-2">Quantity</th>
                 <th className="px-4 py-2">Location</th>
                 <th className="px-4 py-2">Status</th>
-                <th className="px-4 py-2">Actions</th>
+                <th className="px-4 py-2 rounded-tr-lg">Actions</th>
               </tr>
             </thead>
             <tbody>
               {resources.map((r) => (
-                <tr key={r._id} className="border-t">
-                  <td className="px-4 py-2">{r.type}</td>
-                  <td className="px-4 py-2">{r.name}</td>
-                  <td className="px-4 py-2">{r.quantity}</td>
-                  <td className="px-4 py-2">{r.location}</td>
-                  <td className="px-4 py-2 capitalize">{r.status}</td>
+                <tr key={r._id} className="border-t border-[#94B4C1]/30 hover:bg-[#ECEFCA]/10">
+                  <td className="px-4 py-2 text-[#213448]">{r.type}</td>
+                  <td className="px-4 py-2 text-[#213448]">{r.name}</td>
+                  <td className="px-4 py-2 text-[#213448]">{r.quantity}</td>
+                  <td className="px-4 py-2 text-[#213448]">{r.location}</td>
+                  <td className="px-4 py-2 capitalize">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      r.status === 'available' 
+                        ? 'bg-[#94B4C1]/20 text-[#213448]' 
+                        : 'bg-[#DDA853]/20 text-[#213448]'
+                    }`}>
+                      {r.status}
+                    </span>
+                  </td>
                   <td className="px-4 py-2 space-x-2">
-                    <button onClick={() => handleEdit(r)} className="p-2 hover:bg-gray-100 rounded">
-                      <Edit2 className="w-5 h-5 text-blue-600" />
+                    <button onClick={() => handleEdit(r)} className="p-2 hover:bg-[#ECEFCA]/50 rounded">
+                      <Edit2 className="w-5 h-5 text-[#547792]" />
                     </button>
-                    <button onClick={() => confirmDelete(r._id)} className="p-2 hover:bg-gray-100 rounded">
-                      <Trash2 className="w-5 h-5 text-red-600" />
+                    <button onClick={() => confirmDelete(r._id)} className="p-2 hover:bg-[#ECEFCA]/50 rounded">
+                      <Trash2 className="w-5 h-5 text-[#213448]" />
                     </button>
-                    <button onClick={() => handleAllocate(r)} className="p-2 hover:bg-gray-100 rounded">
-                      <LinkIcon className="w-5 h-5 text-purple-600" />
+                    <button onClick={() => handleAllocate(r)} className="p-2 hover:bg-[#ECEFCA]/50 rounded">
+                      <LinkIcon className="w-5 h-5 text-[#DDA853]" />
                     </button>
                   </td>
                 </tr>
@@ -418,18 +449,23 @@ export default function ResourcesPage() {
   
       {/* Sidebar: Unassigned Patients (right side) */}
       <div className="w-1/4 space-y-4">
-        <h2 className="text-xl font-semibold">Unassigned Patients</h2>
+        <h2 className="text-xl font-semibold text-[#213448]">Unassigned Patients</h2>
+        {unassigned.length === 0 && (
+          <Card className="p-4 border border-[#94B4C1]/30 bg-[#ECEFCA]/10">
+            <p className="text-[#547792] text-center">No unassigned patients</p>
+          </Card>
+        )}
         {unassigned.map((p) => (
-          <Card key={p._id} className="p-4">
+          <Card key={p._id} className="p-4 border border-[#94B4C1]/30 hover:bg-[#ECEFCA]/10 transition-colors">
             <div className="flex flex-col space-y-3">
               <div className="overflow-hidden">
-                <p className="font-medium truncate">{p.username}</p>
-                <p className="text-sm text-gray-600 truncate">{p.email}</p>
+                <p className="font-medium truncate text-[#213448]">{p.username}</p>
+                <p className="text-sm text-[#547792] truncate">{p.email}</p>
               </div>
               <button
                 onClick={() => recommendAllocate(p._id)}
-                className="flex items-center gap-2 px-4 py-2  rounded-lg"
-                style={{ backgroundColor: '#D1DEEB' }}              >
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#547792] text-[#ECEFCA] hover:bg-[#213448] transition-colors"
+              >
                 Recommend & Allocate
               </button>
             </div>
@@ -438,5 +474,4 @@ export default function ResourcesPage() {
       </div>
     </div>
   );
-  
 }

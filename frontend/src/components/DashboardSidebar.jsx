@@ -85,7 +85,7 @@ const DashboardSidebar = () => {
   const mainMenuItems = [
     { title: "Dashboard", icon: Home, path: "/dashboard" },
     { title: "Calendar", icon: Calendar, path: "/calendar" },
-    { title: "Manage Blood Requests", icon: ListChecks, path: "/staff/blood-requests/manage" },
+    { title: "Blood Requests", icon: ListChecks, path: "/staff/blood-requests/manage" },
     { title: "Alerts", icon: Bell, path: "/alerts" },
   ];
 
@@ -100,7 +100,7 @@ const DashboardSidebar = () => {
 
   const managementMenuItems = [
     { title: "Staff", icon: UserCog, path: "/staff" },
-    { title: "Forum", icon: MessageCircle, path: "/forum" },
+  
     { title: "Settings", icon: Settings, path: "/settings" },
     { title: "Login", icon: LogIn, path: "/login" },
   ];
@@ -138,15 +138,7 @@ const DashboardSidebar = () => {
       </SidebarHeader>
 
       {/* Home button positioned at top right of the viewport */}
-      <div className="fixed top-4 right-4 z-50">
-        <Button
-          onClick={() => navigate("/home")}
-          className="rounded-full p-3 shadow-lg hover:shadow-xl transition-all bg-white/90 backdrop-blur-sm"
-          variant="ghost" // Assuming this variant styles it appropriately
-        >
-          <Home className="h-6 w-6 text-blue-600 hover:text-blue-700" />
-        </Button>
-      </div>
+      
 
       <SidebarContent className="px-3 py-2">
         <SidebarGroup>

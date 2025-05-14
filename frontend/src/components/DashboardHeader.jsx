@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Bell, PanelLeft, Trash2, User, CheckCheck, MailOpen, MessageSquare, AlertTriangle, Activity, Pill, Stethoscope, Clipboard as ClipboardIcon } from "lucide-react";
+import { Search, Bell, PanelLeft, Trash2, User, CheckCheck, MailOpen, MessageSquare, AlertTriangle, Activity, Pill, Stethoscope, Clipboard as ClipboardIcon , Home } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useSidebar } from "@/components/ui/sidebar"; 
 import { Volume2, VolumeX } from 'lucide-react'; 
@@ -225,6 +225,22 @@ const DashboardHeader = () => {
                                 <TooltipContent>Notifications</TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
+                        <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={() => navigate("/home")}
+                                    variant="ghost"
+                                    size="icon"
+                                    className="rounded-full"
+                                >
+                                    <Home className="h-5 w-5 text-blue-600 hover:text-blue-700" />
+                                    <span className="sr-only">Home</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Home</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
 
                         <DropdownMenuContent align="end" className="w-80 sm:w-96 p-0 shadow-xl bg-card border dark:border-slate-700">
                             <DropdownMenuLabel className="flex justify-between items-center px-3 py-2.5 border-b dark:border-slate-700">

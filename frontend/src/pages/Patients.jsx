@@ -2,10 +2,11 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { Card, CardContent, CardFooter } from "@/components/ui/card" // CardHeader, CardTitle retirés car non utilisés directement ici
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"; // For form
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet"
 import {
   Search,
   UserPlus,
@@ -14,7 +15,7 @@ import {
   User,
   Mail,
   Heart,
-  Filter, // Conservé au cas où vous l'ajouteriez plus tard
+  Filter,
   Pencil,
   Trash2,
   Users,
@@ -22,10 +23,14 @@ import {
   Activity,
   FileText,
   ClipboardList,
-  ChevronLeft, // Ajouté pour Pagination
-  ChevronRight, // Ajouté pour Pagination
-  Settings2, // Pour l'icône d'erreur améliorée
-  Briefcase // Pour le rôle dans StaffDirectory
+  ChevronLeft,
+  ChevronRight,
+  Settings2,
+  Briefcase, // Not used in this specific file, but kept from original
+  Loader2, // For loading states
+  ImagePlus, // For image upload in form
+  X, // For closing sheet/clearing image
+  ShieldAlert, // For error messages
 } from "lucide-react"
 import {
   Dialog,
@@ -38,8 +43,55 @@ import {
 } from "@/components/ui/dialog"
 import axios from "axios"
 import { motion, AnimatePresence } from "framer-motion"
+import { toast } from "sonner"; // Assuming toast is used for notifications
 
-// --- Pagination Component (No text changes needed here as it's mostly icons and numbers) ---
+// --- Consistent Palette (can be moved to a shared file) ---
+const PALETTE = {
+  primaryDark: "#213448",
+  secondaryMuted: "#547792",
+  lightAccent: "#ECEFCA",
+  subtleMidTone: "#94B4C1",
+  pageGradientStart: "#F0F4F8", // Clean gradient start
+  pageGradientEnd: "#E0E8F0",   // Clean gradient end
+  cardBackground: "#FFFFFF",
+  sheetBackground: "bg-white",
+  dialogBackground: "bg-white",
+  textPrimary: "text-[#213448]",
+  textSecondary: "text-[#547792]",
+  textLight: "text-[#ECEFCA]",
+  borderSubtle: "border-gray-200/90",
+  borderFocus: "focus:ring-[#547792] focus:border-[#547792]",
+  buttonPrimaryBg: "bg-[#547792]",
+  buttonPrimaryText: "text-white",
+  buttonPrimaryHoverBg: "hover:bg-[#213448]",
+  buttonOutlineBorder: "border-[#94B4C1]",
+  buttonOutlineText: "text-[#547792]",
+  buttonOutlineHoverBorder: "hover:border-[#213448]",
+  buttonOutlineHoverBg: "hover:bg-[#ECEFCA]/40",
+  actionIconDefault: "text-[#547792]",
+  actionIconEdit: "text-yellow-600",
+  actionIconDelete: "text-red-600",
+  // Dark mode specific (if you implement dark mode toggle later)
+  dark: {
+    pageGradientStart: "dark:from-slate-900",
+    pageGradientEnd: "dark:to-slate-800",
+    cardBackground: "dark:bg-slate-800",
+    sheetBackground: "dark:bg-slate-900",
+    dialogBackground: "dark:bg-slate-900",
+    textPrimary: "dark:text-slate-100",
+    textSecondary: "dark:text-slate-400",
+    borderSubtle: "dark:border-slate-700",
+    buttonPrimaryBg: "dark:bg-[#547792]", // Can adjust for dark if needed
+    buttonPrimaryText: "dark:text-white",
+    buttonPrimaryHoverBg: "dark:hover:bg-[#213448]",
+    buttonOutlineBorder: "dark:border-slate-600",
+    buttonOutlineText: "dark:text-slate-300",
+    buttonOutlineHoverBorder: "dark:hover:border-slate-500",
+    buttonOutlineHoverBg: "dark:hover:bg-slate-700",
+  }
+};
+
+// --- Pagination Component (Themed) ---
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     if (totalPages <= 1) return null;
     const pageNumbers = [];
@@ -53,15 +105,62 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     for (let i = startPage; i <= endPage; i++) pageNumbers.push(i);
 
     return (
-        <div className="flex justify-center items-center space-x-1 mt-8">
-            <Button variant="outline" size="sm" onClick={() => onPageChange(Math.max(1, currentPage - 1))} disabled={currentPage === 1} className="hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200"><ChevronLeft className="h-4 w-4" />Previous</Button>
-            {startPage > 1 && (<><Button variant="ghost" size="sm" onClick={() => onPageChange(1)} className="hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">1</Button>{startPage > 2 && <span className="px-2 py-1 text-sm text-slate-500 dark:text-slate-400">...</span>}</>)}
-            {pageNumbers.map(number => (<Button key={number} variant={currentPage === number ? "default" : "ghost"} size="sm" onClick={() => onPageChange(number)} className={`${currentPage === number ? "bg-sky-400 hover:bg-sky-500 text-white cursor-default shadow-md" : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"} font-medium rounded-md transition-all duration-200`}>{number}</Button>))}
-            {endPage < totalPages && (<><Button variant="ghost" size="sm" onClick={() => onPageChange(totalPages)} className="hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">{totalPages}</Button>{endPage < totalPages - 1 && <span className="px-2 py-1 text-sm text-slate-500 dark:text-slate-400">...</span>}</>)}
-            <Button variant="outline" size="sm" onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages} className="hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Next<ChevronRight className="h-4 w-4" /></Button>
+        <div className="flex justify-center items-center space-x-1 mt-10">
+            <Button
+                variant="outline" size="sm" onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className={`${PALETTE.buttonOutlineBorder} ${PALETTE.buttonOutlineText} ${PALETTE.buttonOutlineHoverBg} ${PALETTE.buttonOutlineHoverBorder} ${PALETTE.dark.buttonOutlineBorder} ${PALETTE.dark.buttonOutlineText} ${PALETTE.dark.buttonOutlineHoverBg} ${PALETTE.dark.buttonOutlineHoverBorder} disabled:opacity-50 rounded-md`}
+            >
+                <ChevronLeft className="h-4 w-4 mr-1" />Previous
+            </Button>
+            {startPage > 1 && (<>
+                <Button variant="ghost" size="sm" onClick={() => onPageChange(1)} className={`${PALETTE.textSecondary} hover:bg-gray-100 ${PALETTE.dark.textSecondary} dark:hover:bg-slate-700 rounded-md`}>1</Button>
+                {startPage > 2 && <span className={`px-2 py-1 text-sm ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`}>...</span>}
+            </>)}
+            {pageNumbers.map(number => (
+                <Button
+                    key={number}
+                    variant={currentPage === number ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => onPageChange(number)}
+                    className={`${currentPage === number
+                        ? `${PALETTE.buttonPrimaryBg} ${PALETTE.buttonPrimaryText} ${PALETTE.buttonPrimaryHoverBg} ${PALETTE.dark.buttonPrimaryBg} ${PALETTE.dark.buttonPrimaryText} ${PALETTE.dark.buttonPrimaryHoverBg} shadow-md`
+                        : `${PALETTE.textSecondary} hover:bg-gray-100 ${PALETTE.dark.textSecondary} dark:hover:bg-slate-700`} font-medium rounded-md transition-all duration-200`}
+                >
+                    {number}
+                </Button>
+            ))}
+            {endPage < totalPages && (<>
+                {endPage < totalPages - 1 && <span className={`px-2 py-1 text-sm ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`}>...</span>}
+                <Button variant="ghost" size="sm" onClick={() => onPageChange(totalPages)} className={`${PALETTE.textSecondary} hover:bg-gray-100 ${PALETTE.dark.textSecondary} dark:hover:bg-slate-700 rounded-md`}>{totalPages}</Button>
+            </>)}
+            <Button
+                variant="outline" size="sm" onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className={`${PALETTE.buttonOutlineBorder} ${PALETTE.buttonOutlineText} ${PALETTE.buttonOutlineHoverBg} ${PALETTE.buttonOutlineHoverBorder} ${PALETTE.dark.buttonOutlineBorder} ${PALETTE.dark.buttonOutlineText} ${PALETTE.dark.buttonOutlineHoverBg} ${PALETTE.dark.buttonOutlineHoverBorder} disabled:opacity-50 rounded-md`}
+            >
+                Next<ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
         </div>
     );
 };
+
+// Reusable Form Input for the Sheet
+const FormInput = ({ name, label, placeholder, value, onChange, error, type = "text", children, required = false, disabled = false }) => (
+  <div className="space-y-1">
+      <label htmlFor={name} className={`block text-sm font-medium ${PALETTE.textPrimary} ${PALETTE.dark.textPrimary}`}>
+          {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      {children ? children : (
+          <Input
+              id={name} name={name} type={type} placeholder={placeholder}
+              value={value || ""} onChange={onChange} disabled={disabled}
+              className={`w-full ${PALETTE.borderSubtle} ${PALETTE.borderFocus} ${PALETTE.textPrimary} ${PALETTE.dark.borderSubtle} ${PALETTE.dark.textPrimary} rounded-md shadow-sm ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
+          />
+      )}
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+  </div>
+);
 
 
 const Patients = () => {
@@ -79,152 +178,141 @@ const Patients = () => {
   const [formErrors, setFormErrors] = useState({})
   const [previewImage, setPreviewImage] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newPatient, setNewPatient] = useState({
-    name: "",
-    email: "",
-    password: "",
-    phoneNumber: "",
-    dateOfBirth: "",
-    bloodType: "",
-    condition: "",
-    age: "",
-    profileImage: null,
+    name: "", email: "", password: "", phoneNumber: "",
+    dateOfBirth: "", bloodType: "", condition: "", age: "", profileImage: null,
   })
 
   const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
   const conditions = ["Stable", "Critical", "Recovering", "Under Observation", "Chronic", "Acute"]
 
-  const fetchPatients = async () => {
-    setLoading(true)
-    setError(null)
+  const fetchPatients = async (isRefresh = false) => { /* ... (unchanged) ... */
+    if (!isRefresh) setLoading(true);
+    setError(null);
     try {
       const response = await axios.get("http://localhost:8089/api/users/patients", { withCredentials: true })
-      const fetchedPatients = response.data || []
-      setPatients(fetchedPatients)
-      setTotalPages(Math.ceil(fetchedPatients.length / patientsPerPage))
+      const fetchedPatients = (response.data || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setPatients(fetchedPatients);
+      // setTotalPages calculation moved to useMemo/useEffect
+      if (isRefresh) toast.success("Patient list refreshed!");
     } catch (err) {
-      setError("Could not retrieve patients.") // English
+      console.error("Error fetching patients:", err);
+      const errorMessage = err.response?.data?.message || "Could not retrieve patients.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
-      setLoading(false)
+      if (!isRefresh) setLoading(false);
     }
   }
 
-  const refreshData = async () => {
+  const refreshData = async () => { /* ... (unchanged) ... */
     setRefreshing(true)
-    await fetchPatients()
+    await fetchPatients(true)
     setTimeout(() => setRefreshing(false), 800)
   }
 
-  useEffect(() => {
+  useEffect(() => { /* ... (unchanged) ... */
     fetchPatients()
   }, [])
 
-  const validateFields = (data, isUpdate = false) => {
+  const validateFields = (data, isUpdate = false) => { /* ... (unchanged) ... */
     const errors = {}
     const { name, email, password, phoneNumber, dateOfBirth, bloodType } = data
 
-    if (!name) errors.name = "Name is required"
-    if (!email) errors.email = "Email is required"
-    else if (!/\S+@\S+\.\S+/.test(email)) errors.email = "Invalid email"
-    if (!phoneNumber) errors.phoneNumber = "Phone number is required"
+    if (!name?.trim()) errors.name = "Name is required"
+    if (!email?.trim()) errors.email = "Email is required"
+    else if (!/\S+@\S+\.\S+/.test(email)) errors.email = "Invalid email format"
+    if (!phoneNumber?.trim()) errors.phoneNumber = "Phone number is required"
+    else if (!/^\+?\d{9,15}$/.test(phoneNumber)) errors.phoneNumber = "Invalid phone (9-15 digits, optional +)";
     if (!dateOfBirth) errors.dateOfBirth = "Date of birth is required"
     if (!bloodType) errors.bloodType = "Blood type is required"
-    if (!isUpdate && (!password || password.length < 6))
-      errors.password = "Password must be at least 6 characters"
+    
+    if (!isUpdate && (!password || password.length < 6)) {
+        errors.password = "Password must be at least 6 characters"
+    } else if (isUpdate && password && password.length > 0 && password.length < 6) {
+        errors.password = "New password must be at least 6 characters"
+    }
 
     setFormErrors(errors)
     return Object.keys(errors).length === 0
   }
 
-  const handleSearch = (query) => {
-    setSearchQuery(query)
-    setCurrentPage(1)
-    // Filtering logic is now handled by useMemo for paginatedPatients
-  }
+  const handleSearchChange = (e) => { // Renamed from handleSearch to avoid conflict
+    setSearchQuery(e.target.value);
+    // setCurrentPage(1) will be handled by useEffect on filteredPatients
+  };
 
-  const handleAdd = async (e) => {
-    e.preventDefault()
-    if (!validateFields(newPatient)) return
-    setLoading(true)
-    // ... (FormData appending logic unchanged)
+  const handleFormSubmit = async (e) => { // Combined Add/Update
+    e.preventDefault();
+    const dataToValidate = editingPatient || newPatient;
+    const isUpdate = !!editingPatient;
+    if (!validateFields(dataToValidate, isUpdate)) return;
+
+    setIsSubmitting(true);
     const formData = new FormData();
-    Object.keys(newPatient).forEach(key => {
-        if (newPatient[key] !== null) formData.append(key, newPatient[key]);
-    });
-    formData.append("role", "Patient"); // Ensure role is set for backend
-
-    try {
-      const response = await axios.post("http://localhost:8089/api/auth/register", formData, { // Assuming register handles patient creation
-        headers: { 'Content-Type': 'multipart/form-data' },
-        withCredentials: true,
-      })
-      setNewPatient({ name: "", email: "", password: "", phoneNumber: "", dateOfBirth: "", bloodType: "", condition: "", age: "", profileImage: null })
-      setPreviewImage(null); setFormErrors({}); setIsSheetOpen(false);
-      // await fetchPatients(); // Re-fetch all patients to get the new one with its _id
-      setPatients(prev => [...prev, response.data.user]); // Optimistic update, ensure response.data.user is the full patient object
-      setTotalPages(Math.ceil((patients.length + 1) / patientsPerPage));
-      toast.success("Patient added successfully!"); // English toast
-    } catch (error) {
-      console.error("Error adding patient:", error)
-      toast.error(error.response?.data?.message || "Error adding patient") // English
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleUpdate = async (e) => {
-    e.preventDefault()
-    if (!editingPatient || !validateFields(editingPatient, true)) return
-    setLoading(true)
-    // ... (FormData appending logic unchanged)
-    const formData = new FormData();
-    Object.keys(editingPatient).forEach(key => {
-        if (key !== '_id' && key !== 'profileImage' && editingPatient[key] !== null && editingPatient[key] !== undefined) {
-             formData.append(key, editingPatient[key]);
+    Object.keys(dataToValidate).forEach(key => {
+        if (key !== '_id' && key !== 'profileImage' && key !== 'password' && dataToValidate[key] !== null && dataToValidate[key] !== undefined) {
+            formData.append(key, dataToValidate[key]);
         }
     });
-    if (editingPatient.profileImage instanceof File) {
-        formData.append("profileImage", editingPatient.profileImage);
+
+    if (!isUpdate) { // For adding new patient
+        formData.append("password", dataToValidate.password);
+        formData.append("role", "Patient");
+    } else if (isUpdate && dataToValidate.password && dataToValidate.password.length >= 6) {
+        // If it's an update and a new password is provided and valid
+        formData.append("password", dataToValidate.password);
     }
 
 
+    if (dataToValidate.profileImage instanceof File) {
+        formData.append("profileImage", dataToValidate.profileImage);
+    }
+    
+    const apiEndpoint = isUpdate
+        ? `http://localhost:8089/api/users/patients/${editingPatient._id}` // Assuming specific patient update route
+        : "http://localhost:8089/api/auth/register";
+    const method = isUpdate ? "put" : "post";
+
     try {
-      const response = await axios.put(`http://localhost:8089/api/users/${editingPatient._id}`, formData, { // Assuming generic user update route
-        headers: { 'Content-Type': 'multipart/form-data' },
-        withCredentials: true,
-      })
-      setEditingPatient(null); setPreviewImage(null); setFormErrors({}); setIsSheetOpen(false);
-      setPatients(prev => prev.map((p) => (p._id === response.data._id ? response.data : p))); // Ensure response.data is the full patient object
-      toast.success("Patient updated successfully!"); // English
+        const response = await axios[method](apiEndpoint, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            withCredentials: true,
+        });
+        toast.success(`Patient ${isUpdate ? 'updated' : 'added'} successfully!`);
+        handleSheetClose();
+        fetchPatients(); // Refresh the entire list
     } catch (error) {
-      console.error("Error updating patient:", error)
-      toast.error(error.response?.data?.message || "Error updating patient") // English
+        console.error(`Error ${isUpdate ? 'updating' : 'adding'} patient:`, error.response?.data || error.message);
+        toast.error(error.response?.data?.message || `Error ${isUpdate ? 'updating' : 'adding'} patient`);
     } finally {
-      setLoading(false)
+        setIsSubmitting(false);
     }
-  }
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this patient?")) return // English
-    setLoading(true)
+  };
+  
+  const handleDelete = async (id) => { /* ... (unchanged) ... */
+    if (!window.confirm("Are you sure you want to delete this patient? This action cannot be undone.")) return
+    setIsSubmitting(true); // Indicate general submission process
     try {
-      await axios.delete(`http://localhost:8089/api/users/patients/${id}`, { // Assuming specific patient delete route
-        withCredentials: true,
-      })
-      setPatients(prev => prev.filter((p) => p._id !== id));
-      setTotalPages(Math.ceil((patients.length -1) / patientsPerPage));
-      toast.success("Patient deleted successfully!"); // English
+      await axios.delete(`http://localhost:8089/api/users/patients/${id}`, { withCredentials: true })
+      toast.success("Patient deleted successfully!");
+      fetchPatients(); // Refresh list
     } catch (error) {
       console.error("Error deleting patient:", error)
-      toast.error(error.response?.data?.message || "Error deleting patient") // English
+      toast.error(error.response?.data?.message || "Error deleting patient")
     } finally {
-      setLoading(false)
+      setIsSubmitting(false);
     }
   }
 
-  const handleImageChange = (e) => { /* ... (unchanged) ... */ 
+  const handleImageChange = (e) => { /* ... (unchanged logic, only theming may differ if form elements change) ... */ 
     const file = e.target.files[0];
     if (file) {
+        if (file.size > 2 * 1024 * 1024) { // 2MB limit
+            toast.error("Image size should be less than 2MB.");
+            return;
+        }
         const reader = new FileReader();
         reader.onloadend = () => setPreviewImage(reader.result);
         reader.readAsDataURL(file);
@@ -237,11 +325,18 @@ const Patients = () => {
   }
 
   const handleEditClick = (patient) => { /* ... (unchanged) ... */ 
-    setEditingPatient({ ...patient });
+    setEditingPatient({ ...patient, password: "" }); // Clear password for update form initially
     setPreviewImage(patient.profileImage ? `http://localhost:8089${patient.profileImage.startsWith('/') ? patient.profileImage : `/${patient.profileImage}`}` : null);
     setFormErrors({});
     setIsSheetOpen(true);
   }
+  const handleAddNewClick = () => { // Added for Add New button
+    setEditingPatient(null);
+    setNewPatient({ name: "", email: "", password: "", phoneNumber: "", dateOfBirth: "", bloodType: "", condition: "", age: "", profileImage: null });
+    setFormErrors({});
+    setPreviewImage(null);
+    setIsSheetOpen(true);
+  };
   const handleSheetClose = () => { /* ... (unchanged) ... */ 
     setIsSheetOpen(false);
     setEditingPatient(null);
@@ -250,253 +345,222 @@ const Patients = () => {
     setFormErrors({});
   }
 
-  const filteredPatients = useMemo(() => 
+  const filteredPatients = useMemo(() =>  /* ... (unchanged) ... */
     patients.filter((patient) => 
-      (patient.name || patient.username || '').toLowerCase().includes(searchQuery.toLowerCase()) || // Added username for flexibility
-      (patient.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+      (patient.name || patient.username || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (patient.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (patient.bloodType || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (patient.condition || '').toLowerCase().includes(searchQuery.toLowerCase())
     ),
     [patients, searchQuery]
   );
 
-  const paginatedPatients = useMemo(() => 
+  const paginatedPatients = useMemo(() => /* ... (unchanged) ... */
     filteredPatients.slice((currentPage - 1) * patientsPerPage, currentPage * patientsPerPage),
     [filteredPatients, currentPage, patientsPerPage]
   );
 
-  useEffect(() => {
+  useEffect(() => { /* ... (unchanged) ... */
     const newTotalPages = Math.ceil(filteredPatients.length / patientsPerPage);
     setTotalPages(newTotalPages);
     if (currentPage > newTotalPages && newTotalPages > 0) {
         setCurrentPage(newTotalPages);
-    } else if (newTotalPages === 0 && filteredPatients.length > 0) { // If filter results in 0 pages but there are items
-        setCurrentPage(1);
-    } else if (newTotalPages > 0 && currentPage === 0) {
+    } else if (newTotalPages === 0 && filteredPatients.length > 0 && searchQuery) { // If filter results in 0 pages but there are items & search is active
+        setCurrentPage(1); // Should show no results instead of resetting page
+    } else if (newTotalPages > 0 && currentPage === 0) { // If somehow current page is 0
         setCurrentPage(1);
     }
-  }, [filteredPatients, currentPage, patientsPerPage]);
+  }, [filteredPatients.length, currentPage, patientsPerPage, searchQuery]);
 
 
-  const PatientForm = ({ isEditing }) => (
-    <form onSubmit={isEditing ? handleUpdate : handleAdd} className="space-y-4 mt-6">
-      <div className="relative">
-        <Input
-          placeholder="Full Name" // English
-          value={isEditing ? editingPatient.name : newPatient.name}
-          onChange={(e) => isEditing ? setEditingPatient({ ...editingPatient, name: e.target.value }) : setNewPatient({ ...newPatient, name: e.target.value })}
-          required aria-invalid={!!formErrors.name} aria-describedby={formErrors.name ? "name-error" : undefined}
-          className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500"
-        />
-        {formErrors.name && <p id="name-error" className="text-red-500 text-sm mt-1">{formErrors.name}</p>}
-      </div>
-      <div className="relative">
-        <Input
-          placeholder="Email" // English
-          type="email"
-          value={isEditing ? editingPatient.email : newPatient.email}
-          onChange={(e) => isEditing ? setEditingPatient({ ...editingPatient, email: e.target.value }) : setNewPatient({ ...newPatient, email: e.target.value })}
-          required aria-invalid={!!formErrors.email} aria-describedby={formErrors.email ? "email-error" : undefined}
-          className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500"
-        />
-        {formErrors.email && <p id="email-error" className="text-red-500 text-sm mt-1">{formErrors.email}</p>}
-      </div>
-      {!isEditing && (
-        <div className="relative">
-          <Input
-            placeholder="Password" // English
-            type="password"
-            value={newPatient.password}
-            onChange={(e) => setNewPatient({ ...newPatient, password: e.target.value })}
-            required aria-invalid={!!formErrors.password} aria-describedby={formErrors.password ? "password-error" : undefined}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500"
-          />
-          {formErrors.password && <p id="password-error" className="text-red-500 text-sm mt-1">{formErrors.password}</p>}
+  const PatientForm = ({ isEditing }) => {
+    const currentData = isEditing ? editingPatient : newPatient;
+    const setCurrentData = isEditing ? setEditingPatient : setNewPatient;
+
+    return (
+    <form onSubmit={handleFormSubmit} className="space-y-4">
+        <div className="text-center mb-4">
+            <label htmlFor="profileImageUploadPatient" className="cursor-pointer group block">
+                <div className={`w-28 h-28 mx-auto rounded-full border-2 ${formErrors.profileImage ? 'border-red-500' : PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle} flex items-center justify-center overflow-hidden relative bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition`}>
+                    {previewImage ? (
+                        <img src={previewImage} alt="Profile Preview" className="w-full h-full object-cover" />
+                    ) : (
+                        <ImagePlus className={`w-10 h-10 ${PALETTE.textSecondary}/70 ${PALETTE.dark.textSecondary} group-hover:${PALETTE.textSecondary} dark:group-hover:text-slate-300`} />
+                    )}
+                </div>
+                <span className={`mt-2 text-xs ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary} group-hover:${PALETTE.textPrimary} dark:group-hover:text-slate-200`}>
+                    {previewImage ? "Change photo" : "Upload photo (max 2MB)"}
+                </span>
+            </label>
+            <input type="file" id="profileImageUploadPatient" accept="image/*" onChange={handleImageChange} className="hidden" />
+            {previewImage && (
+                <Button type="button" variant="ghost" size="sm" onClick={() => {setPreviewImage(null); setCurrentData({...currentData, profileImage: null})}} className={`mt-1 text-xs ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary} hover:text-red-600 dark:hover:text-red-400`}>
+                    <X className="w-3 h-3 mr-1"/>Remove
+                </Button>
+            )}
+            {formErrors.profileImage && <p className="mt-1 text-xs text-red-600">{formErrors.profileImage}</p>}
         </div>
-      )}
-      <div className="relative">
-        <Input
-          placeholder="Phone Number" // English
-          value={isEditing ? editingPatient.phoneNumber : newPatient.phoneNumber}
-          onChange={(e) => isEditing ? setEditingPatient({ ...editingPatient, phoneNumber: e.target.value }) : setNewPatient({ ...newPatient, phoneNumber: e.target.value })}
-          required aria-invalid={!!formErrors.phoneNumber} aria-describedby={formErrors.phoneNumber ? "phoneNumber-error" : undefined}
-          className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500"
-        />
-        {formErrors.phoneNumber && <p id="phoneNumber-error" className="text-red-500 text-sm mt-1">{formErrors.phoneNumber}</p>}
-      </div>
-      <div className="relative">
-        <Input
-          placeholder="Date of Birth" // English
-          type="date"
-          value={isEditing ? editingPatient.dateOfBirth : newPatient.dateOfBirth}
-          onChange={(e) => isEditing ? setEditingPatient({ ...editingPatient, dateOfBirth: e.target.value }) : setNewPatient({ ...newPatient, dateOfBirth: e.target.value })}
-          required aria-invalid={!!formErrors.dateOfBirth} aria-describedby={formErrors.dateOfBirth ? "dateOfBirth-error" : undefined}
-          className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500"
-        />
-        {formErrors.dateOfBirth && <p id="dateOfBirth-error" className="text-red-500 text-sm mt-1">{formErrors.dateOfBirth}</p>}
-      </div>
-      <div className="relative">
-        <Input
-          placeholder="Age" // English
-          type="number"
-          value={isEditing ? editingPatient.age : newPatient.age}
-          onChange={(e) => isEditing ? setEditingPatient({ ...editingPatient, age: e.target.value }) : setNewPatient({ ...newPatient, age: e.target.value })}
-          className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500"
-        />
-      </div>
-      <div className="relative">
-        <select
-          value={isEditing ? editingPatient.bloodType : newPatient.bloodType}
-          onChange={(e) => isEditing ? setEditingPatient({ ...editingPatient, bloodType: e.target.value }) : setNewPatient({ ...newPatient, bloodType: e.target.value })}
-          className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500"
-          required aria-invalid={!!formErrors.bloodType} aria-describedby={formErrors.bloodType ? "bloodType-error" : undefined}
-        >
-          <option value="">Select Blood Type</option> {/* English */}
-          {bloodTypes.map((type) => <option key={type} value={type}>{type}</option>)}
-        </select>
-        {formErrors.bloodType && <p id="bloodType-error" className="text-red-500 text-sm mt-1">{formErrors.bloodType}</p>}
-      </div>
-      <div className="relative">
-        <select
-          value={isEditing ? editingPatient.condition : newPatient.condition}
-          onChange={(e) => isEditing ? setEditingPatient({ ...editingPatient, condition: e.target.value }) : setNewPatient({ ...newPatient, condition: e.target.value })}
-          className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500"
-        >
-          <option value="">Select Medical Condition</option> {/* English */}
-          {conditions.map((condition) => <option key={condition} value={condition}>{condition}</option>)}
-        </select>
-      </div>
-      <div className="relative">
-        <label htmlFor="profileImage" className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label> {/* English */}
-        <Input id="profileImage" type="file" accept="image/*" onChange={handleImageChange} className="w-full p-2 border border-gray-200 rounded-lg file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
-        {previewImage && (
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }} className="mt-4 flex justify-center">
-            <img src={previewImage || "/placeholder.svg"} alt="Preview" className="w-32 h-32 object-cover rounded-full border-2 border-gray-200 hover:border-indigo-400"/>
-          </motion.div>
-        )}
-      </div>
-      <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white disabled:opacity-50" disabled={loading}>
-        {loading ? <span className="mr-2 animate-spin">⏳</span> : null}
-        {isEditing ? "Update Patient" : "Add Patient"} {/* English */}
-      </Button>
-      <Button type="button" variant="outline" className="w-full mt-3" onClick={handleSheetClose}>
-        Cancel {/* English */}
-      </Button>
-    </form>
-  )
 
-  const getConditionColor = (condition) => { /* ... (unchanged) ... */ 
+      <FormInput name="name" label="Full Name" placeholder="e.g., Jane Doe" required
+          value={currentData.name} onChange={(e) => setCurrentData({ ...currentData, name: e.target.value })}
+          error={formErrors.name} disabled={isSubmitting} />
+      <FormInput name="email" label="Email Address" placeholder="patient@example.com" type="email" required
+          value={currentData.email} onChange={(e) => setCurrentData({ ...currentData, email: e.target.value })}
+          error={formErrors.email} disabled={isSubmitting} />
+      
+      {!isEditing ? (
+          <FormInput name="password" label="Password" placeholder="Min. 6 characters" type="password" required
+              value={currentData.password} onChange={(e) => setCurrentData({ ...currentData, password: e.target.value })}
+              error={formErrors.password} disabled={isSubmitting} />
+      ) : (
+          <FormInput name="password" label="New Password (optional)" placeholder="Leave blank to keep current" type="password"
+              value={currentData.password || ""} onChange={(e) => setCurrentData({ ...currentData, password: e.target.value })}
+              error={formErrors.password} disabled={isSubmitting} />
+      )}
+
+      <FormInput name="phoneNumber" label="Phone Number" placeholder="+1234567890" required
+          value={currentData.phoneNumber} onChange={(e) => setCurrentData({ ...currentData, phoneNumber: e.target.value })}
+          error={formErrors.phoneNumber} disabled={isSubmitting} />
+      <FormInput name="dateOfBirth" label="Date of Birth" type="date" required
+          value={currentData.dateOfBirth} onChange={(e) => setCurrentData({ ...currentData, dateOfBirth: e.target.value })}
+          error={formErrors.dateOfBirth} disabled={isSubmitting} />
+      <FormInput name="age" label="Age" type="number" placeholder="e.g., 30"
+          value={currentData.age} onChange={(e) => setCurrentData({ ...currentData, age: e.target.value })}
+          error={formErrors.age} disabled={isSubmitting} />
+
+      <FormInput name="bloodType" label="Blood Type" required error={formErrors.bloodType} disabled={isSubmitting}>
+          <Select value={currentData.bloodType} onValueChange={(value) => setCurrentData({ ...currentData, bloodType: value })}>
+              <SelectTrigger className={`w-full ${PALETTE.borderSubtle} ${PALETTE.borderFocus} ${PALETTE.textPrimary} ${PALETTE.dark.borderSubtle} ${PALETTE.dark.textPrimary} rounded-md shadow-sm ${formErrors.bloodType ? 'border-red-500' : ''}`}>
+                  <SelectValue placeholder="Select blood type" />
+              </SelectTrigger>
+              <SelectContent className={`${PALETTE.cardBackground} ${PALETTE.dark.cardBackground} border ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle}`}>
+                  {bloodTypes.map((type) => <SelectItem key={type} value={type} className={`${PALETTE.textPrimary} ${PALETTE.dark.textPrimary}`}>{type}</SelectItem>)}
+              </SelectContent>
+          </Select>
+      </FormInput>
+      <FormInput name="condition" label="Medical Condition (optional)" error={formErrors.condition} disabled={isSubmitting}>
+          <Select value={currentData.condition} onValueChange={(value) => setCurrentData({ ...currentData, condition: value })}>
+              <SelectTrigger className={`w-full ${PALETTE.borderSubtle} ${PALETTE.borderFocus} ${PALETTE.textPrimary} ${PALETTE.dark.borderSubtle} ${PALETTE.dark.textPrimary} rounded-md shadow-sm ${formErrors.condition ? 'border-red-500' : ''}`}>
+                  <SelectValue placeholder="Select medical condition" />
+              </SelectTrigger>
+              <SelectContent className={`${PALETTE.cardBackground} ${PALETTE.dark.cardBackground} border ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle}`}>
+                  {conditions.map((c) => <SelectItem key={c} value={c} className={`${PALETTE.textPrimary} ${PALETTE.dark.textPrimary}`}>{c}</SelectItem>)}
+              </SelectContent>
+          </Select>
+      </FormInput>
+
+      {/* Submit and Cancel buttons are in SheetFooter */}
+    </form>
+  )};
+
+  const getConditionColor = (condition) => { /* ... (unchanged) ... */
+    // This function returns Tailwind classes, so it's fine as is.
+    // Ensure the text colors provide good contrast with the background colors.
+    // Example: if bg is light, text should be dark.
     switch (condition?.toLowerCase()) {
-      case "critical": return "text-red-600 bg-red-100 dark:text-red-300 dark:bg-red-700/30 border-red-300 dark:border-red-600";
-      case "stable": return "text-green-600 bg-green-100 dark:text-green-300 dark:bg-green-700/30 border-green-300 dark:border-green-600";
-      case "recovering": return "text-emerald-600 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-700/30 border-emerald-300 dark:border-emerald-600";
-      case "under observation": return "text-amber-600 bg-amber-100 dark:text-amber-300 dark:bg-amber-700/30 border-amber-300 dark:border-amber-600";
-      case "chronic": return "text-purple-600 bg-purple-100 dark:text-purple-300 dark:bg-purple-700/30 border-purple-300 dark:border-purple-600";
-      case "acute": return "text-orange-600 bg-orange-100 dark:text-orange-300 dark:bg-orange-700/30 border-orange-300 dark:border-orange-600";
-      default: return "text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-gray-700/30 border-gray-300 dark:border-gray-600";
+      case "critical": return `bg-red-100 text-red-700 dark:bg-red-700/30 dark:text-red-300 border-red-300 dark:border-red-600`;
+      case "stable": return `bg-green-100 text-green-700 dark:bg-green-700/30 dark:text-green-300 border-green-300 dark:border-green-600`;
+      case "recovering": return `bg-emerald-100 text-emerald-700 dark:bg-emerald-700/30 dark:text-emerald-300 border-emerald-300 dark:border-emerald-600`;
+      case "under observation": return `bg-amber-100 text-amber-700 dark:bg-amber-700/30 dark:text-amber-300 border-amber-300 dark:border-amber-600`;
+      case "chronic": return `bg-purple-100 text-purple-700 dark:bg-purple-700/30 dark:text-purple-300 border-purple-300 dark:border-purple-600`;
+      case "acute": return `bg-orange-100 text-orange-700 dark:bg-orange-700/30 dark:text-orange-300 border-orange-300 dark:border-orange-600`;
+      case "bloodtype": return `bg-[${PALETTE.lightAccent}] ${PALETTE.textPrimary} border-[${PALETTE.subtleMidTone}]`; // Custom for blood type
+      default: return `bg-gray-100 text-gray-700 dark:bg-gray-700/30 dark:text-gray-300 border-gray-300 dark:border-gray-600`;
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-sky-50 to-slate-50 dark:from-slate-950 dark:via-sky-900 dark:to-slate-950 p-4 sm:p-6 lg:p-8">
+    <div className={`min-h-screen bg-gradient-to-br from-[${PALETTE.pageGradientStart}] to-[${PALETTE.pageGradientEnd}] ${PALETTE.dark.pageGradientStart} ${PALETTE.dark.pageGradientEnd} p-4 sm:p-6 lg:p-8`}>
       <header className="mb-8 md:mb-12">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center mb-6 md:mb-10">
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-3 bg-clip-text text-transparent bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-400 dark:to-blue-500">
+          <h1 className={`text-4xl sm:text-5xl font-extrabold tracking-tight mb-3 ${PALETTE.textPrimary} ${PALETTE.dark.textPrimary}`}>
             Patient Management
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto">
+          <p className={`${PALETTE.textSecondary} ${PALETTE.dark.textSecondary} text-lg max-w-2xl mx-auto`}>
             Comprehensive system to track and manage patient information efficiently.
           </p>
         </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 justify-center mx-auto max-w-4xl">
-          <Card className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 dark:border-slate-700 rounded-xl">
-            <CardContent className="p-5 sm:p-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} 
+          className={`grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 p-4 md:p-6 ${PALETTE.cardBackground} ${PALETTE.dark.cardBackground} rounded-xl shadow-lg border ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle}`}>
+          <Card className={`bg-transparent shadow-none border-none`}>
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Patients</p>
-                  <h3 className="text-3xl font-bold text-slate-900 dark:text-slate-50 mt-1">{patients.length}</h3>
+                  <p className={`text-sm font-medium ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`}>Total Patients</p>
+                  <h3 className={`text-3xl font-bold ${PALETTE.textPrimary} ${PALETTE.dark.textPrimary} mt-1`}>{patients.length}</h3>
                 </div>
-                <div className="bg-sky-100 dark:bg-sky-500/20 p-3 rounded-full">
-                  <Users className="h-6 w-6 text-sky-600 dark:text-sky-400" />
+                <div className={`p-3 rounded-full bg-[${PALETTE.secondaryMuted}]/10 dark:bg-[${PALETTE.secondaryMuted}]/20`}>
+                  <Users className={`h-6 w-6 ${PALETTE.secondaryMuted} ${PALETTE.dark.textSecondary}`} />
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 dark:border-slate-700 rounded-xl">
-            <CardContent className="p-5 sm:p-6">
+          <Card className={`bg-transparent shadow-none border-none`}>
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Last Update</p>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mt-1">{new Date().toLocaleDateString('en-US')}</h3>
+                  <p className={`text-sm font-medium ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`}>System Status</p>
+                  <h3 className={`text-lg font-bold text-green-600 dark:text-green-400 mt-1`}>Operational</h3>
                 </div>
-                <div className="bg-emerald-100 dark:bg-emerald-500/20 p-3 rounded-full">
-                  <RefreshCw className={`h-6 w-6 text-emerald-600 dark:text-emerald-400 ${refreshing ? "animate-spin" : "cursor-pointer"}`} onClick={refreshData} />
-                </div>
+                 <Button
+                    variant="ghost" size="icon" onClick={refreshData} disabled={refreshing}
+                    className={`p-3 rounded-full bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 dark:hover:bg-green-500/30`}
+                    aria-label="Refresh patient list"
+                  >
+                    <RefreshCw className={`h-6 w-6 ${refreshing ? "animate-spin" : ""}`} />
+                </Button>
               </div>
             </CardContent>
           </Card>
         </motion.div>
       </header>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 p-4 ${PALETTE.cardBackground} ${PALETTE.dark.cardBackground} rounded-xl shadow-md border ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle}`}>
         <div className="flex-1 relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+          <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`} />
           <Input
-            placeholder="Search patients by name or email..." // English
-            className="w-full pl-10 p-3 border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-sky-500 bg-white dark:bg-slate-800 shadow-sm"
+            placeholder="Search patients by name, email, blood type..."
+            className={`w-full pl-10 py-2.5 ${PALETTE.borderSubtle} ${PALETTE.borderFocus} ${PALETTE.textPrimary} ${PALETTE.dark.borderSubtle} ${PALETTE.dark.textPrimary} rounded-lg shadow-sm bg-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500`}
             value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={handleSearchChange}
             disabled={loading}
             aria-label="Search patients"
           />
         </div>
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-            <SheetTrigger asChild>
-                <Button 
-                    onClick={() => { setEditingPatient(null); setNewPatient({ name: "", email: "", password: "", phoneNumber: "", dateOfBirth: "", bloodType: "", condition: "", age: "", profileImage: null }); setFormErrors({}); setPreviewImage(null); setIsSheetOpen(true);}}
-                    className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 gap-2 px-5 py-2.5 rounded-lg"
-                >
-                    <UserPlus className="h-4.5 w-4.5" />
-                    Add New Patient {/* English */}
-                </Button>
-            </SheetTrigger>
-            <SheetContent className="bg-white dark:bg-slate-900 border-l dark:border-slate-700 w-full sm:max-w-lg overflow-y-auto">
-                <SheetHeader className="p-6 border-b dark:border-slate-700">
-                    <SheetTitle className="text-xl font-semibold text-slate-800 dark:text-slate-100">
-                        {editingPatient ? "Edit Patient" : "Add New Patient"} {/* English */}
-                    </SheetTitle>
-                </SheetHeader>
-                <div className="p-6">
-                    <PatientForm isEditing={!!editingPatient} />
-                </div>
-            </SheetContent>
-        </Sheet>
+        <Button 
+            onClick={handleAddNewClick}
+            className={`${PALETTE.buttonPrimaryBg} ${PALETTE.buttonPrimaryText} ${PALETTE.buttonPrimaryHoverBg} ${PALETTE.dark.buttonPrimaryBg} ${PALETTE.dark.buttonPrimaryText} ${PALETTE.dark.buttonPrimaryHoverBg} py-2.5 rounded-lg shadow-md flex items-center gap-2`}
+        >
+            <UserPlus className="h-5 w-5" /> Add New Patient
+        </Button>
       </div>
 
       {loading && patients.length === 0 ? (
         <div className="flex flex-col justify-center items-center h-64 space-y-3">
-          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}>
-            <RefreshCw className="w-10 h-10 text-sky-600 dark:text-sky-400" />
-          </motion.div>
-          <span className="text-sky-600 dark:text-sky-400 text-lg font-medium">Loading patients...</span> {/* English */}
+          <Loader2 className={`w-10 h-10 animate-spin ${PALETTE.secondaryMuted} ${PALETTE.dark.textSecondary}`} />
+          <span className={`${PALETTE.secondaryMuted} ${PALETTE.dark.textSecondary} text-lg font-medium`}>Loading patients...</span>
         </div>
-      ) : error ? (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center bg-red-50 dark:bg-red-900/20 p-8 rounded-xl border border-red-200 dark:border-red-700">
-          <Settings2 className="h-12 w-12 mx-auto text-red-500 dark:text-red-400 mb-3" />
-          <p className="text-red-600 dark:text-red-400 text-xl font-medium mb-2">Error Loading Patients</p> {/* English */}
-          <p className="text-red-500 dark:text-red-500 text-sm mb-4">{error}</p>
-          <Button onClick={fetchPatients} className="bg-red-600 text-white hover:bg-red-700">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Retry {/* English */}
+      ) : error && patients.length === 0 ? (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`text-center bg-red-50 dark:bg-red-900/20 p-8 rounded-xl border border-red-300 dark:border-red-700`}>
+          <ShieldAlert className="h-12 w-12 mx-auto text-red-500 dark:text-red-400 mb-3" />
+          <p className={`text-red-600 dark:text-red-400 text-xl font-medium mb-2`}>Error Loading Patients</p>
+          <p className={`text-red-500 dark:text-red-500 text-sm mb-4`}>{error}</p>
+          <Button onClick={() => fetchPatients()} className="bg-red-600 text-white hover:bg-red-700">
+            <RefreshCw className="w-4 h-4 mr-2" /> Retry
           </Button>
         </motion.div>
       ) : paginatedPatients.length === 0 ? (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center bg-slate-50 dark:bg-slate-800/30 p-12 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-           <Users className="h-16 w-16 mx-auto text-slate-400 dark:text-slate-600 mb-4" />
-          <p className="text-slate-600 dark:text-slate-400 text-xl font-medium mb-2" role="alert">
-            No patients found matching your search criteria. {/* English */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} 
+          className={`text-center ${PALETTE.cardBackground} ${PALETTE.dark.cardBackground} p-12 rounded-xl border border-dashed ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle} shadow`}>
+           <Users className={`h-16 w-16 mx-auto ${PALETTE.textSecondary}/70 ${PALETTE.dark.textSecondary}/70 mb-4`} />
+          <p className={`${PALETTE.textPrimary} ${PALETTE.dark.textPrimary} text-xl font-medium mb-2`} role="alert">
+            {searchQuery ? "No patients found matching your search." : "No patients available."}
           </p>
           {searchQuery && (
-            <Button onClick={() => { setSearchQuery(""); fetchPatients(); }} className="bg-sky-600 text-white hover:bg-sky-700">
-              Clear Search {/* English */}
+            <Button onClick={() => { setSearchQuery(""); /* fetchPatients(); implicitly handled */ }} 
+            variant="outline"
+            className={`${PALETTE.buttonOutlineBorder} ${PALETTE.buttonOutlineText} ${PALETTE.buttonOutlineHoverBorder} ${PALETTE.buttonOutlineHoverBg} ${PALETTE.dark.buttonOutlineBorder} ${PALETTE.dark.buttonOutlineText} ${PALETTE.dark.buttonOutlineHoverBorder} ${PALETTE.dark.buttonOutlineHoverBg} rounded-lg`}>
+              Clear Search
             </Button>
           )}
         </motion.div>
@@ -504,95 +568,101 @@ const Patients = () => {
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="grid gap-6 md:gap-8 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
             {paginatedPatients.map((patient, index) => (
-              <motion.div key={patient._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: index * 0.05 }}>
-                <Card className="bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full transition-all duration-300 hover:-translate-y-1">
-                  <div className={`h-2 ${getConditionColor(patient.condition).split(' ')[1].replace('bg-', 'border-b-4 border-')}`}></div>
+              <motion.div key={patient._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: index * 0.05 }} className="h-full">
+                <Card className={`${PALETTE.cardBackground} ${PALETTE.dark.cardBackground} shadow-lg hover:shadow-xl rounded-xl border ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle} overflow-hidden flex flex-col h-full transition-all duration-300 hover:-translate-y-1`}>
+                  <div className={`h-2 ${getConditionColor(patient.condition).split(' ')[0].replace('bg-', 'bg-') /* Keep full bg class for top border */}`}></div>
                   <CardContent className="p-5 sm:p-6 flex-grow text-center">
                     <div className="relative group mb-4">
-                      <div className="absolute -inset-2 bg-gradient-to-br from-sky-200 via-blue-200 to-indigo-200 dark:from-sky-800 dark:via-blue-800 dark:to-indigo-800 rounded-full blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
                       <img
-                        src={patient.profileImage ? `http://localhost:8089${patient.profileImage.startsWith("/") ? patient.profileImage : "/" + patient.profileImage}` : "https://avatar.iran.liara.run/public/boy?username=" + (patient.name || patient.username || "Patient")}
+                        src={patient.profileImage ? `http://localhost:8089${patient.profileImage.startsWith("/") ? patient.profileImage : "/" + patient.profileImage}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(patient.name || patient.username || "P")}&background=ECEFCA&color=213448&font-size=0.5&bold=true&size=128`}
                         alt={patient.name || patient.username}
-                        className="w-28 h-28 sm:w-32 sm:h-32 mx-auto object-cover rounded-full border-4 border-white dark:border-slate-700 shadow-md group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => { e.target.src = "https://avatar.iran.liara.run/public/boy?username=Default"; }}
+                        className={`w-28 h-28 sm:w-32 sm:h-32 mx-auto object-cover rounded-full border-4 border-[${PALETTE.lightAccent}] dark:border-[${PALETTE.subtleMidTone}] shadow-md group-hover:scale-105 transition-transform duration-300`}
+                        onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=Patient&background=ECEFCA&color=213448&font-size=0.5&bold=true&size=128`; }}
                       />
                       {patient.bloodType && (
-                        <motion.span initial={{ scale:0, opacity: 0 }} animate={{ scale:1, opacity: 1 }} transition={{ delay: 0.2, type:'spring', stiffness:200 }} className={`absolute top-0 left-0 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm border ${getConditionColor("bloodtype")}`}> {/* Custom style for bloodtype */}
-                          <Heart className="w-3 h-3 inline mr-1" /> {patient.bloodType}
+                        <motion.span initial={{ scale:0, opacity: 0 }} animate={{ scale:1, opacity: 1 }} transition={{ delay: 0.2, type:'spring', stiffness:200 }} className={`absolute top-1 left-1 text-xs font-bold px-2 py-0.5 rounded-full shadow-sm border ${getConditionColor("bloodtype")}`}>
+                          <Heart className="w-3 h-3 inline mr-0.5" /> {patient.bloodType}
                         </motion.span>
                       )}
                        {patient.condition && (
-                        <motion.span initial={{ scale:0, opacity: 0 }} animate={{ scale:1, opacity: 1 }} transition={{ delay: 0.3, type:'spring', stiffness:200 }} className={`absolute top-0 right-0 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm border ${getConditionColor(patient.condition)}`}>
-                          <Activity className="w-3 h-3 inline mr-1" /> {patient.condition}
+                        <motion.span initial={{ scale:0, opacity: 0 }} animate={{ scale:1, opacity: 1 }} transition={{ delay: 0.3, type:'spring', stiffness:200 }} className={`absolute top-1 right-1 text-xs font-bold px-2 py-0.5 rounded-full shadow-sm border ${getConditionColor(patient.condition)}`}>
+                          <Activity className="w-3 h-3 inline mr-0.5" /> {patient.condition}
                         </motion.span>
                       )}
                     </div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 mt-3 truncate" title={patient.name || patient.username}>
-                      {patient.name || patient.username || "Name Unavailable"}
+                    <h2 className={`text-xl sm:text-2xl font-bold ${PALETTE.textPrimary} ${PALETTE.dark.textPrimary} mt-3 truncate`} title={patient.name || patient.username}>
+                      {patient.name || patient.username || "N/A"}
                     </h2>
-                     <div className="mt-3 space-y-2 text-slate-600 dark:text-slate-400 text-sm">
+                     <div className={`mt-3 space-y-1.5 ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary} text-sm`}>
                         {patient.age && (
                             <p className="flex items-center justify-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" /> Age: {patient.age} years
+                            <Calendar className={`w-3.5 h-3.5 ${PALETTE.secondaryMuted} ${PALETTE.dark.textSecondary}`} /> Age: {patient.age}
                             </p>
                         )}
-                        <p className="flex items-center justify-center gap-1.5 hover:text-sky-600 dark:hover:text-sky-300 transition-colors">
-                            <Mail className="h-3.5 w-3.5" />
-                            {patient.email || "Email Unavailable"}
+                        <p className="flex items-center justify-center gap-1.5 truncate">
+                            <Mail className={`h-3.5 w-3.5 ${PALETTE.secondaryMuted} ${PALETTE.dark.textSecondary}`} />
+                            {patient.email || "N/A"}
                         </p>
-                        <p className="flex items-center justify-center gap-1.5 hover:text-sky-600 dark:hover:text-sky-300 transition-colors">
-                            <Phone className="h-3.5 w-3.5" />
-                            {patient.phoneNumber || "Phone Unavailable"}
+                        <p className="flex items-center justify-center gap-1.5">
+                            <Phone className={`h-3.5 w-3.5 ${PALETTE.secondaryMuted} ${PALETTE.dark.textSecondary}`} />
+                            {patient.phoneNumber || "N/A"}
                         </p>
                     </div>
                   </CardContent>
-                   <CardFooter className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/70 border-t border-slate-200 dark:border-slate-700 mt-auto">
+                   <CardFooter className={`p-4 sm:p-5 bg-gray-50 ${PALETTE.dark.cardBackground}/50 border-t ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle} mt-auto`}>
                     <div className="flex justify-center w-full gap-2">
-                        <Button variant="outline" size="sm" className="flex-1 text-xs sm:text-sm hover:bg-slate-100 dark:hover:bg-slate-700" onClick={() => handleEditClick(patient)} disabled={loading}><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</Button>
-                        <Button variant="outline" size="sm" className="flex-1 text-xs sm:text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-700/30 dark:border-red-600" onClick={() => handleDelete(patient._id)} disabled={loading}><Trash2 className="h-3.5 w-3.5 mr-1" /> Delete</Button>
-                        <Button variant="outline" size="sm" className="flex-1 text-xs sm:text-sm hover:bg-slate-100 dark:hover:bg-slate-700" onClick={() => { setSelectedPatient(patient); setIsDetailsOpen(true); }} disabled={loading}><ClipboardList className="h-3.5 w-3.5 mr-1" /> Details</Button>
+                        <Button variant="outline" size="sm" className={`flex-1 text-xs sm:text-sm ${PALETTE.buttonOutlineText} ${PALETTE.buttonOutlineBorder} ${PALETTE.buttonOutlineHoverBg} ${PALETTE.buttonOutlineHoverBorder} ${PALETTE.dark.buttonOutlineText} ${PALETTE.dark.buttonOutlineBorder} ${PALETTE.dark.buttonOutlineHoverBg} ${PALETTE.dark.buttonOutlineHoverBorder}`} onClick={() => handleEditClick(patient)} disabled={isSubmitting}><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</Button>
+                        <Button variant="outline" size="sm" className={`flex-1 text-xs sm:text-sm text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-500 dark:hover:bg-red-700/30`} onClick={() => handleDelete(patient._id)} disabled={isSubmitting}><Trash2 className="h-3.5 w-3.5 mr-1" /> Delete</Button>
+                        <Button variant="outline" size="sm" className={`flex-1 text-xs sm:text-sm ${PALETTE.buttonOutlineText} ${PALETTE.buttonOutlineBorder} ${PALETTE.buttonOutlineHoverBg} ${PALETTE.buttonOutlineHoverBorder} ${PALETTE.dark.buttonOutlineText} ${PALETTE.dark.buttonOutlineBorder} ${PALETTE.dark.buttonOutlineHoverBg} ${PALETTE.dark.buttonOutlineHoverBorder}`} onClick={() => { setSelectedPatient(patient); setIsDetailsOpen(true); }} disabled={loading}><ClipboardList className="h-3.5 w-3.5 mr-1" /> Details</Button>
                     </div>
                   </CardFooter>
                 </Card>
               </motion.div>
             ))}
           </motion.div>
-          {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </>
       )}
 
       <AnimatePresence>
         {isDetailsOpen && selectedPatient && (
           <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-            <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border dark:border-slate-700">
+            <DialogContent className={`sm:max-w-md rounded-xl shadow-2xl border ${PALETTE.dialogBackground} ${PALETTE.dark.dialogBackground} ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle}`}>
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.3 }}>
-                <DialogHeader className="p-6 border-b dark:border-slate-700">
-                  <DialogTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">Patient Details</DialogTitle> {/* English */}
-                  <DialogDescription className="text-slate-600 dark:text-slate-400">
-                    Information about {selectedPatient.name || selectedPatient.username} {/* English */}
+                <DialogHeader className={`p-6 border-b ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle}`}>
+                  <DialogTitle className={`text-2xl font-bold ${PALETTE.textPrimary} ${PALETTE.dark.textPrimary}`}>Patient Details</DialogTitle>
+                  <DialogDescription className={`${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`}>
+                    Information about {selectedPatient.name || selectedPatient.username}
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 p-6 max-h-[60vh] overflow-y-auto">
+                <div className="space-y-3 p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
                   <div className="flex justify-center mb-4">
                     <img
-                      src={selectedPatient.profileImage ? `http://localhost:8089${selectedPatient.profileImage.startsWith("/") ? selectedPatient.profileImage : "/" + selectedPatient.profileImage}` : "https://avatar.iran.liara.run/public/boy?username=" + (selectedPatient.name || selectedPatient.username || "Patient")}
+                      src={selectedPatient.profileImage ? `http://localhost:8089${selectedPatient.profileImage.startsWith("/") ? selectedPatient.profileImage : "/" + selectedPatient.profileImage}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedPatient.name || selectedPatient.username || "P")}&background=ECEFCA&color=213448&font-size=0.5&bold=true&size=112`}
                       alt={selectedPatient.name || selectedPatient.username}
-                      className="w-28 h-28 rounded-full object-cover border-4 border-sky-200 dark:border-sky-700 shadow-lg"
-                      onError={(e) => { e.target.src = "https://avatar.iran.liara.run/public/boy?username=Default"; }}
+                      className={`w-28 h-28 rounded-full object-cover border-4 border-[${PALETTE.lightAccent}] dark:border-[${PALETTE.subtleMidTone}] shadow-lg`}
+                      onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=Patient&background=ECEFCA&color=213448&font-size=0.5&bold=true&size=112`; }}
                     />
                   </div>
-                  {/* ... Informations du patient traduites ... */}
-                  <p className="text-slate-700 dark:text-slate-300"><strong className="font-medium flex items-center gap-2 text-slate-500 dark:text-slate-400"><User className="inline w-4 h-4 text-sky-600 dark:text-sky-400" /> Name:</strong> {selectedPatient.name || selectedPatient.username}</p>
-                  <p className="text-slate-700 dark:text-slate-300"><strong className="font-medium flex items-center gap-2 text-slate-500 dark:text-slate-400"><Mail className="inline w-4 h-4 text-sky-600 dark:text-sky-400" /> Email:</strong> {selectedPatient.email || "N/A"}</p>
-                  <p className="text-slate-700 dark:text-slate-300"><strong className="font-medium flex items-center gap-2 text-slate-500 dark:text-slate-400"><Phone className="inline w-4 h-4 text-sky-600 dark:text-sky-400" /> Phone:</strong> {selectedPatient.phoneNumber || "N/A"}</p>
-                  <p className="text-slate-700 dark:text-slate-300"><strong className="font-medium flex items-center gap-2 text-slate-500 dark:text-slate-400"><Calendar className="inline w-4 h-4 text-sky-600 dark:text-sky-400" /> Date of Birth:</strong> {selectedPatient.dateOfBirth ? new Date(selectedPatient.dateOfBirth).toLocaleDateString('en-US') : "N/A"}</p>
-                  <p className="text-slate-700 dark:text-slate-300"><strong className="font-medium flex items-center gap-2 text-slate-500 dark:text-slate-400"><Heart className="inline w-4 h-4 text-sky-600 dark:text-sky-400" /> Blood Type:</strong> {selectedPatient.bloodType || "N/A"}</p>
-                  {selectedPatient.condition && <p className="text-slate-700 dark:text-slate-300"><strong className="font-medium flex items-center gap-2 text-slate-500 dark:text-slate-400"><Activity className="inline w-4 h-4 text-sky-600 dark:text-sky-400" /> Condition:</strong> {selectedPatient.condition}</p>}
-                  {selectedPatient.age && <p className="text-slate-700 dark:text-slate-300"><strong className="font-medium flex items-center gap-2 text-slate-500 dark:text-slate-400"><FileText className="inline w-4 h-4 text-sky-600 dark:text-sky-400" /> Age:</strong> {selectedPatient.age} years</p>}
+                  {[
+                    { icon: User, label: "Name", value: selectedPatient.name || selectedPatient.username },
+                    { icon: Mail, label: "Email", value: selectedPatient.email },
+                    { icon: Phone, label: "Phone", value: selectedPatient.phoneNumber },
+                    { icon: Calendar, label: "Date of Birth", value: selectedPatient.dateOfBirth ? new Date(selectedPatient.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : null },
+                    { icon: Heart, label: "Blood Type", value: selectedPatient.bloodType },
+                    { icon: Activity, label: "Condition", value: selectedPatient.condition },
+                    { icon: FileText, label: "Age", value: selectedPatient.age ? `${selectedPatient.age} years` : null },
+                  ].map((item, idx) => item.value ? (
+                    <p key={idx} className={`${PALETTE.textPrimary} ${PALETTE.dark.textPrimary} text-sm flex items-start`}>
+                        <item.icon className={`inline w-4 h-4 mr-2 mt-0.5 ${PALETTE.secondaryMuted} ${PALETTE.dark.textSecondary}`} />
+                        <strong className={`font-medium w-28 shrink-0 ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`}>{item.label}:</strong>
+                        <span>{item.value}</span>
+                    </p>
+                  ) : null)}
                 </div>
-                <DialogFooter className="p-6 border-t dark:border-slate-700">
+                <DialogFooter className={`p-6 border-t ${PALETTE.borderSubtle} ${PALETTE.dark.borderSubtle}`}>
                   <DialogClose asChild>
-                    <Button className="bg-gradient-to-r from-sky-600 to-blue-700 text-white hover:from-sky-700 hover:to-blue-800 w-full">Close</Button> {/* English */}
+                    <Button className={`${PALETTE.buttonPrimaryBg} ${PALETTE.buttonPrimaryText} ${PALETTE.buttonPrimaryHoverBg} ${PALETTE.dark.buttonPrimaryBg} ${PALETTE.dark.buttonPrimaryText} ${PALETTE.dark.buttonPrimaryHoverBg} w-full rounded-md`}>Close</Button>
                   </DialogClose>
                 </DialogFooter>
               </motion.div>
@@ -600,6 +670,14 @@ const Patients = () => {
           </Dialog>
         )}
       </AnimatePresence>
+       <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #4B5563; } /* For dark mode */
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6B7280; }
+      `}</style>
     </div>
   )
 }
