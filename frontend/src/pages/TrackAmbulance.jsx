@@ -246,7 +246,7 @@ export default function TrackAmbulance() {
               <div className="flex justify-center mt-6">
                 <Button onClick={() => navigate("/home")} style={{ backgroundColor: colors.primary }}>
                   <Home className="mr-2 h-4 w-4" />
-                  Return to Home
+                
                 </Button>
               </div>
             </CardContent>
@@ -482,14 +482,14 @@ export default function TrackAmbulance() {
 
           <CardFooter className="pt-2 pb-6">
            <Button 
-  onClick={() => navigate("/home")} 
+  onClick={() => navigate("/document")} 
   style={{ 
     backgroundColor: colors.primary,
     color: "#ECEFCA"
   }}
 >
   <Home className="mr-2 h-4 w-4" />
-  Return to Home
+  See your record
 </Button>
           </CardFooter>
         </Card>

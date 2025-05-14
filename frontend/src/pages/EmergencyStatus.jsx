@@ -261,8 +261,8 @@ const EmergencyStatus = () => {
                                             className="text-white"
                                             style={{ backgroundColor: colors.primary }} // Removed hover style from inline for consistency
                                          >
-                                            <Link to="/document">
-                                               View your medical record
+                                            <Link to="/request-ambulance">
+                                               Check Ambulance
                                             </Link>
                                         </Button>
                                     )}
