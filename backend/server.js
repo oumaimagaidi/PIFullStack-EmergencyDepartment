@@ -10,6 +10,7 @@ import { Server as SocketIOServer } from "socket.io"; // Use the alias you defin
 import jwt from 'jsonwebtoken'; // Keep JWT import
 import ocrRouter from "./routes/ocr.js"
 import connectDB from "./db.js";
+import modelInputRoutes from './routes/modelInput.routes.js';
 
 // Route Imports
 import authRoutes from "./routes/auth.js";

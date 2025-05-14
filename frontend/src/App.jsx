@@ -40,6 +40,9 @@ import AmbulanceCheck from "./pages/AmbulanceCheck";
 import Records from "./pages/Records";
 import ActiveBloodRequestsPage from "./pages/ActiveBloodRequestsPage";
 import ManageBloodRequestes from "./components/staff/ManageBloodRequestsPage";
+import Requestambulance from "./pages/RequestAmbulance";
+import ChooseAmbulance from "./pages/ChooseAmbulance";
+import TrackAmbulance from "./pages/TrackAmbulance";
 
 function AppContent() {
   useAccessibilityTTS(); // Appel du hook pour activer l'accessibilité
@@ -66,7 +69,11 @@ function AppContent() {
           <Route path="/emergency-confirmation" element={<MainLayout><ConfirmationEmergencyRegister /></MainLayout>} />
           <Route path="/emergency-status" element={<MainLayout><EmergencyStatus /></MainLayout>} />
           <Route path="/ambulance_check" element={<MainLayout><AmbulanceCheck /></MainLayout>} />
-          <Route path="/blood-requests/active" element={<MainLayout><ActiveBloodRequestsPage/></MainLayout>} />
+              <Route path="/blood-requests/active" element={<MainLayout><ActiveBloodRequestsPage/></MainLayout>} />
+ <Route path="/request-ambulance" element={<MainLayout><Requestambulance /></MainLayout>} />
+        <Route path="/choose-ambulance/:id" element={<MainLayout><ChooseAmbulance /></MainLayout>} />
+        <Route path="/track-ambulance/:id" element={<MainLayout><TrackAmbulance /></MainLayout>} />
+
 
           <Route path="/hexa" element={<HexGrid />} />
 
