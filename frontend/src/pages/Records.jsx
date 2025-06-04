@@ -6,7 +6,19 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 import Cookies from "js-cookie"
 import { useNavigate } from "react-router-dom"
-import { AlertCircle, FileText, User, Activity, Clock, AlertTriangle, Search, Users, Loader2, ShieldAlert } from "lucide-react"
+import { 
+  AlertCircle, 
+  FileText, 
+  User, 
+  Activity, 
+  Clock, 
+  AlertTriangle, 
+  Search, 
+  Users, 
+  Loader2, 
+  ShieldAlert,
+  Brain // Added Brain icon for prediction
+} from "lucide-react"
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -27,11 +39,11 @@ const PALETTE = {
   cardBackground: "#FFFFFF",
   textPrimary: "text-[#213448]",
   textSecondary: "text-[#547792]",
-  textLight: "text-[#ECEFCA]",
+  textLight: "text-[#ECEFCA]", // Used for text on dark badges
   borderSubtle: "border-gray-200/90",
   borderFocus: "focus:ring-[#547792] focus:border-[#547792]",
   buttonPrimaryBg: "bg-[#547792]",
-  buttonPrimaryText: "text-[#213448]",
+  buttonPrimaryText: "text-[#213448]", // Text for primary button (often dark text on lighter bg)
   buttonPrimaryHoverBg: "hover:bg-[#547792]",
   buttonOutlineBorder: "border-[#94B4C1]",
   buttonOutlineText: "text-[#547792]",
@@ -45,6 +57,8 @@ const PALETTE = {
     textPrimary: "dark:text-slate-100",
     textSecondary: "dark:text-slate-400",
     borderSubtle: "dark:border-slate-700",
+    buttonPrimaryBg: "dark:bg-sky-600", // Example dark mode primary button
+    buttonPrimaryText: "dark:text-slate-100",
   }
 };
 
@@ -56,6 +70,13 @@ const BADGE_STYLES = {
   default: `bg-gray-200 ${PALETTE.textPrimary} border-gray-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600`,
 };
 
+// --- Prediction Badge Styles ---
+const PREDICTION_BADGE_STYLES = {
+  admit: `bg-blue-500 ${PALETTE.textLight} border-blue-600`,
+  discharge: `bg-emerald-500 ${PALETTE.textLight} border-emerald-600`,
+  default: `bg-slate-400 ${PALETTE.textLight} border-slate-500 dark:bg-slate-600 dark:text-slate-200 dark:border-slate-500`,
+};
+
 const Records = () => {
   const [patients, setPatients] = useState([])
   const [filteredPatients, setFilteredPatients] = useState([])
@@ -65,10 +86,10 @@ const Records = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const navigate = useNavigate()
 
-  useEffect(() => { /* ... (unchanged) ... */
+  useEffect(() => {
     const token = Cookies.get("token")
     if (!token) {
-      setError("Doctor not logged in. Please log in.") // English error
+      setError("Doctor not logged in. Please log in.")
       setLoading(false)
       return
     }
@@ -76,13 +97,13 @@ const Records = () => {
       const payload = JSON.parse(atob(token.split(".")[1]))
       setDoctorId(payload.id)
     } catch (err) {
-      setError("Error decoding token.") // English error
+      setError("Error decoding token.")
       console.error("Token decoding error:", err)
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => { /* ... (unchanged) ... */
+  useEffect(() => {
     const fetchPatients = async () => {
       if (!doctorId) return
       try {
@@ -91,12 +112,13 @@ const Records = () => {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         })
+        // The prediction field should be included by default if it's in the EmergencyPatient model
         const sortedPatients = (res.data || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setPatients(sortedPatients);
         setFilteredPatients(sortedPatients);
       } catch (err) {
         console.error("Error fetching patients:", err)
-        setError("Error loading patient records.") // English error
+        setError("Error loading patient records.")
       } finally {
         setLoading(false)
       }
@@ -104,7 +126,7 @@ const Records = () => {
     fetchPatients()
   }, [doctorId])
 
-  useEffect(() => { /* ... (unchanged) ... */
+  useEffect(() => {
     if (searchTerm.trim() === "") {
       setFilteredPatients(patients)
     } else {
@@ -114,13 +136,14 @@ const Records = () => {
           `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(lowerSearchTerm) ||
           patient.emergencyLevel?.toLowerCase().includes(lowerSearchTerm) ||
           patient.currentSymptoms?.toLowerCase().includes(lowerSearchTerm) ||
-          patient.status?.toLowerCase().includes(lowerSearchTerm)
+          patient.status?.toLowerCase().includes(lowerSearchTerm) ||
+          patient.prediction?.toLowerCase().includes(lowerSearchTerm) // Added prediction to search
       )
       setFilteredPatients(filtered)
     }
   }, [searchTerm, patients])
 
-  const handleViewMedicalRecord = (medicalRecordId) => { /* ... (unchanged) ... */
+  const handleViewMedicalRecord = (medicalRecordId) => {
     if (medicalRecordId) {
       navigate(`/medical-records/${medicalRecordId}`)
     }
@@ -128,7 +151,7 @@ const Records = () => {
   
   const getEmergencyLevelBadgeClasses = (level) => {
     switch (level?.toLowerCase()) {
-      case "high": case "élevé": case "urgent": return BADGE_STYLES.urgent;
+      case "high": case "élevé": case "urgent": case "critical": return BADGE_STYLES.urgent; // Grouped critical with urgent
       case "medium": case "moyen": return BADGE_STYLES.medium;
       case "low": case "faible": return BADGE_STYLES.low;
       default: return BADGE_STYLES.default;
@@ -137,10 +160,19 @@ const Records = () => {
 
   const getEmergencyLevelBorderColor = (level) => {
     switch (level?.toLowerCase()) {
-        case "high": case "élevé": case "urgent": return "border-red-500";
+        case "high": case "élevé": case "urgent": case "critical": return "border-red-500";
         case "medium": case "moyen": return "border-amber-500";
         case "low": case "faible": return "border-sky-500";
         default: return `border-[${PALETTE.subtleMidTone}] ${PALETTE.dark.borderSubtle}`;
+    }
+  };
+
+  // --- Helper for Prediction Badge Classes ---
+  const getPredictionBadgeClasses = (prediction) => {
+    switch (prediction?.toLowerCase()) {
+      case "admit": return PREDICTION_BADGE_STYLES.admit;
+      case "discharge": return PREDICTION_BADGE_STYLES.discharge;
+      default: return PREDICTION_BADGE_STYLES.default; // For null or other unexpected values
     }
   };
 
@@ -217,7 +249,7 @@ const Records = () => {
         <TabsContent value="urgent" className="mt-6">
           {renderPatientsList(
             filteredPatients.filter(
-              (p) => ["high", "urgent", "élevé"].includes(p.emergencyLevel?.toLowerCase())
+              (p) => ["high", "urgent", "élevé", "critical"].includes(p.emergencyLevel?.toLowerCase())
             ),
           )}
         </TabsContent>
@@ -231,8 +263,6 @@ const Records = () => {
           <SharedRecordsTab /> {/* Ensure this component is also themed */}
         </TabsContent>
       </Tabs>
-       {/* ShareMedicalRecordButton might be used within each patient card or as a general action */}
-       {/* <ShareMedicalRecordButton patientId={"somePatientId"} doctorId={doctorId} /> */}
     </div>
   )
 
@@ -280,6 +310,17 @@ const Records = () => {
                 <span className={`font-medium ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`}>Status:</span>
                 <span className={`ml-1.5 ${PALETTE.textPrimary} ${PALETTE.dark.textPrimary}`}>{patient.status || "Not defined"}</span>
               </div>
+              {/* --- Prediction Display --- */}
+              {patient.prediction && (
+                <div className="flex items-center">
+                  <Brain className={`h-4 w-4 mr-2 ${PALETTE.secondaryMuted} ${PALETTE.dark.textSecondary} shrink-0`} />
+                  <span className={`font-medium ${PALETTE.textSecondary} ${PALETTE.dark.textSecondary}`}>Prediction:</span>
+                  <Badge className={`ml-1.5 text-xs px-1.5 py-0.5 ${getPredictionBadgeClasses(patient.prediction)}`}>
+                    {patient.prediction}
+                  </Badge>
+                </div>
+              )}
+              {/* --- End Prediction Display --- */}
               {!patient.medicalRecord && (
                 <div className="flex items-center text-amber-600 dark:text-amber-400 pt-1">
                   <AlertTriangle className="h-4 w-4 mr-2 shrink-0" />
@@ -291,7 +332,7 @@ const Records = () => {
               <Button
                 onClick={() => handleViewMedicalRecord(patient.medicalRecord?._id || patient.medicalRecord)}
                 disabled={!patient.medicalRecord}
-                className={`w-full ${patient.medicalRecord ? `${PALETTE.buttonPrimaryBg} ${PALETTE.buttonPrimaryText} ${PALETTE.buttonPrimaryHoverBg} ${PALETTE.dark.buttonPrimaryBg} ${PALETTE.dark.buttonPrimaryText}` : `${PALETTE.buttonOutlineBorder} ${PALETTE.buttonOutlineText} cursor-not-allowed opacity-70`} rounded-md shadow-sm`}
+                className={`w-full ${patient.medicalRecord ? `${PALETTE.buttonPrimaryBg} ${PALETTE.buttonPrimaryText} ${PALETTE.buttonPrimaryHoverBg} dark:${PALETTE.dark.buttonPrimaryBg} dark:${PALETTE.dark.buttonPrimaryText}` : `${PALETTE.buttonOutlineBorder} ${PALETTE.buttonOutlineText} cursor-not-allowed opacity-70`} rounded-md shadow-sm`}
               >
                 <FileText className="h-4 w-4 mr-2" />
                 {patient.medicalRecord ? "View Record" : "Record Unavailable"}
@@ -308,4 +349,4 @@ const Records = () => {
   }
 }
 
-export default Records
+export default Records;
